@@ -26,6 +26,9 @@ EXTRA_DIST = \
 BE_SCAN_INCS = \
 	be_scan.h
 
+libbe_scan_la_CPPFLAGS = \
+	-I${top_srcdir}/cassandra
+
 libbe_scan_la_LDFLAGS = -PIC -avoid-version -static -no-undefined
 
 libbe_scan_la_SOURCES = $(BE_SCAN_INCS)
