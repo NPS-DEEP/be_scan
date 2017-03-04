@@ -26,10 +26,26 @@ EXTRA_DIST = \
 BE_SCAN_INCS = \
 	be_scan.h
 
+# scanners based on GNUflex
+FLEX_INCS = \
+	scan_email.flex
+
 libbe_scan_la_CPPFLAGS = \
 	-I${top_srcdir}/cassandra
 
 libbe_scan_la_LDFLAGS = -PIC -avoid-version -static -no-undefined
 
-libbe_scan_la_SOURCES = $(BE_SCAN_INCS)
+libbe_scan_la_SOURCES = $(BE_SCAN_INCS) $(FLEX_INCS)
+
+#
+# Rule to compile .flex into a .o
+# FreeBSD NOTE: flex does not support -R and -o does not work properly
+# | sed "s/static int yy_get_next_buffer/static int XXyy_get_next_buffer/" 
+
+SUFFIXES = .flex
+FLEX_CXXFLAGS=-Wno-shadow -Wno-effc++ -Wno-redundant-decls -Wno-missing-noreturn
+.flex.o:
+	$(LEX) -R -t $<  > `basename $@ .o`.cpp 
+	$(CXX) $(CPPFLAGS) $(AM_CPPFLAGS) $(CXXFLAGS) $(FLEX_CXXFLAGS) \
+		-I${top_srcdir} -I${srcdir} -I.. -I../../_build -c `basename $@ .o`.cpp 
 
