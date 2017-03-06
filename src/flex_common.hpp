@@ -17,11 +17,15 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-#ifndef FLEX_BUFFER_READER_HPP
-#define FLEX_BUFFER_READER_HPP
+#ifndef FLEX_COMMON_HPP
+#define FLEX_COMMON_HPP
 
 #include <stdint.h>
 
+// ************************************************************
+// Define be_scan::flex_buffer_reader_t for reading from char[]
+// instead of from FILE*.
+// ************************************************************
 namespace be_scan {
 
   /* Glue so flex can read from a byte buffer. */
@@ -56,6 +60,40 @@ namespace be_scan {
       }
     }
   }
-}
+
+// ************************************************************
+// Ease compiler warnings
+// ************************************************************
+/*
+zz leave warnings alone?
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wredundant-decls"
+#pragma GCC diagnostic ignored "-Wmissing-noreturn"
+
+#ifdef HAVE_DIAGNOSTIC_EFFCPP
+#pragma GCC diagnostic ignored "-Weffc++"
+#endif
+
+#ifdef HAVE_DIAGNOSTIC_DEPRECATED_REGISTER
+#pragma GCC diagnostic ignored "-Wdeprecated-register"
+#endif
+*/
+
+// ************************************************************
+// Define FLEX macros
+// ************************************************************
+#define YY_NO_INPUT
+#define ECHO {}                   /* Never echo anything */
+#define YY_SKIP_YYWRAP            /* Never wrap */
+#define YY_NO_INPUT
+#define YY_INPUT(buf,result,max_size) result = get_extra(yyscanner)->get_input(buf,max_size);
+
+// note that scanner-specific macros are also defined in scan_*.flex.
+
+} // end namespace
+
+
+
+
 #endif
 

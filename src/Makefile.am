@@ -28,6 +28,7 @@ BE_SCAN_INCS = \
 
 # scanners based on GNUflex
 FLEX_INCS = \
+	flex_common.hpp \
 	scan_email.flex
 
 libbe_scan_la_CPPFLAGS = \
