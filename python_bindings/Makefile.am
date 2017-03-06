@@ -29,10 +29,10 @@ BUILT_SOURCES = be_scan_wrap.cpp
 # note that SWIG creates be_scan_wrap.c and be_scan.py
 # SWIG needs to find be_scan.hpp to prepare Python interfaces
 be_scan_wrap.cpp: be_scan.i \
-               ${top_srcdir}/src_libbe_scan/be_scan.hpp \
+               ${top_srcdir}/src/be_scan.hpp \
                ../src_libbe_scan/libbe_scan.la
 	rm -f be_scan.hpp
-	ln -s ${top_srcdir}/src_libbe_scan/be_scan.hpp .
+	ln -s ${top_srcdir}/src/be_scan.hpp .
 	$(SWIG) $(AX_SWIG_PYTHON_OPT) -threads -o $@ $<
 	rm be_scan.hpp
 

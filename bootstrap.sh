@@ -5,9 +5,9 @@ if [ ! -e config.guess -o ! -e config.sub -o ! -e install-sh -o ! -e missing ]; 
     autoheader -f
     touch NEWS README AUTHORS ChangeLog
     touch stamp-h
+    libtoolize || glibtoolize
     aclocal -I m4
     autoconf -f
-    #libtoolize || glibtoolize
     automake --add-missing --copy
 else
     automake --add-missing --copy

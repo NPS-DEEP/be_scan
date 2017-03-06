@@ -12,8 +12,9 @@ AC_CONFIG_MACRO_DIR(m4)
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  java_bindings/Makefile
-                 python_bindings/Makefile
-                 test/Makefile])
+                ])
+#                 python_bindings/Makefile
+#                 test/Makefile
 
 
 # define CC and CXX as desired for alternate compilers

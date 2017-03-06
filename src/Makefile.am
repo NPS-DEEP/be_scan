@@ -31,6 +31,8 @@ FLEX_INCS = \
 	flex_common.hpp \
 	scan_email.flex
 
+lib_LTLIBRARIES = libbe_scan.la
+
 libbe_scan_la_CPPFLAGS = \
 	-I${top_srcdir}/cassandra
 

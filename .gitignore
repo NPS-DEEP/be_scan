@@ -2,28 +2,79 @@
 *.slo
 *.lo
 *.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
 
 # Compiled Dynamic libraries
 *.so
 *.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
 
 # Compiled Static libraries
-*.lai
 *.la
 *.a
-*.lib
 
-# Executables
-*.exe
+# misc
+*.d
+*.dSYM
+*.log
+*.o
+*.so
+*.swp
+*.swo
+*.swn
+*.trs
+*~
+.deps
+libtool
+Makefile
+Makefile.in
+*.zip
+aclocal.m4
+autom4te.cache
+config.guess
+config.h
+config.h.in
+config.status
+config.sub
+configure
+*.dirstamp
+depcomp
+install-sh
+missing
+AUTHORS
+ChangeLog
+INSTALL
+NEWS
+README
+ltmain.sh
+test-driver
+src/Makefile
+src/Makefile.in
+stamp-h
+stamp-h1
+build
+build_gcc
+*.pdf
+.DS_Store
+out-*/
+src/TAGS
+TAGS
+core.*
+src/.libs
+test/*_test
+test/temp_*
+test_py/temp_*
+*.tar.gz
+space
+
+# python
+__pycache__
+*.pyc
+py-compile
+
+# doc
+*.aux
+*.blg
 *.out
-*.app
+*.toc
+
+# temporary
+datastax

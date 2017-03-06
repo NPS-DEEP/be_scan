@@ -72,7 +72,7 @@ namespace be_scan {
     /**
      * Close be_scan connection.  Does nothing if not connected.
      */
-    close();
+    void close();
 
     /**
      * Scan for email.
