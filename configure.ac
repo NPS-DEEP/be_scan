@@ -24,12 +24,13 @@ AC_CONFIG_FILES([Makefile
 
 AC_CONFIG_HEADER([config.h])
 AM_INIT_AUTOMAKE([subdir-objects])
-AC_PREFIX_PROGRAM(be_scan)
+#AC_PREFIX_PROGRAM(be_scan)
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
-AC_DISABLE_STATIC
+#AC_DISABLE_STATIC
+AC_PROG_LEX
 
 # use C++11 mode if available; HAVE_CXX11 is defined in config.h if so.  Don't
 # use the GNU C++11 extensions for portability's sake (noext).
@@ -50,6 +51,24 @@ AM_PATH_PYTHON([2.7],, [:])
 AM_CONDITIONAL([HAVE_PYTHON], [test "$PYTHON" != :])
 if test "$PYTHON" == : ; then
   AC_MSG_ERROR([Python is not available.])
+fi
+
+################################################################
+## FLEX
+if test x"$LEX" == x ; then
+  AC_MSG_ERROR([flex required.])
+fi  
+
+if test `basename "$LEX"` != flex; then
+  AC_MSG_ERROR([gnu flex is required.])
+fi
+
+## Determine if we can use flex -R
+if eval "echo %% | $LEX -R -t > /dev/null 2>&1"
+then 
+  AC_MSG_NOTICE([$LEX supports -R])
+else
+  AC_MSG_ERROR([$LEX does not support -R.  Please get a modern version of gnu flex])
 fi
 
 ################################################################

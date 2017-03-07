@@ -26,7 +26,6 @@ namespace be_scan {
   /**
    * Version of the be_scan library.
    */
-  extern "C"
   const char* version() {
     return PACKAGE_VERSION;
   }

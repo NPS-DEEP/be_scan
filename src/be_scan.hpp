@@ -51,11 +51,11 @@ namespace be_scan {
 
     be_scan_t(const std::string& contact_point);
 
-    write(const std::string& filename,
-          const uint64_t file_offset,
-          const std::string& recursion_path,
-          const std::string& artifact_class,
-          const std::string& artifact);
+    std::string write(const std::string& filename,
+                      const uint64_t file_offset,
+                      const std::string& recursion_path,
+                      const std::string& artifact_class,
+                      const std::string& artifact);
 
     public:
     /**

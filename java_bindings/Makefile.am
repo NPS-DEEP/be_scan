@@ -54,3 +54,6 @@ be_scan_wrap.cpp: be_scan.i \
 #zz??# c++ flags for compiling _hashdb.la
 #zz??_hashdb_la_CPPFLAGS = ${PYTHON_CPPFLAGS} -Wno-deprecated-register -I${top_srcdir}/src_libhashdb
 
+
+clean-local:
+	rm -rf edu/nps/deep/be_scan/be_scan* be_scan_wrap.cpp

@@ -1,11 +1,9 @@
-// Vim note: for C style language highlighting in Vim: ":setf c"
+/* Vim note: for C style language highlighting in Vim: ":setf c" */
 
 /* This code is adapted from bulk_extractor.
  */
 
-// ************************************************************
-// FLEX Definitions
-// ************************************************************
+/* ******************** FLEX Definitions ******************** */
 %{
 
 #include "config.h"
@@ -55,9 +53,7 @@ U_TLD3		(L\0A\0|L\0B\0|L\0C\0|L\0I\0|L\0K\0|L\0R\0|L\0S\0|L\0T\0|L\0U\0|L\0V\0|L
 U_TLD4		(Q\0A\0|R\0E\0|R\0O\0|R\0S\0|R\0U\0|R\0W\0|S\0A\0|S\0B\0|S\0C\0|S\0D\0|S\0E\0|S\0G\0|S\0H\0|S\0I\0|S\0J\0|S\0K\0|S\0L\0|S\0M\0|S\0N\0|S\0O\0|S\0R\0|S\0T\0|S\0U\0|S\0V\0|S\0Y\0|S\0Z\0|T\0C\0|T\0D\0|T\0E\0L\0|T\0F\0|T\0G\0|T\0H\0|T\0J\0|T\0K\0|T\0L\0|T\0M\0|T\0N\0|T\0O\0|T\0P\0|T\0R\0|T\0R\0A\0V\0E\0L\0|T\0T\0|T\0V\0|T\0W\0|T\0Z\0|U\0A\0|U\0G\0|U\0K\0|U\0M\0|U\0S\0|U\0Y\0|U\0Z\0|V\0A\0|V\0C\0|V\0E\0|V\0G\0|V\0I\0|V\0N\0|V\0U\0|W\0F\0|W\0S\0|Y\0E\0|Y\0T\0|Y\0U\0|Z\0A\0|Z\0M\0|Z\0W\0)
 
 
-// ************************************************************
-// FLEX Rules
-// ************************************************************
+/* ******************** FLEX Rules ******************** */
 %%
 
 {EMAIL}/[^a-zA-Z]	{
@@ -95,10 +91,8 @@ U_TLD4		(Q\0A\0|R\0E\0|R\0O\0|R\0S\0|R\0U\0|R\0W\0|S\0A\0|S\0B\0|S\0C\0|S\0D\0|S
 }
 
 
-// ************************************************************
-// FLEX User Code
-// ************************************************************
 %%
+/* ******************** FLEX User Code ******************** */
 
 std::string scan_email(const std::string& filename,
                        const size_t offset,

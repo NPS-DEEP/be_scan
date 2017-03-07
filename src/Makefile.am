@@ -19,12 +19,11 @@
 
 # This file assists in building libbe_scan.so
 
-EXTRA_DIST = \
-	liblmdb/COPYRIGHT \
-	liblmdb/LICENSE
+CLEANFILES = scan_email.cpp
 
 BE_SCAN_INCS = \
-	be_scan.h
+	be_scan.hpp \
+	version.cpp
 
 # scanners based on GNUflex
 FLEX_INCS = \
@@ -38,17 +37,23 @@ libbe_scan_la_CPPFLAGS = \
 
 libbe_scan_la_LDFLAGS = -PIC -avoid-version -static -no-undefined
 
-libbe_scan_la_SOURCES = $(BE_SCAN_INCS) $(FLEX_INCS)
+#libbe_scan_la_SOURCES = $(BE_SCAN_INCS) $(FLEX_INCS)
+libbe_scan_la_SOURCES = scan_email.flex version.cpp
+
+include_HEADERS = be_scan.hpp
+
+.flex.cpp:
+	$(LEX) -R -t $<  > `basename $@ .o`.cpp 
 
 #
 # Rule to compile .flex into a .o
 # FreeBSD NOTE: flex does not support -R and -o does not work properly
 # | sed "s/static int yy_get_next_buffer/static int XXyy_get_next_buffer/" 
 
-SUFFIXES = .flex
-FLEX_CXXFLAGS=-Wno-shadow -Wno-effc++ -Wno-redundant-decls -Wno-missing-noreturn
-.flex.o:
-	$(LEX) -R -t $<  > `basename $@ .o`.cpp 
-	$(CXX) $(CPPFLAGS) $(AM_CPPFLAGS) $(CXXFLAGS) $(FLEX_CXXFLAGS) \
-		-I${top_srcdir} -I${srcdir} -I.. -I../../_build -c `basename $@ .o`.cpp 
-
+#SUFFIXES = .flex
+#FLEX_CXXFLAGS=-Wno-shadow -Wno-effc++ -Wno-redundant-decls -Wno-missing-noreturn
+#.flex.o:
+#	$(LEX) -R -t $<  > `basename $@ .o`.cpp 
+#	$(CXX) $(CPPFLAGS) $(AM_CPPFLAGS) $(CXXFLAGS) $(FLEX_CXXFLAGS) \
+#		-I${top_srcdir} -I${srcdir} -I.. -I../../_build -c `basename $@ .o`.cpp 
+#
