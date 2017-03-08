@@ -8,8 +8,15 @@
 
 #include "config.h"
 #include <cstring>
-#include "flex_helper.h"
+#include "flex_common.hpp"
 #include "cassandra.h"
+
+/* Address some common false positives in email scanner */
+inline bool validate_email(const char *email)
+{
+    if(strstr(email,"..")) return false;
+    return true;
+}
 
 %}
 
@@ -59,6 +66,8 @@ U_TLD4		(Q\0A\0|R\0E\0|R\0O\0|R\0S\0|R\0U\0|R\0W\0|S\0A\0|S\0B\0|S\0C\0|S\0D\0|S
 {EMAIL}/[^a-zA-Z]	{
     email_scanner &s = * yyemail_get_extra(yyscanner);	      
     if(validate_email(yytext)){
+        const flex_buffer_reader_t &flex_buffer_reader =
+                                         *yyemail_get_extra(yyscanner);
         s.email_recorder->write_buf(SBUF,s.pos,yyleng);
 	size_t domain_start = find_domain_in_email(SBUF.buf+s.pos,yyleng);
         if(domain_start>0){

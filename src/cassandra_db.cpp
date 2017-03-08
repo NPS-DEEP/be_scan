@@ -19,6 +19,9 @@
 
 #include <config.h>
 #include "be_scan.hpp"
+
+#ifdef HAVE_CASSANDRA
+
 #include <string>
 #include <sstream>
 #include <vector>
@@ -28,17 +31,19 @@
 #include <cassert>
 #endif
 
+/*
+ * A DB implementation for storing to Cassandra.
+ * See A Simple Example, https://github.com/datastax/cpp-driver.
+ */
 namespace be_scan {
 
-  // constructor
-  be_scan_t::be_scan_t(const std::string& p_contact_point) :
-                         is_open(false),
-                         contact_point(p_contact_point) {
+class db_t {
+
+  db_t::db_t() : is_open(false), session(NULL) {
   }
 
   // open
-  // see A Simple Example, https://github.com/datastax/cpp-driver
-  std::string be_scan_t::open(const std::string& contact_point) {
+  std::string db_t::open(const std::string& contact_point) {
     CassFuture* connect_future = NULL;
     CassCluster* cluster = cass_cluster_new();
     session = cass_session_new();
@@ -48,7 +53,6 @@ namespace be_scan {
 
     // connect 
     connect_future = cass_session_connect(session, cluster);
-
 
     if (cass_future_error_code(connect_future) == CASS_OK) {
       CassFuture* close_future = NULL;
@@ -66,8 +70,7 @@ namespace be_scan {
   }
 
   // close
-  // see A Simple Example, https://github.com/datastax/cpp-driver
-  std::string be_scan_t::close() {
+  std::string db_t::close() {
     if (is_open) {
       CassFuture* close_future = cass_session_close(session);
       cass_future_wait(close_future);
@@ -79,11 +82,11 @@ namespace be_scan {
 
   // write
   // see A Simple Example, https://github.com/datastax/cpp-driver
-  std::string be_scan_t::write(const std::string& filename,
-                               const uint64_t file_offset,
-                               const std::string& recursion_path,
-                               const std::string& artifact_class,
-                               const std::string& artifact) {
+  std::string db_t::write(const std::string& filename,
+                          const uint64_t file_offset,
+                          const std::string& recursion_path,
+                          const std::string& artifact_class,
+                          const std::string& artifact) {
 
     // must be open
     if (!is_open) {
@@ -120,5 +123,8 @@ namespace be_scan {
 
     return success;
   }
+};
 }
+
+#endif
 

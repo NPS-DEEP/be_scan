@@ -28,9 +28,9 @@
 #include <string>
 #include <stdint.h>
 
-struct CassSession; // Cassandra
-
 namespace be_scan {
+
+  class db_t;
 
   /**
    * Version of the be_scan library.
@@ -39,35 +39,29 @@ namespace be_scan {
 
   /**
    * The scanner class.
-   * Although static and singleton, open() is required to connect
-   * to the DB.
    */
   class be_scan_t {
 
     private:
-
-    bool is_open;
-    CassSession* cassandra_session;
-
-    be_scan_t(const std::string& contact_point);
-
-    std::string write(const std::string& filename,
-                      const uint64_t file_offset,
-                      const std::string& recursion_path,
-                      const std::string& artifact_class,
-                      const std::string& artifact);
+    db_t* db;
 
     public:
     /**
-     * Open be_scan connection.
+     * A connection to the database.
+     */
+    be_scan_t();
+
+    /**
+     * Open a connection to the database.
      *
      * Parameters:
-     *   contact_point - The Cassandra node to connect to.
+     *   connection - The DB connection setting.  For example for
+     *                Cassandra, this is the contact point.
      *
      * Returns:
      *   "" else error message if open failed.
      */
-    std::string open(const std::string& contact_point);
+    std::string open(const std::string& connection);
 
     /**
      * Close be_scan connection.  Does nothing if not connected.
@@ -75,7 +69,15 @@ namespace be_scan {
     void close();
 
     /**
-     * Scan for email.
+     * Scanner list.
+     *
+     * Returns:
+     *   List of available scanners
+     */
+    std::string available_scaners();
+
+    /**
+     * Scan.
      *
      * Parameters:
      *   filename - The name of the file to attribute found artifacts to.
@@ -86,17 +88,14 @@ namespace be_scan {
      *   buffer_size - The number of bytes in the buffer to scan.
      *
      * Returns:
-     *   "" else error message if open failed.
+     *   "" else error message if scan failed.
      */
-    std::string scan_email(const std::string& filename,
-                           const std::string& file_offset,
-                           const std::string& recursion_path,
-                           const char* buffer,
-                           size_t buffer_size);
+    std::string scan(const std::string& filename,
+                     const std::string& file_offset,
+                     const std::string& recursion_path,
+                     const char* buffer,
+                     size_t buffer_size);
 
-    // NOTE: future: scan_zip(params) will exist.  Output may consist
-    // of an iterator that dereferences to (params).  The caller will
-    // be responsible for deallocating the returned buffer.
   };
 }
 

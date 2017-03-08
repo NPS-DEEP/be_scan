@@ -23,13 +23,12 @@
 #include <stdint.h>
 
 // ************************************************************
-// Define be_scan::flex_buffer_reader_t for reading from char[]
-// instead of from FILE*.
+// The "extra" object for FLEX.
 // ************************************************************
 namespace be_scan {
 
   /* Glue so flex can read from a byte buffer. */
-  class flex_buffer_reader_t {
+  class flex_extra_t {
 
     private:
     // buffer metadata
@@ -43,6 +42,9 @@ namespace be_scan {
 
     // buffer pointer
     size_t buffer_index;
+
+    // the write() function
+    
 
     public:
     flex_buffer_reader_t(const std::string& p_filename,

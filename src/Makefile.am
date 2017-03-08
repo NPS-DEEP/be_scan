@@ -33,7 +33,7 @@ FLEX_INCS = \
 lib_LTLIBRARIES = libbe_scan.la
 
 libbe_scan_la_CPPFLAGS = \
-	-I${top_srcdir}/cassandra
+	-I${top_srcdir}/datastax
 
 libbe_scan_la_LDFLAGS = -PIC -avoid-version -static -no-undefined
 
@@ -43,7 +43,9 @@ libbe_scan_la_SOURCES = scan_email.flex version.cpp
 include_HEADERS = be_scan.hpp
 
 .flex.cpp:
-	$(LEX) -R -t $<  > `basename $@ .o`.cpp 
+	$(LEX) -R -t $<  > $@
+#	$(LEX) -R -t $<  > `basename $@`
+#	$(LEX) -R -t $<  > `basename $@ .o`.cpp 
 
 #
 # Rule to compile .flex into a .o
