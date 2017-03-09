@@ -47,34 +47,31 @@ namespace be_scan {
 
     public:
     /**
-     * A connection to the database.
+     * Blank else error message if not properly initialized.
      */
-    be_scan_t();
+    const std::string initialization_status;
 
     /**
-     * Open a connection to the database.
+     * A connection to the database.
      *
      * Parameters:
-     *   connection - The DB connection setting.  For example for
-     *                Cassandra, this is the contact point.
-     *
-     * Returns:
-     *   "" else error message if open failed.
+     *   settings - DB connection settings.  For example for
+     *              Cassandra, this is the contact point.
      */
-    std::string open(const std::string& connection);
+    be_scan_t(const std::string& settings);
 
     /**
-     * Close be_scan connection.  Does nothing if not connected.
+     * Destructor.
      */
-    void close();
+    ~be_scan_t();
 
     /**
-     * Scanner list.
+     * Get a list of available scanners.
      *
      * Returns:
-     *   List of available scanners
+     *   List of available scanners separated by a space chaacter.
      */
-    std::string available_scaners();
+    std::string scaners();
 
     /**
      * Scan.

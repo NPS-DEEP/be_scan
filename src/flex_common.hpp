@@ -23,59 +23,6 @@
 #include <stdint.h>
 
 // ************************************************************
-// Define be_scan::flex_buffer_reader_t for reading from char[]
-// instead of from FILE*.
-// ************************************************************
-namespace be_scan {
-
-  /* Glue so flex can read from a byte buffer. */
-  class flex_buffer_reader_t {
-
-    private:
-    // buffer metadata
-    const std::string& filename;
-    const size_t file_offset;
-    const std::string& recursion_path;
-
-    // buffer
-    const char* const buffer;
-    const size_t buffer_size;
-
-    // buffer pointer
-    size_t buffer_index;
-
-    public:
-    flex_buffer_reader_t(const std::string& p_filename,
-                         const size_t p_file_offset,
-                         const std::string& p_recursion_path,
-                         const char* const p_buffer,
-                         const size_t p_buffer_size) :
-              filename(p_filename),
-              file_offset(p_file_offset),
-              recursion_path(p_recursion_path),
-              buffer(p_buffer),
-              buffer_size(p_buffer_size),
-              buffer_index(0) {
-    }
-
-    /* flex uses get_input to read bytes from the buffer. */
-    size_t get_input(char* buf, size_t max_size) {
-      // this should not happen
-      if((int)max_size < 0) {
-        return 0;
-      }
-
-      // provide up to n bytes
-      // adapted from Lex and Yacc 2'nd ed. p. 157
-      int n = (buffer_size - buffer_index < max_size) ? buffer_size : max_size;
-      if (n > 0) {
-        ::memcpy(buf, buffer + buffer_index, n);
-        buffer_index += n;
-      }
-    }
-  };
-
-// ************************************************************
 // Ease compiler warnings
 // ************************************************************
 /*

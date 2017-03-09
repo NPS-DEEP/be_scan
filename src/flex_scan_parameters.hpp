@@ -17,21 +17,21 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-#ifndef FLEX_COMMON_HPP
-#define FLEX_COMMON_HPP
+#ifndef FLEX_SCAN_PARAMETERS_HPP
+#define FLEX_SCAN_PARAMETERS_HPP
 
 #include <stdint.h>
 
 // ************************************************************
-// The "extra" object for FLEX.
+// Define be_scan::flex_buffer_reader_t for reading from char[]
+// instead of from FILE*.
 // ************************************************************
 namespace be_scan {
 
   /* Glue so flex can read from a byte buffer. */
-  class flex_extra_t {
+  class flex_scan_parameters_t {
 
-    private:
-    // buffer metadata
+    public:
     const std::string& filename;
     const size_t file_offset;
     const std::string& recursion_path;
@@ -40,23 +40,25 @@ namespace be_scan {
     const char* const buffer;
     const size_t buffer_size;
 
+    const db_t* db;
+
+    private:
     // buffer pointer
     size_t buffer_index;
 
-    // the write() function
-    
-
     public:
-    flex_buffer_reader_t(const std::string& p_filename,
-                         const size_t p_file_offset,
-                         const std::string& p_recursion_path,
-                         const char* const p_buffer,
-                         const size_t p_buffer_size) :
+    flex_scan_parameters_t(const std::string& p_filename,
+                           const size_t p_file_offset,
+                           const std::string& p_recursion_path,
+                           const char* const p_buffer,
+                           const size_t p_buffer_size,
+                           const db_t* p_db) {
               filename(p_filename),
               file_offset(p_file_offset),
               recursion_path(p_recursion_path),
               buffer(p_buffer),
               buffer_size(p_buffer_size),
+              db(p_db),
               buffer_index(0) {
     }
 
@@ -76,40 +78,7 @@ namespace be_scan {
       }
     }
   };
-
-// ************************************************************
-// Ease compiler warnings
-// ************************************************************
-/*
-zz leave warnings alone?
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wredundant-decls"
-#pragma GCC diagnostic ignored "-Wmissing-noreturn"
-
-#ifdef HAVE_DIAGNOSTIC_EFFCPP
-#pragma GCC diagnostic ignored "-Weffc++"
-#endif
-
-#ifdef HAVE_DIAGNOSTIC_DEPRECATED_REGISTER
-#pragma GCC diagnostic ignored "-Wdeprecated-register"
-#endif
-*/
-
-// ************************************************************
-// Define FLEX macros
-// ************************************************************
-#define YY_NO_INPUT
-#define ECHO {}                   /* Never echo anything */
-#define YY_SKIP_YYWRAP            /* Never wrap */
-#define YY_NO_INPUT
-#define YY_INPUT(buf,result,max_size) result = get_extra(yyscanner)->get_input(buf,max_size);
-
-// note that scanner-specific macros are also defined in scan_*.flex.
-
 } // end namespace
-
-
-
 
 #endif
 

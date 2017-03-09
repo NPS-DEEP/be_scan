@@ -107,12 +107,14 @@ std::string scan_email(const std::string& filename,
                        const size_t offset,
                        const std::string& recursion_path,
                        const char* const buffer,
-                       const size_t size) {
+                       const size_t size,
+                       const db_t* db) {
 
-  be_scan::flex_buffer_reader_t reader(buffer, size);
+  be_scan::flex_scan_parameters_t flex_scan_parameters(filename, offset,
+                                         recursion_path, buffer, size, db);
   yyscan_t scanner;
   yyemail_lex_init(&scanner);
-  yyemail_set_extra(&reader, scanner);
+  yyemail_set_extra(&flex_scan_parameters, scanner);
   yyemail_lex(scanner);
   yyemail_lex_destroy(scanner);
   (void)yyunput;			// avoids defined but not used

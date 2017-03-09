@@ -17,39 +17,25 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-#ifndef CASSANDRA_DB_HPP
-#define CASSANDRA_DB_HPP
+#ifndef SCANNERS_HPP
+#define SCANNERS_HPP
 
 #include <config.h>
+#include <string>
+#include <stdint.h>
 
-/*
- * A DB implementation for storing to Cassandra.
- * https://github.com/datastax/cpp-driver/blob/master/examples/basic/basic.c
- */
 namespace be_scan {
 
-  class db_t {
+  // email
+  std::string scan_email(const std::string& filename,
+                         const std::string& file_offset,
+                         const std::string& recursion_path,
+                         const char* buffer,
+                         size_t buffer_size,
+                         const db_t* db);
 
-    private:
-#ifdef HAVE_CASSANDRA
-    const CassCluster* cluster;
-    const CassSession* session;
-#endif
+  // exif, etc...
 
-    public:
-    const std::string initialization_status;
-    const bool is_open;
-
-    db_t(const std::string& contact_point);
-    ~db_t();
-
-  // write
-    std::string be_scan_t::write(const std::string& filename,
-                                 const uint64_t file_offset,
-                                 const std::string& recursion_path,
-                                 const std::string& artifact_class,
-                                 const std::string& artifact);
-  };
 }
 
 #endif

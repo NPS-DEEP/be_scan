@@ -18,65 +18,82 @@
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
 #include <config.h>
-#include "be_scan.hpp"
 
 #ifdef HAVE_CASSANDRA
 
+#include "db.hpp"
 #include <string>
-#include <sstream>
-#include <vector>
 #include <stdint.h>
-#include <climits>
-#ifndef HAVE_CXX11
 #include <cassert>
-#endif
 
 /*
  * A DB implementation for storing to Cassandra.
- * See A Simple Example, https://github.com/datastax/cpp-driver.
+ * https://github.com/datastax/cpp-driver/blob/master/examples/basic/basic.c
  */
 namespace be_scan {
 
-class db_t {
-
-  db_t::db_t() : is_open(false), session(NULL) {
-  }
-
-  // open
-  std::string db_t::open(const std::string& contact_point) {
-    CassFuture* connect_future = NULL;
-    CassCluster* cluster = cass_cluster_new();
-    session = cass_session_new();
-
-    // add contact point
-    cass_cluster_set_contact_points(cluster, contact_point);
-
-    // connect 
-    connect_future = cass_session_connect(session, cluster);
-
-    if (cass_future_error_code(connect_future) == CASS_OK) {
-      CassFuture* close_future = NULL;
-      is_open = true;
-      return "";
-
+  // "" is good, text indicates error
+  static std::string get_future_error(const CassFuture& future) {
+    const CassError rc = cass_future_error_code(future);
+    const std::string error;
+    if (rc == CASS_OK) {
+      error = "";
     } else {
-      /* Handle error */
       const char* message;
       size_t message_length;
-      cass_future_error_message(connect_future, &message, &message_length);
-      std::string error = std::string(message, message_length);
-      return error;
+      cass_future_error_message(future, &message, &message_length);
+      error = std::string(message, message_length);
+    }
+    return error;
+  }
+
+  static CassCluster* new_cluster(const std::string& hosts) {
+    CassCluster* cluster = cass_cluster_new();
+    cass_cluster_set_contact_points(cluster, hosts.c_str());
+    return cluster;
+  }
+
+  static std::string connect(CassSession* session, const CassCluster* cluster) {
+    CassFuture* future = cass_session_connect(session, cluster);
+    cass_future_wait(future);
+    const std::string error = get_future_error(future);
+    cass_future_free(future);
+    return error;
+  }
+
+  db_t::db_t(const std::string& contact_point) :
+                  cluster(new_cluster(contact_point)),
+                  session(cass_session_new()),
+                  initialization_status(connect(session, cluster)),
+                  is_open(initialization_status == ""){
+
+    if (contact_point == "") {
+      initialization_status = "Contact point required but none provided.";
+      return;
+    }
+
+    // connect 
+    initialization_status = connect(session, cluster);
+    if (error == "") {
+      // good
+      is_open = true;
+    } else {
+      cass_cluster_free(cluster);
+      cass_session_free(session);
     }
   }
 
   // close
-  std::string db_t::close() {
+  db_t::~db_t() {
     if (is_open) {
-      CassFuture* close_future = cass_session_close(session);
-      cass_future_wait(close_future);
-      cass_future_free(close_future);
-      is_open = false;
-      session = NULL;
+      // close session and wait for it to close
+      CassFuture* future = cass_session_close(session);
+      cass_future_wait(future);
+      cass_future_free(future);
+
+      // free cluster and session
+      cass_cluster_free(cluster);
+      cass_session_free(session);
     }
   }
 
@@ -93,38 +110,32 @@ class db_t {
       return ("Program error: Not open.");
     }
 
-    // status
-    std::string success = "";
+    // define the INSERT query
+    std::stringstream ss;
+    ss << "INSERT INTO " << artifact_class
+       << " (artifact, filename, file_offset, recursion_path) "
+       << "VALUES (?,?,?,?);";
+    const std::string query = ss.str();
 
-    // insert
-    // refer to insert_into_basic in 
-    // https://github.com/datastax/cpp-driver/blob/1.0/examples/basic/basic.c
-    CassError rc = CASS_OK;
-    CassStatement* statement = NULL;
-    CassFuture* future = NULL;
-    CassString query = cassString_init("INSERT INTO " + artifact_class +
-                   " (artifact, filename, file_offset, recursion_path);");
-    statement = cass_statement_new(query, 4);
+    // create the query statement
+    const CassStatement* statement = cass_statement_new(query.c_str(), 4);
     cass_statement_bind_string(statement, 0, cass_string_init(artifact));
     cass_statement_bind_string(statement, 1, cass_string_init(filename));
     cass_statement_bind_int64(statement, 2, file_offset);
     cass_statement_bind_string(statement, 3, cass_string_init(recursion_path));
 
-    future = cass_session_execute(session, statement);
+    // run the query
+    const CassFuture future = cass_session_execute(session, statement);
     cass_future_wait(future);
+    const std::string status = get_future_error(future);
 
-    rc = cass_future_error_code(future);
-    if (rc != CASS_OK) {
-      CassString message = cass_future_error_message(future);
-      success = std::string((int)message.length, message.data);
-    }
+    // free resources
     cass_future_free(future);
     cass_future_free(statement);
 
-    return success;
+    return status;
   }
-};
-}
+} // end namespace
 
 #endif
 

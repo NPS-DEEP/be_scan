@@ -20,13 +20,14 @@
 #include <config.h>
 #include <string>
 #include "be_scan.hpp"
+#include "scanners.hpp"
 
+// include one database manager to use
 #ifdef HAVE_CASSANDRA
 #include "be_cassandra.hpp" // for db_t implementation
 #else
 #error DB driver not selected
 #endif
-
 
 namespace be_scan {
 
@@ -37,28 +38,33 @@ namespace be_scan {
     return PACKAGE_VERSION;
   }
 
-  be_scan_t::be_scan_t() : db(0) {
+  be_scan_t::be_scan_t(const std::string& settings) :
+              db(new db_t(settings),
+              initialization_status(db->initialization_status) {
   }
 
-  std::string be_scan_t::open(const std::string& connection) {
-    db = new db_t();
-    return db->open(connection);
+  be_scan_t::~be_scan_t() {
+    delete db;
   }
 
-  void be_scan_t::close() {
-    db->close();
-  }
-
-  std::string available_scanners() {
-    return "TBD";
+  std::string scanners() {
+    return "email"; // zz "email exif ..."
   }
 
   std::string scan(const std::string& filename,
-                     const std::string& file_offset,
-                     const std::string& recursion_path,
-                     const char* buffer,
-                     size_t buffer_size) {
+                   const std::string& file_offset,
+                   const std::string& recursion_path,
+                   const char* buffer,
+                   size_t buffer_size) {
 
+    // return error if bad
+    if (initialization_status != "") {
+      return initialization_status;
+    }
 
+    // conditionally call each scanner, for now just call scan_email
+    return scan_email(filename, file_offset, recursion_path,
+                      buffer, buffer_size, db);
+  }
 }
 
