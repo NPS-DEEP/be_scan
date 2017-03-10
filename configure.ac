@@ -12,9 +12,9 @@ AC_CONFIG_MACRO_DIR(m4)
 AC_CONFIG_FILES([Makefile
                  src/Makefile
                  java_bindings/Makefile
+                 test/Makefile
                 ])
 #                 python_bindings/Makefile
-#                 test/Makefile
 
 
 # define CC and CXX as desired for alternate compilers
@@ -245,7 +245,24 @@ fi
 
 #################################################################
 # A DB is required, Cassandra DB by default
-AC_DEFINE(HAVE_CASSANDRA, 1, [Using Cassandra])
+#AC_DEFINE(HAVE_CASSANDRA, 1, [Using Cassandra])
+#AC_SUBST(db_backend, [cassandra])
+AC_ARG_VAR(db_backend, [select the database backend, one of: cassandra, stdout_db, default cassandra])
+if test x$db_backend == x; then
+  db_backend=cassandra
+fi
+echo db backend is $db_backend
+case "$db_backend" in
+  cassandra)
+    AC_DEFINE(HAVE_CASSANDRA, 1,[Using Cassandra DB backend])
+    ;;
+  stdout_db)
+    AC_DEFINE(HAVE_STDOUT_DB, 1,[Using stdout instead of a DB backend])
+    ;;
+  *)
+    AC_MSG_ERROR([db_backend $db_backend not supported.])
+    ;;
+esac
 
 #################################################################
 # report some values
@@ -263,6 +280,8 @@ AC_MSG_NOTICE([
   LDFLAGS:          $LDFLAGS
 
   PYTHON_VERSION:   $PYTHON_VERSION
+
+  db_backend:       $db_backend
 ])
   
 AC_OUTPUT

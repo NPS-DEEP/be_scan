@@ -32,7 +32,7 @@
  */
 namespace be_scan {
 
-  db_t::db_t(const std::string& initialization_paramter) :
+  db_t::db_t(const std::string& initialization_parameter) :
                   initialization_status(""),
                   is_open(true){
     std::cout << "stdout_db db_t initialization_parameter: "

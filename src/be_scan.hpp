@@ -38,6 +38,14 @@ namespace be_scan {
   const char* version();
 
   /**
+   * Get a list of available scanners.
+   *
+   * Returns:
+   *   List of available scanners separated by a space chaacter.
+   */
+  std::string available_scanners();
+
+  /**
    * The scanner class.
    */
   class be_scan_t {
@@ -64,14 +72,6 @@ namespace be_scan {
      * Destructor.
      */
     ~be_scan_t();
-
-    /**
-     * Get a list of available scanners.
-     *
-     * Returns:
-     *   List of available scanners separated by a space chaacter.
-     */
-    std::string scanners();
 
     /**
      * Scan.

@@ -25,26 +25,28 @@
 
 namespace be_scan {
 
-  /**
-   * Version of the be_scan library.
-   */
+  // Version of the be_scan library.
   const char* version() {
     return PACKAGE_VERSION;
   }
 
+  // available scanners
+  std::string available_scanners() {
+    return "email"; // zz "email exif ..."
+  }
+
+  // constructor
   be_scan_t::be_scan_t(const std::string& settings) :
               db(new db_t(settings)),
               initialization_status(db->initialization_status) {
   }
 
+  // destructor
   be_scan_t::~be_scan_t() {
     delete db;
   }
 
-  std::string be_scan_t::scanners() {
-    return "email"; // zz "email exif ..."
-  }
-
+  // scan
   std::string be_scan_t::scan(const std::string& filename,
                               const size_t file_offset,
                               const std::string& recursion_path,

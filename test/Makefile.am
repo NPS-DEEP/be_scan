@@ -19,32 +19,23 @@
 
 # This file assists in building test programs.
 
-EXTRA_DIST = vg.supp memory_analysis.sh
+EXTRA_DIST = vg.supp
 
-check_PROGRAMS = \
-	api_test
+check_PROGRAMS = basic_tests
 
 TESTS = $(check_PROGRAMS)
 
-AM_CFLAGS = $(HASHDB_CFLAGS)
-AM_CXXFLAGS = $(HASHDB_CXXFLAGS)
+AM_CFLAGS = $(BE_SCAN_CFLAGS)
+AM_CXXFLAGS = $(BE_SCAN_CXXFLAGS)
 
 AM_LDFLAGS = -static
 
-AM_CPPFLAGS = \
-	-I${top_srcdir}/src_libbe_scan \
-	-I${top_srcdir}/rapidjson \
-	-isystem${top_srcdir}/src_libbe_scan/liblmdb
+LDADD = ../src/libbe_scan.la
 
-LDADD = ../src_libbe_scan/libbe_scan.la
-
-API_TEST_INCS = \
-	directory_helper.hpp \
-	unit_test.h \
-	api_test.cpp
-
-clean-local:
-	rm -rf temp_*
+BASIC_TESTS_INCS = \
+	basic_tests.cpp \
+	be_scan.hpp \
+	unit_test.h
 
 run_tests_valgrind:
 	for test in $(check_PROGRAMS); do \
@@ -55,7 +46,7 @@ run_tests_valgrind:
 # ############################################################
 # tests
 # ############################################################
-api_test_SOURCES = $(API_TEST_INCS)
+basic_tests_SOURCES = $(BASIC_TESTS_INCS)
 
 .PHONY: run_tests_valgrind
 
