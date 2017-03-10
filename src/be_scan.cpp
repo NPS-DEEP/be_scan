@@ -21,13 +21,7 @@
 #include <string>
 #include "be_scan.hpp"
 #include "scanners.hpp"
-
-// include one database manager to use
-#ifdef HAVE_CASSANDRA
-#include "be_cassandra.hpp" // for db_t implementation
-#else
-#error DB driver not selected
-#endif
+#include "db.hpp"
 
 namespace be_scan {
 
@@ -39,7 +33,7 @@ namespace be_scan {
   }
 
   be_scan_t::be_scan_t(const std::string& settings) :
-              db(new db_t(settings),
+              db(new db_t(settings)),
               initialization_status(db->initialization_status) {
   }
 
@@ -47,15 +41,15 @@ namespace be_scan {
     delete db;
   }
 
-  std::string scanners() {
+  std::string be_scan_t::scanners() {
     return "email"; // zz "email exif ..."
   }
 
-  std::string scan(const std::string& filename,
-                   const std::string& file_offset,
-                   const std::string& recursion_path,
-                   const char* buffer,
-                   size_t buffer_size) {
+  std::string be_scan_t::scan(const std::string& filename,
+                              const size_t file_offset,
+                              const std::string& recursion_path,
+                              const char* const buffer,
+                              size_t buffer_size) {
 
     // return error if bad
     if (initialization_status != "") {

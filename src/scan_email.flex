@@ -1,15 +1,43 @@
 /* Vim note: for C style language highlighting in Vim: ":setf c" */
 
 /* This code is adapted from bulk_extractor.
+ * For extra_data: http://sector7.xray.aps.anl.gov/~dohnarms/programming/flex/html/Extra-Data.html
+ * For redefining YY_INPUT: Lex&yacc, 2'nd ed. p. 157.
  */
 
 /* ******************** FLEX Definitions ******************** */
 %{
-
 #include "config.h"
 #include <cstring>
-#include "flex_common.hpp"
-#include "cassandra.h"
+#include "flex_scan_parameters.hpp"
+#include "flex_scan_exception.hpp"
+#include "scanners.hpp"
+
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wredundant-decls"
+#pragma GCC diagnostic ignored "-Wmissing-noreturn"
+#pragma GCC diagnostic ignored "-Wunused-function"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#ifdef HAVE_DIAGNOSTIC_EFFCPP
+#pragma GCC diagnostic ignored "-Weffc++"
+#endif
+#ifdef HAVE_DIAGNOSTIC_DEPRECATED_REGISTER
+#pragma GCC diagnostic ignored "-Wdeprecated-register"
+#endif
+
+/* Needed for flex: */
+#define ECHO {}                   /* Never echo anything */
+#define YY_SKIP_YYWRAP            /* Never wrap */
+#define YY_NO_INPUT
+
+#define YY_INPUT(buffer, result, max_size) (result = \
+            yyemail_get_extra(yyscanner)->get_input(buffer, max_size));
+
+#define YY_FATAL_ERROR(msg) {throw be_scan::flex_scan_exception(msg);}
+
+#define YY_EXTRA_TYPE be_scan::flex_scan_parameters_t*
+YY_EXTRA_TYPE yyemail_get_extra(yyscan_t yyscanner);
+
 
 /* Address some common false positives in email scanner */
 inline bool validate_email(const char *email)
@@ -20,7 +48,7 @@ inline bool validate_email(const char *email)
 
 %}
 
-%option extra-type = "be_scan::flex_buffer_reader_t*"
+%option extra-type = "be_scan::flex_scan_parameters_t*"
 
 %option noyywrap
 %option 8bit
@@ -64,59 +92,61 @@ U_TLD4		(Q\0A\0|R\0E\0|R\0O\0|R\0S\0|R\0U\0|R\0W\0|S\0A\0|S\0B\0|S\0C\0|S\0D\0|S
 %%
 
 {EMAIL}/[^a-zA-Z]	{
-    email_scanner &s = * yyemail_get_extra(yyscanner);	      
     if(validate_email(yytext)){
-        const flex_buffer_reader_t &flex_buffer_reader =
-                                         *yyemail_get_extra(yyscanner);
-        s.email_recorder->write_buf(SBUF,s.pos,yyleng);
-	size_t domain_start = find_domain_in_email(SBUF.buf+s.pos,yyleng);
-        if(domain_start>0){
-            s.domain_recorder->write_buf(SBUF,s.pos+domain_start,yyleng-domain_start);
-        }
+        yyextra->db->write(yyextra->filename,
+                           yyextra->file_offset,
+                           yyextra->recursion_path,
+                           "email",
+                           std::string(yytext));
     }
-    s.pos += yyleng; 
+    yyextra->artifact_index += yyleng; 
 }
 
-
 [a-zA-Z0-9]\0([a-zA-Z0-9._%\-+]\0){1,128}@\0([a-zA-Z0-9._%\-]\0){1,128}\.\0({U_TLD1}|{U_TLD2}|{U_TLD3}|{U_TLD4})/[^a-zA-Z]|([^][^\0])	{
-    email_scanner &s = * yyemail_get_extra(yyscanner);	      
+    /* fix this to remove \0 chars */
     if(validate_email(yytext)){
-        s.email_recorder->write_buf(SBUF,s.pos,yyleng);
-        size_t domain_start = find_domain_in_email(SBUF.buf+s.pos,yyleng) + 1;
-        if(domain_start>0){
-            s.domain_recorder->write_buf(SBUF,s.pos+domain_start,yyleng-domain_start);
-        }
+        yyextra->db->write(yyextra->filename,
+                           yyextra->file_offset,
+                           yyextra->recursion_path,
+                           "email",
+                           std::string(yytext));
     }
-    s.pos += yyleng; 
+    (yyextra->artifact_index) += yyleng; 
 }
 
 .|\n { 
-     /**
-      * The no-match rule. VERY IMPORTANT!
-      * If we are beyond the end of the margin, call it quits.
-      */
-     email_scanner &s = *yyemail_get_extra(yyscanner);	      
-     s.pos++; 
+    /**
+     * The no-match rule. VERY IMPORTANT!
+     * If we are beyond the end of the margin, call it quits.
+     */
+    ++(yyextra->artifact_index);
 }
 
 
 %%
 /* ******************** FLEX User Code ******************** */
 
-std::string scan_email(const std::string& filename,
-                       const size_t offset,
-                       const std::string& recursion_path,
-                       const char* const buffer,
-                       const size_t size,
-                       const db_t* db) {
+std::string be_scan::scan_email(const std::string& filename,
+                                const size_t file_offset,
+                                const std::string& recursion_path,
+                                const char* const buffer,
+                                const size_t size,
+                                be_scan::db_t* const db) {
 
-  be_scan::flex_scan_parameters_t flex_scan_parameters(filename, offset,
+  be_scan::flex_scan_parameters_t flex_scan_parameters(filename, file_offset,
                                          recursion_path, buffer, size, db);
   yyscan_t scanner;
   yyemail_lex_init(&scanner);
   yyemail_set_extra(&flex_scan_parameters, scanner);
-  yyemail_lex(scanner);
+  std::string status = "";
+  try {
+    yyemail_lex(scanner);
+  } catch (be_scan::flex_scan_exception *e) {
+    status = std::string(e->what());
+    delete e;
+  }
   yyemail_lex_destroy(scanner);
   (void)yyunput;			// avoids defined but not used
+  return status;
 }
 

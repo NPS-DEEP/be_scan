@@ -21,6 +21,8 @@
 #define FLEX_SCAN_PARAMETERS_HPP
 
 #include <stdint.h>
+#include <string>
+#include "db.hpp"
 
 // ************************************************************
 // Define be_scan::flex_buffer_reader_t for reading from char[]
@@ -40,26 +42,30 @@ namespace be_scan {
     const char* const buffer;
     const size_t buffer_size;
 
-    const db_t* db;
+    db_t* const db;
 
     private:
     // buffer pointer
     size_t buffer_index;
 
     public:
+    // flex increments this as it scans along
+    size_t artifact_index;
+
     flex_scan_parameters_t(const std::string& p_filename,
                            const size_t p_file_offset,
                            const std::string& p_recursion_path,
                            const char* const p_buffer,
                            const size_t p_buffer_size,
-                           const db_t* p_db) {
+                           db_t* const p_db) :
               filename(p_filename),
               file_offset(p_file_offset),
               recursion_path(p_recursion_path),
               buffer(p_buffer),
               buffer_size(p_buffer_size),
               db(p_db),
-              buffer_index(0) {
+              buffer_index(0),
+              artifact_index(file_offset) {
     }
 
     /* flex uses get_input to read bytes from the buffer. */
@@ -76,6 +82,7 @@ namespace be_scan {
         ::memcpy(buf, buffer + buffer_index, n);
         buffer_index += n;
       }
+      return n;
     }
   };
 } // end namespace

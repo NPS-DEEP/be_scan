@@ -1,0 +1,66 @@
+// Author:  Bruce Allen
+// Created: 3/2/2017
+//
+// The software provided here is released by the Naval Postgraduate
+// School, an agency of the U.S. Department of Navy.  The software
+// bears no warranty, either expressed or implied. NPS does not assume
+// legal liability nor responsibility for a User's use of the software
+// or the results of such use.
+//
+// Please note that within the United States, copyright protection,
+// under Section 105 of the United States Code, Title 17, is not
+// available for any work of the United States Government and/or for
+// any works created by United States Government employees. User
+// acknowledges that this software contains work which was created by
+// NPS government employees and is therefore in the public domain and
+// not subject to copyright.
+//
+// Released into the public domain on March 2, 2017 by Bruce Allen.
+
+#include <config.h>
+
+#ifdef HAVE_STDOUT_DB
+
+#include "db.hpp"
+#include <string>
+#include <stdint.h>
+#include <iostream>
+#include <cassert>
+
+/*
+ * A diagnostic configuration that writes to stdout instead of to a DB.
+ */
+namespace be_scan {
+
+  db_t::db_t(const std::string& initialization_paramter) :
+                  initialization_status(""),
+                  is_open(true){
+    std::cout << "stdout_db db_t initialization_parameter: "
+              << initialization_parameter << "\n";
+  }
+
+  // close
+  db_t::~db_t() {
+    // no action
+  }
+
+  // write
+  std::string db_t::write(const std::string& filename,
+                          const uint64_t file_offset,
+                          const std::string& recursion_path,
+                          const std::string& artifact_class,
+                          const std::string& artifact) {
+
+    std::cout << "stdout_db db_t write: filename: '" << filename
+              << "', file_offset: " << file_offset
+              << ", recursion_path: '" << recursion_path
+              << "', artifact_class: " << artifact_class
+              << ", artifact: '" << artifact
+              << "'\n";
+
+    return "";
+  }
+} // end namespace
+
+#endif
+

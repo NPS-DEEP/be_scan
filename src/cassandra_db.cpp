@@ -21,9 +21,12 @@
 
 #ifdef HAVE_CASSANDRA
 
+#include "cassandra.h"
 #include "db.hpp"
 #include <string>
 #include <stdint.h>
+#include <iostream>
+#include <sstream>
 #include <cassert>
 
 /*
@@ -33,9 +36,9 @@
 namespace be_scan {
 
   // "" is good, text indicates error
-  static std::string get_future_error(const CassFuture& future) {
+  static std::string get_future_error(CassFuture* future) {
     const CassError rc = cass_future_error_code(future);
-    const std::string error;
+    std::string error;
     if (rc == CASS_OK) {
       error = "";
     } else {
@@ -48,6 +51,12 @@ namespace be_scan {
   }
 
   static CassCluster* new_cluster(const std::string& hosts) {
+    // warn if hosts is empty
+    if (hosts == "") {
+      std::cerr << "cassandra_db new_cluster: Contact point required but none provided.";
+    }
+
+    // create cluster either way
     CassCluster* cluster = cass_cluster_new();
     cass_cluster_set_contact_points(cluster, hosts.c_str());
     return cluster;
@@ -66,35 +75,13 @@ namespace be_scan {
                   session(cass_session_new()),
                   initialization_status(connect(session, cluster)),
                   is_open(initialization_status == ""){
-
-    if (contact_point == "") {
-      initialization_status = "Contact point required but none provided.";
-      return;
-    }
-
-    // connect 
-    initialization_status = connect(session, cluster);
-    if (error == "") {
-      // good
-      is_open = true;
-    } else {
-      cass_cluster_free(cluster);
-      cass_session_free(session);
-    }
   }
 
   // close
   db_t::~db_t() {
-    if (is_open) {
-      // close session and wait for it to close
-      CassFuture* future = cass_session_close(session);
-      cass_future_wait(future);
-      cass_future_free(future);
-
-      // free cluster and session
-      cass_cluster_free(cluster);
-      cass_session_free(session);
-    }
+    // free cluster and session
+    cass_cluster_free(cluster);
+    cass_session_free(session);
   }
 
   // write
@@ -107,7 +94,7 @@ namespace be_scan {
 
     // must be open
     if (!is_open) {
-      return ("Program error: Not open.");
+      return ("cassandra_db write: Program error: Not open.");
     }
 
     // define the INSERT query
@@ -118,20 +105,20 @@ namespace be_scan {
     const std::string query = ss.str();
 
     // create the query statement
-    const CassStatement* statement = cass_statement_new(query.c_str(), 4);
-    cass_statement_bind_string(statement, 0, cass_string_init(artifact));
-    cass_statement_bind_string(statement, 1, cass_string_init(filename));
+    CassStatement* const statement = cass_statement_new(query.c_str(), 4);
+    cass_statement_bind_string(statement, 0, artifact.c_str());
+    cass_statement_bind_string(statement, 1, filename.c_str());
     cass_statement_bind_int64(statement, 2, file_offset);
-    cass_statement_bind_string(statement, 3, cass_string_init(recursion_path));
+    cass_statement_bind_string(statement, 3, recursion_path.c_str());
 
     // run the query
-    const CassFuture future = cass_session_execute(session, statement);
+    CassFuture* const future = cass_session_execute(session, statement);
     cass_future_wait(future);
     const std::string status = get_future_error(future);
 
     // free resources
     cass_future_free(future);
-    cass_future_free(statement);
+    cass_statement_free(statement);
 
     return status;
   }

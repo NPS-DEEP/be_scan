@@ -19,8 +19,10 @@
 
 #ifndef CASSANDRA_DB_HPP
 #define CASSANDRA_DB_HPP
+#include "cassandra.h"
 
-#include <config.h>
+#include <string>
+#include <stdint.h>
 
 /*
  * A DB implementation for storing to Cassandra.
@@ -32,8 +34,8 @@ namespace be_scan {
 
     private:
 #ifdef HAVE_CASSANDRA
-    const CassCluster* cluster;
-    const CassSession* session;
+    CassCluster* const cluster;
+    CassSession* const session;
 #endif
 
     public:
@@ -44,11 +46,11 @@ namespace be_scan {
     ~db_t();
 
   // write
-    std::string be_scan_t::write(const std::string& filename,
-                                 const uint64_t file_offset,
-                                 const std::string& recursion_path,
-                                 const std::string& artifact_class,
-                                 const std::string& artifact);
+    std::string write(const std::string& filename,
+                      const size_t file_offset,
+                      const std::string& recursion_path,
+                      const std::string& artifact_class,
+                      const std::string& artifact);
   };
 }
 

@@ -28,11 +28,11 @@ namespace be_scan {
 
   // email
   std::string scan_email(const std::string& filename,
-                         const std::string& file_offset,
+                         const size_t file_offset,
                          const std::string& recursion_path,
                          const char* buffer,
                          size_t buffer_size,
-                         const db_t* db);
+                         db_t* const db);
 
   // exif, etc...
 

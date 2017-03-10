@@ -71,7 +71,7 @@ namespace be_scan {
      * Returns:
      *   List of available scanners separated by a space chaacter.
      */
-    std::string scaners();
+    std::string scanners();
 
     /**
      * Scan.
@@ -88,9 +88,9 @@ namespace be_scan {
      *   "" else error message if scan failed.
      */
     std::string scan(const std::string& filename,
-                     const std::string& file_offset,
+                     const size_t file_offset,
                      const std::string& recursion_path,
-                     const char* buffer,
+                     const char* const buffer,
                      size_t buffer_size);
 
   };

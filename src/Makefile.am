@@ -22,12 +22,17 @@
 CLEANFILES = scan_email.cpp
 
 BE_SCAN_INCS = \
+	be_scan.cpp \
 	be_scan.hpp \
-	version.cpp
+	cassandra_db.cpp \
+	db.hpp \
+	flex_scan_exception.hpp \
+	flex_scan_parameters.hpp \
+	scanners.hpp \
+	stdout_db.cpp
 
 # scanners based on GNUflex
 FLEX_INCS = \
-	flex_common.hpp \
 	scan_email.flex
 
 lib_LTLIBRARIES = libbe_scan.la
@@ -37,25 +42,10 @@ libbe_scan_la_CPPFLAGS = \
 
 libbe_scan_la_LDFLAGS = -PIC -avoid-version -static -no-undefined
 
-#libbe_scan_la_SOURCES = $(BE_SCAN_INCS) $(FLEX_INCS)
-libbe_scan_la_SOURCES = scan_email.flex version.cpp
+libbe_scan_la_SOURCES = $(FLEX_INCS) $(BE_SCAN_INCS)
 
 include_HEADERS = be_scan.hpp
 
 .flex.cpp:
-	$(LEX) -R -t $<  > $@
-#	$(LEX) -R -t $<  > `basename $@`
-#	$(LEX) -R -t $<  > `basename $@ .o`.cpp 
+	$(LEX) -R -t $< > $@
 
-#
-# Rule to compile .flex into a .o
-# FreeBSD NOTE: flex does not support -R and -o does not work properly
-# | sed "s/static int yy_get_next_buffer/static int XXyy_get_next_buffer/" 
-
-#SUFFIXES = .flex
-#FLEX_CXXFLAGS=-Wno-shadow -Wno-effc++ -Wno-redundant-decls -Wno-missing-noreturn
-#.flex.o:
-#	$(LEX) -R -t $<  > `basename $@ .o`.cpp 
-#	$(CXX) $(CPPFLAGS) $(AM_CPPFLAGS) $(CXXFLAGS) $(FLEX_CXXFLAGS) \
-#		-I${top_srcdir} -I${srcdir} -I.. -I../../_build -c `basename $@ .o`.cpp 
-#

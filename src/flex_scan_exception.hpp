@@ -17,17 +17,27 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-#include <config.h>
-#include <string>
-#include "be_scan.hpp"
+#ifndef FLEX_SCAN_EXCEPTION_HPP
+#define FLEX_SCAN_EXCEPTION_HPP
+
+#include <stdint.h>
+#include <exception>
 
 namespace be_scan {
 
-  /**
-   * Version of the be_scan library.
-   */
-  const char* version() {
-    return PACKAGE_VERSION;
-  }
-}
+  class flex_scan_exception: public std::exception {
+    public:
+    const char *msg;
+
+    flex_scan_exception(const char *m) : msg(m) {
+    }
+
+    virtual const char *what() const throw() {
+      return msg;
+    }
+  };
+
+} // end namespace
+
+#endif
 
