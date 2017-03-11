@@ -50,7 +50,8 @@ namespace be_scan {
                       const size_t file_offset,
                       const std::string& recursion_path,
                       const std::string& artifact_class,
-                      const std::string& artifact);
+                      const std::string& artifact,
+                      const std::string& context);
   };
 }
 

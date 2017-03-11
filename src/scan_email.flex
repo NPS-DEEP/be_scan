@@ -94,10 +94,11 @@ U_TLD4		(Q\0A\0|R\0E\0|R\0O\0|R\0S\0|R\0U\0|R\0W\0|S\0A\0|S\0B\0|S\0C\0|S\0D\0|S
 {EMAIL}/[^a-zA-Z]	{
     if(validate_email(yytext)){
         yyextra->db->write(yyextra->filename,
-                           yyextra->file_offset,
+                           yyextra->artifact_index + yyextra->file_offset,
                            yyextra->recursion_path,
                            "email",
-                           std::string(yytext));
+                           std::string(yytext),
+                           yyextra->current_context(yyleng));
     }
     yyextra->artifact_index += yyleng; 
 }
@@ -106,10 +107,11 @@ U_TLD4		(Q\0A\0|R\0E\0|R\0O\0|R\0S\0|R\0U\0|R\0W\0|S\0A\0|S\0B\0|S\0C\0|S\0D\0|S
     /* fix this to remove \0 chars */
     if(validate_email(yytext)){
         yyextra->db->write(yyextra->filename,
-                           yyextra->file_offset,
+                           yyextra->artifact_index + yyextra->file_offset,
                            yyextra->recursion_path,
                            "email",
-                           std::string(yytext));
+                           std::string(yytext),
+                           yyextra->current_context(yyleng));
     }
     (yyextra->artifact_index) += yyleng; 
 }

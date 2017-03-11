@@ -25,7 +25,21 @@
 #include <string>
 #include <stdint.h>
 #include <iostream>
+#include <sstream>
 #include <cassert>
+
+static std::string escape(const std::string& input) {
+  std::stringstream ss;
+  ss << std::hex;
+  for (const char& c : input) {
+    if (c < ' ' || c > '~' || c == '\\') {
+      ss << "\\x" << ((int)c>>4) << ((int)c&0x0f);
+    } else {
+      ss << c;
+    }
+  }
+  return ss.str();
+}
 
 /*
  * A diagnostic configuration that writes to stdout instead of to a DB.
@@ -49,13 +63,15 @@ namespace be_scan {
                           const uint64_t file_offset,
                           const std::string& recursion_path,
                           const std::string& artifact_class,
-                          const std::string& artifact) {
+                          const std::string& artifact,
+                          const std::string& context) {
 
     std::cout << "stdout_db db_t write: filename: '" << filename
               << "', file_offset: " << file_offset
               << ", recursion_path: '" << recursion_path
               << "', artifact_class: " << artifact_class
-              << ", artifact: '" << artifact
+              << ", artifact: '" << escape(artifact)
+              << ", context: '" << escape(context)
               << "'\n";
 
     return "";

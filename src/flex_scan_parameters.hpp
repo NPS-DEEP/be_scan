@@ -22,6 +22,7 @@
 
 #include <stdint.h>
 #include <string>
+#include <iostream>
 #include "db.hpp"
 
 // ************************************************************
@@ -66,9 +67,10 @@ namespace be_scan {
               db(p_db),
               buffer_index(0),
               artifact_index(file_offset) {
+std::cout << "'" << buffer << "', buffer_size: " << buffer_size << "\n";
     }
 
-    /* flex uses get_input to read bytes from the buffer. */
+    // flex uses get_input to read bytes from the buffer
     size_t get_input(char* buf, size_t max_size) {
       // this should not happen
       if((int)max_size < 0) {
@@ -77,12 +79,29 @@ namespace be_scan {
 
       // provide up to n bytes
       // adapted from Lex and Yacc 2'nd ed. p. 157
-      int n = (buffer_size - buffer_index < max_size) ? buffer_size : max_size;
+      const int n = (buffer_size - buffer_index < max_size)
+                              ? buffer_size - buffer_index : max_size;
+std::cerr << "n: " << n << " buffer_size: " << buffer_size << ", buffer_index: " << buffer_index << ", max_size: " << max_size << "\n";
       if (n > 0) {
         ::memcpy(buf, buffer + buffer_index, n);
         buffer_index += n;
       }
       return n;
+    }
+
+    // Offer context field used only in the bulk_extractor feature file,
+    // to be discontinued.
+    // Note that offset can be calculated bytut length is in yyleng and is
+    // not visible.
+    std::string current_context(size_t length) {
+      const size_t offset = artifact_index - file_offset;
+
+      const size_t start = offset < 16 ? 0 : offset - 16;
+      const size_t stop = offset + length + 16 > buffer_size
+                        ? buffer_size : offset + length + 16;
+      const std::string context(&buffer[start], stop - start);
+std::cout << "current_context length: " << length << " start: " << start << ", stop: " << stop << "\n";
+      return context;
     }
   };
 } // end namespace

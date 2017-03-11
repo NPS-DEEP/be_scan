@@ -24,6 +24,7 @@
 #include "be_scan.hpp"
 
 void test_version() {
+  std::cout << "be_scan version: '" << be_scan::version() << "'\n";
   TEST_EQ(be_scan::version(), PACKAGE_VERSION);
 }
 
@@ -34,7 +35,8 @@ void test_available_scanners() {
 }
 
 void test_buffer1() {
-  std::string string1 = "someone@somewhere.com\0someone2@somewhere2.com";
+  std::string string1 = "someone@somewhere.com\x01someone2@somewhere2.com\x01";
+  std::cout << "string1 size: " << string1.size() << "\n";
   const char* const bytes1 = string1.c_str();
 
   be_scan::be_scan_t scanner("test setting1");
@@ -54,6 +56,7 @@ int main(int argc, char* argv[]) {
 
   // done
   std::cout << "api_test Done.\n";
+  TEST_EQ(2,3);
   return 0;
 }
 
