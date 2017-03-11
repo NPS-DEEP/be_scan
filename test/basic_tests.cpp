@@ -35,7 +35,7 @@ void test_available_scanners() {
 }
 
 void test_buffer1() {
-  std::string string1 = "someone@somewhere.com\x01someone2@somewhere2.com\x01";
+  std::string string1 = "someone@somewhere.com\x01someone2@somewhere2.com\x0f";
   std::cout << "string1 size: " << string1.size() << "\n";
   const char* const bytes1 = string1.c_str();
 

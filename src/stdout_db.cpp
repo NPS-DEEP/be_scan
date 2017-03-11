@@ -28,12 +28,18 @@
 #include <sstream>
 #include <cassert>
 
+static std::string hexesc(char ch)
+{
+    char buf[10];
+    snprintf(buf,sizeof(buf),"\\x%02X",ch);
+    return std::string(buf);
+}
+
 static std::string escape(const std::string& input) {
   std::stringstream ss;
-  ss << std::hex;
   for (const char& c : input) {
     if (c < ' ' || c > '~' || c == '\\') {
-      ss << "\\x" << ((int)c>>4) << ((int)c&0x0f);
+      ss << hexesc(c);
     } else {
       ss << c;
     }
@@ -66,6 +72,7 @@ namespace be_scan {
                           const std::string& artifact,
                           const std::string& context) {
 
+/*
     std::cout << "stdout_db db_t write: filename: '" << filename
               << "', file_offset: " << file_offset
               << ", recursion_path: '" << recursion_path
@@ -73,7 +80,14 @@ namespace be_scan {
               << ", artifact: '" << escape(artifact)
               << ", context: '" << escape(context)
               << "'\n";
+*/
 
+    std::cout << "bulk_extractor " << artifact_class
+              << " " << filename << " "
+              << recursion_path << file_offset // feature path
+              << "\t" << escape(artifact)      // feature
+              << "\t" << escape(context)       // context
+              << "\n";
     return "";
   }
 } // end namespace
