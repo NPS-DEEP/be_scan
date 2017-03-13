@@ -45,13 +45,14 @@ namespace be_scan {
 
     db_t* const db;
 
-    private:
-    // buffer pointer
+//    private:
+//    // buffer pointer
+    // flex increments this as it scans along
     size_t buffer_index;
 
     public:
-    // flex increments this as it scans along
-    size_t artifact_index;
+//    // flex increments this as it scans along
+//    size_t artifact_index;
 
     flex_scan_parameters_t(const std::string& p_filename,
                            const size_t p_file_offset,
@@ -65,11 +66,11 @@ namespace be_scan {
               buffer(p_buffer),
               buffer_size(p_buffer_size),
               db(p_db),
-              buffer_index(0),
-              artifact_index(file_offset) {
+              buffer_index(0) {
 std::cout << "'" << buffer << "', buffer_size: " << buffer_size << "\n";
     }
 
+/*
     // flex uses get_input to read bytes from the buffer
     size_t get_input(char* buf, size_t max_size) {
       // this should not happen
@@ -88,13 +89,14 @@ std::cerr << "n: " << n << " buffer_size: " << buffer_size << ", buffer_index: "
       }
       return n;
     }
+*/
 
     // Offer context field used only in the bulk_extractor feature file,
     // to be discontinued.
     // Note that offset can be calculated bytut length is in yyleng and is
     // not visible.
     std::string current_context(size_t length) {
-      const size_t offset = artifact_index - file_offset;
+      const size_t offset = buffer_index;
 
       const size_t start = offset < 16 ? 0 : offset - 16;
       const size_t stop = offset + length + 16 > buffer_size

@@ -25,7 +25,8 @@
 
 void test_version() {
   std::cout << "be_scan version: '" << be_scan::version() << "'\n";
-  TEST_EQ(be_scan::version(), PACKAGE_VERSION);
+  std::string version = PACKAGE_VERSION;
+  TEST_EQ(be_scan::version(), version);
 }
 
 void test_available_scanners() {

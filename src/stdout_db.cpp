@@ -52,11 +52,11 @@ static std::string escape(const std::string& input) {
  */
 namespace be_scan {
 
-  db_t::db_t(const std::string& initialization_parameter) :
+  db_t::db_t(const std::string& settings) :
                   initialization_status(""),
-                  is_open(true){
-    std::cout << "stdout_db db_t initialization_parameter: "
-              << initialization_parameter << "\n";
+                  is_open(true) {
+    std::cout << "stdout_db db_t settings: "
+              << settings << "\n";
   }
 
   // close

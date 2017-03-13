@@ -35,7 +35,9 @@ fi
 C_FLAGS_TO_TEST="-MD -Wpointer-arith -Wmissing-declarations -Wmissing-prototypes \
     -Wshadow -Wwrite-strings -Wcast-align -Waggregate-return \
     -Wbad-function-cast -Wcast-qual -Wundef -Wredundant-decls -Wdisabled-optimization \
-    -Wfloat-equal -Wmultichar -Wc++-compat -Wmissing-noreturn "
+    -Wfloat-equal -Wmultichar -Wc++-compat -Wmissing-noreturn \
+    -Wmissing-format-attribute -Wundef -Weffcpp -Wsuggest-attribute=noreturn \
+    -Wdeprecated-register"
 
 if test x"${mingw}" != "xyes" ; then
   # add the warnings we do not want to do on mingw
@@ -57,16 +59,48 @@ do
   CFLAGS="$CFLAGS $option"
   AC_MSG_CHECKING([whether gcc understands $option])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[]])],
-      [has_option=yes; BE_SCAN_CFLAGS="$BE_SCAN_CFLAGS $option"],
+      [has_option=yes
+       BE_SCAN_CFLAGS="$BE_SCAN_CFLAGS $option"
+
+       # Some attributes may need to be conditionally suppressed.
+       # Add more as needed.
+       case "$option" in
+         -Wmissing-format-attribute)
+           AC_DEFINE(HAVE_MISSING_FORMAT_ATTRIBUTE_WARNING,1,
+             [Indicates that the compiler supports -Wmissing-format-attribute])
+           ;;
+         -Wshadow)
+           AC_DEFINE(HAVE_DIAGNOSTIC_SHADOW,1,
+             [Indicates that the compiler supports -Wshadow])
+           ;;
+         -Wundef)
+           AC_DEFINE(HAVE_DIAGNOSTIC_UNDEF,1,
+             [Indicates that the compiler supports -Wundef])
+           ;;
+         -Wcast-qual)
+           AC_DEFINE(HAVE_DIAGNOSTIC_CAST_QUAL,1,
+             [Indicates that the compiler supports -Wcast-qual])
+           ;;
+         -Weffcpp)
+           AC_DEFINE(HAVE_DIAGNOSTIC_EFFCPP,1,
+             [Indicates that the compiler supports -Weffcpp])
+           ;;
+         -Wsuggest-attribute=noreturn)
+           AC_DEFINE(HAVE_DIAGNOSTIC_SUGGEST_ATTRIBUTE,1,
+             [Indicates that the compiler supports -Wsuggest-attribute=noreturn])
+           ;;
+         -Wdeprecated-register)
+           AC_DEFINE(HAVE_DIAGNOSTIC_DEPRECATED_REGISTER,1,
+             [Indicates that the compiler supports -Wdeprecated-register])
+           ;;
+       esac
+      ],
       [has_option=no])
   AC_MSG_RESULT($has_option)
   unset has_option
   CFLAGS="$SAVE_CFLAGS"
   unset SAVE_CFLAGS
-  if test $option = "-Wmissing-format-attribute" ; then
-    AC_DEFINE(HAVE_MISSING_FORMAT_ATTRIBUTE_WARNING,1,
-		[Indicates that we have the -Wmissing-format-attribute G++ warning])
-  fi
+
 done
 unset option
 

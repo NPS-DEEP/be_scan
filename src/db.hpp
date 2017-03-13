@@ -17,9 +17,12 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-#ifndef CASSANDRA_DB_HPP
-#define CASSANDRA_DB_HPP
+#ifndef DB_HPP
+#define DB_HPP
+
+#ifdef HAVE_CASSANDRA
 #include "cassandra.h"
+#endif
 
 #include <string>
 #include <stdint.h>
@@ -42,7 +45,7 @@ namespace be_scan {
     const std::string initialization_status;
     const bool is_open;
 
-    db_t(const std::string& contact_point);
+    db_t(const std::string& settings);
     ~db_t();
 
   // write

@@ -30,14 +30,16 @@
 #define YY_SKIP_YYWRAP            /* Never wrap */
 #define YY_NO_INPUT
 
-#define YY_INPUT(buffer, result, max_size) (result = \
-            yyemail_get_extra(yyscanner)->get_input(buffer, max_size));
+//#define YY_INPUT(buffer, result, max_size) (result = \
+//            yyemail_get_extra(yyscanner)->get_input(buffer, max_size));
 
 #define YY_FATAL_ERROR(msg) {throw be_scan::flex_scan_exception(msg);}
 
 #define YY_EXTRA_TYPE be_scan::flex_scan_parameters_t*
 YY_EXTRA_TYPE yyemail_get_extra(yyscan_t yyscanner);
 
+/* pointer for buffer scanning */
+YY_BUFFER_STATE bp;
 
 /* Address some common false positives in email scanner */
 inline bool validate_email(const char *email)
@@ -94,26 +96,26 @@ U_TLD4		(Q\0A\0|R\0E\0|R\0O\0|R\0S\0|R\0U\0|R\0W\0|S\0A\0|S\0B\0|S\0C\0|S\0D\0|S
 {EMAIL}/[^a-zA-Z]	{
     if(validate_email(yytext)){
         yyextra->db->write(yyextra->filename,
-                           yyextra->artifact_index + yyextra->file_offset,
+                           yyextra->buffer_index + yyextra->file_offset,
                            yyextra->recursion_path,
                            "email",
                            std::string(yytext),
                            yyextra->current_context(yyleng));
     }
-    yyextra->artifact_index += yyleng; 
+    yyextra->buffer_index += yyleng; 
 }
 
 [a-zA-Z0-9]\0([a-zA-Z0-9._%\-+]\0){1,128}@\0([a-zA-Z0-9._%\-]\0){1,128}\.\0({U_TLD1}|{U_TLD2}|{U_TLD3}|{U_TLD4})/[^a-zA-Z]|([^][^\0])	{
     /* fix this to remove \0 chars */
     if(validate_email(yytext)){
         yyextra->db->write(yyextra->filename,
-                           yyextra->artifact_index + yyextra->file_offset,
+                           yyextra->buffer_index + yyextra->file_offset,
                            yyextra->recursion_path,
                            "email",
                            std::string(yytext),
                            yyextra->current_context(yyleng));
     }
-    (yyextra->artifact_index) += yyleng; 
+    (yyextra->buffer_index) += yyleng; 
 }
 
 .|\n { 
@@ -121,7 +123,7 @@ U_TLD4		(Q\0A\0|R\0E\0|R\0O\0|R\0S\0|R\0U\0|R\0W\0|S\0A\0|S\0B\0|S\0C\0|S\0D\0|S
      * The no-match rule. VERY IMPORTANT!
      * If we are beyond the end of the margin, call it quits.
      */
-    ++(yyextra->artifact_index);
+    ++(yyextra->buffer_index);
 }
 
 
@@ -138,16 +140,19 @@ std::string be_scan::scan_email(const std::string& filename,
   be_scan::flex_scan_parameters_t flex_scan_parameters(filename, file_offset,
                                          recursion_path, buffer, size, db);
   yyscan_t scanner;
-  yyemail_lex_init(&scanner);
-  yyemail_set_extra(&flex_scan_parameters, scanner);
+  yylex_init(&scanner);
+  yyset_extra(&flex_scan_parameters, scanner);
+  bp = yy_scan_bytes(buffer, size, scanner);
+  yy_switch_to_buffer(bp, scanner);
   std::string status = "";
   try {
-    yyemail_lex(scanner);
+    yylex(scanner);
   } catch (be_scan::flex_scan_exception *e) {
     status = std::string(e->what());
     delete e;
   }
-  yyemail_lex_destroy(scanner);
+  yy_delete_buffer(bp, scanner);
+  yylex_destroy(scanner);
   (void)yyunput;			// avoids defined but not used
   return status;
 }

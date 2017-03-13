@@ -53,6 +53,12 @@ namespace be_scan {
     private:
     db_t* db;
 
+#ifndef SWIG
+    // do not allow copy or assignment
+    be_scan_t(const be_scan_t&) = delete;
+    be_scan_t& operator=(const be_scan_t&) = delete;
+#endif
+
     public:
     /**
      * Blank else error message if not properly initialized.

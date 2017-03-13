@@ -87,10 +87,13 @@ namespace be_scan {
   // write
   // see A Simple Example, https://github.com/datastax/cpp-driver
   std::string db_t::write(const std::string& filename,
-                          const uint64_t file_offset,
+                          const size_t file_offset,
                           const std::string& recursion_path,
                           const std::string& artifact_class,
-                          const std::string& artifact) {
+                          const std::string& artifact,
+                          const std::string& context) {
+
+    // Note: Cassandra may not use the context field.
 
     // must be open
     if (!is_open) {
