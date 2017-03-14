@@ -2,8 +2,9 @@
 
 # have automake do an initial population iff necessary
 if [ ! -e config.guess -o ! -e config.sub -o ! -e install-sh -o ! -e missing ]; then
-    autoheader -f
     touch NEWS README AUTHORS ChangeLog
+    autoreconf -i
+    autoheader -f
     touch stamp-h
     libtoolize || glibtoolize
     aclocal -I m4
