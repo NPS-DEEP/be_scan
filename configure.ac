@@ -78,7 +78,7 @@ CPPFLAGS="$CPPFLAGS -fPIC"
 
 ## SWIG Python
 m4_include([m4/ax_pkg_swig.m4])
-AX_PKG_SWIG(2.0.10, [], [ AC_MSG_NOTICE([SWIG is required to build API bindings]) ])
+AX_PKG_SWIG(1.0.0, [], [ AC_MSG_ERROR([SWIG is required to build API bindings]) ])
 m4_include([m4/ax_python_devel.m4])
 m4_include([m4/ax_swig_enable_cxxx.m4])
 m4_include([m4/ax_swig_python.m4])

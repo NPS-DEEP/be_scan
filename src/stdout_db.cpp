@@ -37,7 +37,9 @@ static std::string hexesc(char ch)
 
 static std::string escape(const std::string& input) {
   std::stringstream ss;
-  for (const char& c : input) {
+//  for (const char& c : input)   // no, requires GCC4.6+
+  for(std::string::const_iterator it = input.begin(); it != input.end(); ++it) {
+    const char c = *it;
     if (c < ' ' || c > '~' || c == '\\') {
       ss << hexesc(c);
     } else {
