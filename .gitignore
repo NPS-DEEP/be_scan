@@ -64,6 +64,11 @@ test/temp_*
 test_py/temp_*
 *.tar.gz
 space
+m4/libtool.m4
+m4/lt*
+
+# Java
+*.class
 
 # python
 __pycache__

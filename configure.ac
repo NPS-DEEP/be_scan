@@ -29,7 +29,9 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
-#AC_DISABLE_STATIC
+AC_ENABLE_SHARED
+AC_DISABLE_STATIC
+LT_INIT
 AC_PROG_LEX
 
 # use C++11 mode if available; HAVE_CXX11 is defined in config.h if so.  Don't
@@ -92,6 +94,11 @@ for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS
   do
           JNI_CPPFLAGS="$JNI_CPPFLAGS -I$JNI_INCLUDE_DIR"
   done
+AM_CONDITIONAL([JNI_CPPFLAGS], [test "$JNI_CPPFLAGS" != ""])
+if test "$JNI_CPPFLAGS" == "" ; then
+  AC_MSG_ERROR([Java JNI is not available.  Please install Java Devel.])
+fi
+AC_ARG_VAR(JNI_CPPFLAGS, [includes for Java JNI Header files])
 
 ################################################################
 ## mcheck support
@@ -258,6 +265,7 @@ AC_MSG_NOTICE([
   CXXFLAGS:         $CXXFLAGS
   LIBS:             $LIBS
   LDFLAGS:          $LDFLAGS
+  JNI_CPPFLAGS      $JNI_CPPFLAGS
 
   PYTHON_VERSION:   $PYTHON_VERSION
 

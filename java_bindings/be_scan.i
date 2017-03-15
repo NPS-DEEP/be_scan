@@ -1,4 +1,4 @@
-%module be_scan
+%module be_scan_jni
 %include "std_string.i"
 %include "stdint.i"
 
