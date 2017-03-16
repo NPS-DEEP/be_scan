@@ -57,7 +57,6 @@ int main(int argc, char* argv[]) {
 
   // done
   std::cout << "api_test Done.\n";
-  TEST_EQ(2,3);
   return 0;
 }
 

@@ -33,10 +33,10 @@ libbe_scan_jni_la_LIBADD = ../src/libbe_scan.la
 libbe_scan_jni_la_SOURCES = be_scan_wrap.cpp be_scan.i
 #libbe_scan_jni_la_CPPFLAGS = -fPIC -fno-strict-aliasing $(JNI_CPPFLAGS)
 libbe_scan_jni_la_CPPFLAGS = -fno-strict-aliasing $(JNI_CPPFLAGS)
-libbe_scan_jni_la_LDFLAGS = -fPIC
+libbe_scan_jni_la_LDFLAGS = -fPIC -module
 
 # recipe for be_scan_wrap.cpp created by inputs to SWIG
-be_scan_wrap.cpp: be_scan.hpp be_scan.i
+be_scan_wrap.cpp: be_scan.hpp be_scan.i Tests.java
 	mkdir -p $(JAVA_PATH)
 	$(SWIG) -java -package $(JAVA_PACKAGE) -Wall -Werror -outdir $(JAVA_PATH) -o $@ ${top_srcdir}/java_bindings/be_scan.i
 
@@ -50,13 +50,19 @@ be_scan_jni.jar: $(JAVA_PATH)/*.java
 	javac $(JAVA_PATH)/*.java
 	jar cf be_scan_jni.jar edu/nps/deep/be_scan/*.class
 
-# Tests
-check_PROGRAMS = basic_tests
+Tests.class: Tests.java be_scan_jni.jar
+	echo zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+	rm -rf Tests.java
+	ln -s ${top_srcdir}/java_bindings/Tests.java .
+	javac -cp be_scan_jni.jar Tests.java
+	rm Tests.java
 
-basic_tests$(EXEEXT): Tests.class
+basic_tests$(EXEEXT): Tests.class be_scan_jni.jar
 	echo "java Tests" > basic_tests
 	chmod +x basic_tests
-	javac -cp be_scan_jni.jar $(srcdir)/Tests.java
+
+# Tests
+check_PROGRAMS = basic_tests
 
 TESTS = $(check_PROGRAMS)
 
@@ -80,5 +86,5 @@ TESTS = $(check_PROGRAMS)
 #	javac BasicTests
 
 clean-local:
-	rm -rf edu/nps/deep/be_scan/be_scan* be_scan.hpp be_scan_wrap.cpp
+	rm -rf edu/nps/deep/be_scan/be_scan* be_scan.hpp be_scan_wrap.cpp be_scan_jni.jar Tests.java
 
