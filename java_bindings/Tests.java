@@ -18,8 +18,8 @@ public final class Tests {
   private static void testBuffer1() {
     byte[] buffer1 = "someone@somewhere.com\nsomeone2@somewhere2.com\n".getBytes();
     System.out.println("test buffer 1 size: " + buffer1.length);
-    edu.nps.deep.be_scan.be_scan_t scanner =
-            new edu.nps.deep.be_scan.be_scan_t("test setting1");
+    edu.nps.deep.be_scan.BEScan scanner =
+            new edu.nps.deep.be_scan.BEScan("test setting1");
     scanner.scan("filename1", 1000L, "rp1", buffer1, buffer1.length);
   }
 
