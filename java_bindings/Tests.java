@@ -1,7 +1,8 @@
 public final class Tests {
 
   static {
-    System.load("/home/bdallen/local/lib/libbe_scan_jni.so");
+//    System.loadLibrary("be_scan_jni");
+    System.load(new java.io.File(".libs/libbe_scan_jni.so").getAbsolutePath());
   }
 
   private static void testVersion() {
