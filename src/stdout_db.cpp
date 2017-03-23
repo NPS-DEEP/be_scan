@@ -28,7 +28,8 @@
 #include <sstream>
 #include <cassert>
 
-static std::string hexesc(char ch)
+// ref. bulk_extractor/src/be13_api/unicode_escape.cpp
+static std::string hexesc(unsigned char ch)
 {
     char buf[10];
     snprintf(buf,sizeof(buf),"\\x%02X",ch);
@@ -39,8 +40,9 @@ static std::string escape(const std::string& input) {
   std::stringstream ss;
 //  for (const char& c : input)   // no, requires GCC4.6+
   for(std::string::const_iterator it = input.begin(); it != input.end(); ++it) {
-    const char c = *it;
-    if (c < ' ' || c > '~' || c == '\\') {
+    const unsigned char c = *it;
+//    if (c < ' ' || c > '~' || c == '\\')
+    if (c < ' ' || c > 0x7f || c == '\\') {
       ss << hexesc(c);
     } else {
       ss << c;
@@ -58,7 +60,7 @@ namespace be_scan {
                   initialization_status(""),
                   is_open(true) {
     std::cout << "stdout_db db_t settings: "
-              << settings << "\n";
+              << settings << std::endl;
   }
 
   // close
@@ -75,21 +77,23 @@ namespace be_scan {
                           const std::string& context) {
 
 /*
+    // plain output
     std::cout << "stdout_db db_t write: filename: '" << filename
               << "', file_offset: " << file_offset
               << ", recursion_path: '" << recursion_path
               << "', artifact_class: " << artifact_class
               << ", artifact: '" << escape(artifact)
               << ", context: '" << escape(context)
-              << "'\n";
+              << std::endl;
 */
 
+    // output similar to bulk_extractor
     std::cout << "bulk_extractor " << artifact_class
               << " " << filename << " "
               << recursion_path << file_offset // feature path
               << "\t" << escape(artifact)      // feature
               << "\t" << escape(context)       // context
-              << "\n";
+              << std::endl;
     return "";
   }
 } // end namespace
