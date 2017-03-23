@@ -67,7 +67,7 @@ namespace be_scan {
               buffer_size(p_buffer_size),
               db(p_db),
               buffer_index(0) {
-std::cout << "'" << buffer << "', buffer_size: " << buffer_size << "\n";
+//zzstd::cout << "'" << buffer << "', buffer_size: " << buffer_size << "\n";
     }
 
 /*
@@ -102,7 +102,7 @@ std::cerr << "n: " << n << " buffer_size: " << buffer_size << ", buffer_index: "
       const size_t stop = offset + length + 16 > buffer_size
                         ? buffer_size : offset + length + 16;
       const std::string context(&buffer[start], stop - start);
-std::cout << "current_context: length: " << length << ", start: " << start << ", stop: " << stop << "\n";
+//zzstd::cout << "current_context: length: " << length << ", start: " << start << ", stop: " << stop << "\n";
       return context;
     }
   };
