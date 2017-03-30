@@ -17,45 +17,24 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-#ifndef DB_HPP
-#define DB_HPP
+/**
+ * \file
+ * Generate context for artifact within buffer
+ */
 
-#ifdef HAVE_CASSANDRA
-#include "cassandra.h"
-#endif
+#ifndef ARTIFACT_CONTEXT_HPP
+#define ARTIFACT_CONTEXT_HPP
 
 #include <string>
 #include <stdint.h>
 
-/*
- * A DB implementation for storing to Cassandra.
- * https://github.com/datastax/cpp-driver/blob/master/examples/basic/basic.c
- */
 namespace be_scan {
 
-  class db_t {
-
-    private:
-#ifdef HAVE_CASSANDRA
-    CassCluster* const cluster;
-    CassSession* const session;
-#endif
-
-    public:
-    const std::string initialization_status;
-    const bool is_open;
-
-    db_t(const std::string& settings);
-    ~db_t();
-
-  // write
-    std::string write(const std::string& filename,
-                      const size_t file_offset,
-                      const std::string& recursion_path,
-                      const std::string& artifact_class,
-                      const std::string& artifact,
-                      const std::string& context);
-  };
+  std::string artifact_context(const char* const buffer,
+                               const size_t buffer_size,
+                               const size_t artifact_offset,
+                               const size_t artifact_length,
+                               const size_t artifact_padding);
 }
 
 #endif

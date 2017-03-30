@@ -35,7 +35,7 @@
 #define TEST_EQ( LHS, RHS )                                                  \
   if (!(LHS == RHS)) {                                                       \
     std::cerr << "ERROR: " << __FILE__ << " line " << __LINE__               \
-              << ": value " << LHS << " != " << RHS << "\n";                 \
+              << ": value '" << LHS << "' != '" << RHS << "'\n";                 \
     exit(1);                                                                 \
   }                                                                          \
   //
@@ -53,7 +53,7 @@
 #define TEST_NE( LHS, RHS )                                                  \
   if (LHS == RHS) {                                                          \
     std::cerr << "ERROR: " << __FILE__ << " line " << __LINE__               \
-              << ": value " << LHS << " == " << RHS << "\n";                 \
+              << ": value '" << LHS << "' == '" << RHS << "'\n";                 \
     exit(1);                                                                 \
   }                                                                          \
   //

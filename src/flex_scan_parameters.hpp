@@ -23,7 +23,6 @@
 #include <stdint.h>
 #include <string>
 #include <iostream>
-#include "db.hpp"
 
 // ************************************************************
 // Define be_scan::flex_buffer_reader_t for reading from char[]
@@ -43,8 +42,6 @@ namespace be_scan {
     const char* const buffer;
     const size_t buffer_size;
 
-    db_t* const db;
-
 //    private:
 //    // buffer pointer
     // flex increments this as it scans along
@@ -58,14 +55,12 @@ namespace be_scan {
                            const size_t p_file_offset,
                            const std::string& p_recursion_path,
                            const char* const p_buffer,
-                           const size_t p_buffer_size,
-                           db_t* const p_db) :
+                           const size_t p_buffer_size) :
               filename(p_filename),
               file_offset(p_file_offset),
               recursion_path(p_recursion_path),
               buffer(p_buffer),
               buffer_size(p_buffer_size),
-              db(p_db),
               buffer_index(0) {
 //zzstd::cout << "'" << buffer << "', buffer_size: " << buffer_size << "\n";
     }

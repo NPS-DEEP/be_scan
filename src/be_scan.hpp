@@ -27,10 +27,24 @@
 
 #include <string>
 #include <stdint.h>
+#include <stdint.h>
 
 namespace be_scan {
 
-  class db_t;
+  class scan_email_t;
+
+  /**
+   * Artifacts are returned using this structure.
+   */
+  class artifact_t {
+    public:
+    const std::string artifact_class;
+    const std::string artifact;
+    const std::string context;
+    artifact_t(const std::string& p_artifact_class,
+               const std::string& p_artifact,
+               const std::string& p_context);
+  };
 
   /**
    * Version of the be_scan library.
@@ -51,53 +65,37 @@ namespace be_scan {
   class be_scan_t {
 
     private:
-    db_t* db;
-
-#ifndef SWIG
-    // do not allow copy or assignment
-    be_scan_t(const be_scan_t&) = delete;
-    be_scan_t& operator=(const be_scan_t&) = delete;
-#endif
+    const std::string selected_scanners;
+    const char* const buffer;
+    const size_t buffer_size;
+    scan_email_t* scan_email;
 
     public:
     /**
-     * Blank else error message if not properly initialized.
-     */
-    const std::string initialization_status;
-
-    /**
-     * A connection to the database.
+     * Create a scan instance given scanners to use and a buffer to scan.
      *
      * Parameters:
-     *   settings - DB connection settings.  For example for
-     *              Cassandra, this is the contact point.
+     *   p_selected_scanners - The scanners to use during the scan.
+     *   p_buffer - The buffer of bytes to scan.
+     *   p_buffer_size - The number of bytes in the buffer to scan.
      */
-    be_scan_t(const std::string& settings);
+    be_scan_t(const std::string& p_selected_scanners,
+              const char* const p_buffer,
+              size_t p_buffer_size);
+
+    /*
+     * Scan to the next artifact.  If no artifact is available, return a
+     * blank artifact containing "" and 0 values for all fields.
+     *
+     * Returns:
+     *   artifact_t - The artifact or an artifact with blank data if done.
+     */
+    artifact_t next_artifact();
 
     /**
      * Destructor.
      */
     ~be_scan_t();
-
-    /**
-     * Scan.
-     *
-     * Parameters:
-     *   filename - The name of the file to attribute found artifacts to.
-     *   file_offset - The offset into the file where the buffer starts.
-     *   recursion_path - The recursive path to the artifact, or "" for
-     *                    no recursion.
-     *   buffer - The buffer of bytes to scan.
-     *   buffer_size - The number of bytes in the buffer to scan.
-     *
-     * Returns:
-     *   "" else error message if scan failed.
-     */
-    std::string scan(const std::string& filename,
-                     const size_t file_offset,
-                     const std::string& recursion_path,
-                     const char* const buffer,
-                     size_t buffer_size);
 
   };
 }

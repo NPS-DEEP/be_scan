@@ -64,5 +64,5 @@ check_PROGRAMS = basic_tests
 TESTS = $(check_PROGRAMS)
 
 clean-local:
-	rm -rf edu/nps/deep/be_scan/be_scan* be_scan.hpp be_scan_wrap.cpp be_scan_jni.jar Tests.class Tests.java
+	rm -rf edu/ be_scan.hpp be_scan_wrap.cpp be_scan_jni.jar Tests.class Tests.java
 

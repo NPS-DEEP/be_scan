@@ -36,12 +36,26 @@ void test_available_scanners() {
 }
 
 void test_buffer1() {
-  std::string string1 = "someone@somewhere.com\x01someone2@somewhere2.com\x0f";
+  std::string string1 = "someone@somewhere.com\tsomeone2@somewhere2.com\n";
   std::cout << "string1 size: " << string1.size() << "\n";
   const char* const bytes1 = string1.c_str();
 
-  be_scan::be_scan_t scanner("test setting1");
-  scanner.scan("filename1", 1000, "rp1", bytes1, string1.size());
+  be_scan::be_scan_t scanner("email", bytes1, string1.size());
+
+  be_scan::artifact_t artifact1 = scanner.next_artifact();
+  TEST_EQ(artifact1.artifact_class, "email");
+  TEST_EQ(artifact1.artifact, "someone@somewhere.com");
+  TEST_EQ(artifact1.context, "someone@somewhere.com\tsomeone2@somewh");
+
+  be_scan::artifact_t artifact2 = scanner.next_artifact();
+  TEST_EQ(artifact2.artifact_class, "email");
+  TEST_EQ(artifact2.artifact, "someone2@somewhere2.com");
+  TEST_EQ(artifact2.context, "e@somewhere.com\tsomeone2@somewhere2.com\n");
+
+  be_scan::artifact_t artifact3 = scanner.next_artifact();
+  TEST_EQ(artifact3.artifact_class, "");
+  TEST_EQ(artifact3.artifact, "");
+  TEST_EQ(artifact3.context, "");
 }
 
 

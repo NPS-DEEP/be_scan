@@ -17,44 +17,45 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
+/**
+ * \file
+ * Generate context for artifact within buffer
+ */
+
+#ifndef SCAN_EMAIL_HPP
+#define SCAN_EMAIL_HPP
+
 #include <config.h>
 #include <string>
+#include <stdint.h>
 #include <set>
 #include "be_scan.hpp"
-#include "scan_email.hpp"
-
+#include "artifact_context.hpp"
 namespace be_scan {
 
-  // Version of the be_scan library.
-  const char* version() {
-    return PACKAGE_VERSION;
-  }
+class scan_email_t {
 
-  // available scanners
-  std::string available_scanners() {
-    return "email"; // zz "email exif ..."
-  }
+  private:
+  const char* const buffer;
+  const size_t buffer_size;
+  size_t index;
 
-  // constructor
-  be_scan_t::be_scan_t(const std::string& p_selected_scanners,
-                       const char* const p_buffer,
-                       size_t p_buffer_size) :
-                selected_scanners(p_selected_scanners),
-                buffer(p_buffer),
-                buffer_size(p_buffer_size),
-                scan_email(0) {
+  const static std::set<std::string> domain_names;
 
-    // start the email scanner
-    scan_email = new scan_email_t(buffer, buffer_size);
-  }
+  size_t find_start(const size_t at);
+  size_t find_stop(const size_t at);
+  size_t find_start16(const size_t at);
+  size_t find_stop16(const size_t at);
+  bool valid_top_level_domain(const std::string& feature);
 
-  artifact_t be_scan_t::next_artifact() {
-    return scan_email->next();
-  }
+  public:
+  scan_email_t(const char* const p_buffer,
+               const size_t p_buffer_size);
 
-  // destructor
-  be_scan_t::~be_scan_t() {
-    delete scan_email;
-  }
+  artifact_t next();
+};
+
 }
+
+#endif
 

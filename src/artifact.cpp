@@ -17,26 +17,17 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-#ifndef SCANNERS_HPP
-#define SCANNERS_HPP
-
 #include <config.h>
 #include <string>
-#include <stdint.h>
+#include "be_scan.hpp"
 
 namespace be_scan {
-
-  // email
-  std::string scan_email(const std::string& filename,
-                         const size_t file_offset,
-                         const std::string& recursion_path,
-                         const char* buffer,
-                         size_t buffer_size,
-                         db_t* const db);
-
-  // exif, etc...
-
+    artifact_t::artifact_t(const std::string& p_artifact_class,
+                           const std::string& p_artifact,
+                           const std::string& p_context) :
+                      artifact_class(p_artifact_class),
+                      artifact(p_artifact),
+                      context(p_context) {
+    }
 }
-
-#endif
 

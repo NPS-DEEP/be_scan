@@ -19,21 +19,18 @@
 
 # This file assists in building libbe_scan.so
 
-CLEANFILES = scan_email.cpp
+CLEANFILES = scan_email_flex.cpp
 
 BE_SCAN_INCS = \
+	artifact_context.cpp \
+	artifact_context.hpp \
+	artifact.cpp \
 	be_scan.cpp \
 	be_scan.hpp \
-	cassandra_db.cpp \
-	db.hpp \
 	flex_scan_exception.hpp \
 	flex_scan_parameters.hpp \
-	scanners.hpp \
-	stdout_db.cpp
-
-# scanners based on GNUflex
-FLEX_INCS = \
-	scan_email.flex
+	scan_email.cpp \
+	scan_email.hpp
 
 lib_LTLIBRARIES = libbe_scan.la
 
@@ -44,7 +41,7 @@ libbe_scan_la_CPPFLAGS = \
 libbe_scan_la_LDFLAGS = -PIC -avoid-version \
                         -export-dynamic -no-undefined
 
-libbe_scan_la_SOURCES = $(FLEX_INCS) $(BE_SCAN_INCS)
+libbe_scan_la_SOURCES = $(BE_SCAN_INCS)
 
 include_HEADERS = be_scan.hpp
 
