@@ -10,6 +10,7 @@
 %rename (artifactClass) artifact_class;
 %rename (bufferOffset) buffer_offset;
 %rename (BEScan) be_scan_t;
+%rename (isInitialized) is_initialized;
 %rename (nextArtifact) next_artifact;
 
 // http://stackoverflow.com/questions/33504659/passing-byte-from-java-to-c

@@ -16,6 +16,12 @@ public final class Tests {
     }
   }
 
+  private static void testEquals(boolean a, boolean b) {
+    if (a != b) {
+      throw new RuntimeException("Error: " + a + " not equal to " + b);
+    }
+  }
+
   private static void testVersion() {
     String version = edu.nps.deep.be_scan.be_scan_jni.version();
     System.out.println("Version: " + version);
@@ -33,6 +39,8 @@ static byte[] buffer1 = "someone@somewhere.com\tsomeone2@somewhere2.com\n".getBy
     System.out.println("test buffer 1 size: " + buffer1.length);
     edu.nps.deep.be_scan.BEScan scanner =
             new edu.nps.deep.be_scan.BEScan("email", buffer1, buffer1.length);
+
+    testEquals(scanner.getIsInitialized(), true);
 
     edu.nps.deep.be_scan.Artifact artifact;
     artifact = scanner.nextArtifact();
