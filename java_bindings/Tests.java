@@ -10,6 +10,12 @@ public final class Tests {
     }
   }
 
+  private static void testEquals(long a, long b) {
+    if (a != b) {
+      throw new RuntimeException("Error: " + a + " not equal to " + b);
+    }
+  }
+
   private static void testVersion() {
     String version = edu.nps.deep.be_scan.be_scan_jni.version();
     System.out.println("Version: " + version);
@@ -31,16 +37,19 @@ static byte[] buffer1 = "someone@somewhere.com\tsomeone2@somewhere2.com\n".getBy
     edu.nps.deep.be_scan.Artifact artifact;
     artifact = scanner.nextArtifact();
     testEquals(artifact.getArtifactClass(), "email");
+    testEquals(artifact.getBufferOffset(), 0);
     testEquals(artifact.getArtifact(), "someone@somewhere.com");
     testEquals(artifact.getContext(), "someone@somewhere.com\tsomeone2@somewh");
 
     artifact = scanner.nextArtifact();
     testEquals(artifact.getArtifactClass(), "email");
+    testEquals(artifact.getBufferOffset(), 22);
     testEquals(artifact.getArtifact(), "someone2@somewhere2.com");
     testEquals(artifact.getContext(), "e@somewhere.com\tsomeone2@somewhere2.com\n");
 
     artifact = scanner.nextArtifact();
     testEquals(artifact.getArtifactClass(), "");
+    testEquals(artifact.getBufferOffset(), 0);
     testEquals(artifact.getArtifact(), "");
     testEquals(artifact.getContext(), "");
   }

@@ -8,6 +8,7 @@
 %rename (Artifact) artifact_t;
 //%rename (BEBuffer) be_buffer_t;
 %rename (artifactClass) artifact_class;
+%rename (bufferOffset) buffer_offset;
 %rename (BEScan) be_scan_t;
 %rename (nextArtifact) next_artifact;
 

@@ -64,7 +64,7 @@ namespace be_scan {
 
   artifact_t be_scan_t::next_artifact() {
     if (!is_initialized) {
-      return artifact_t("","","");
+      return artifact_t("", 0, "", "");
     }
     return scan_email->next();
   }

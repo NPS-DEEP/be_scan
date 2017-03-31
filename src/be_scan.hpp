@@ -49,9 +49,11 @@ namespace be_scan {
   class artifact_t {
     public:
     const std::string artifact_class;
+    const size_t buffer_offset;
     const std::string artifact;
     const std::string context;
     artifact_t(const std::string& p_artifact_class,
+               const size_t p_buffer_offset,
                const std::string& p_artifact,
                const std::string& p_context);
   };

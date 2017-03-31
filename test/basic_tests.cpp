@@ -46,16 +46,19 @@ void test_buffer1() {
 
   be_scan::artifact_t artifact1 = scanner.next_artifact();
   TEST_EQ(artifact1.artifact_class, "email");
+  TEST_EQ(artifact1.buffer_offset, 0);
   TEST_EQ(artifact1.artifact, "someone@somewhere.com");
   TEST_EQ(artifact1.context, "someone@somewhere.com\tsomeone2@somewh");
 
   be_scan::artifact_t artifact2 = scanner.next_artifact();
   TEST_EQ(artifact2.artifact_class, "email");
+  TEST_EQ(artifact2.buffer_offset, 22);
   TEST_EQ(artifact2.artifact, "someone2@somewhere2.com");
   TEST_EQ(artifact2.context, "e@somewhere.com\tsomeone2@somewhere2.com\n");
 
   be_scan::artifact_t artifact3 = scanner.next_artifact();
   TEST_EQ(artifact3.artifact_class, "");
+  TEST_EQ(artifact3.buffer_offset, 0);
   TEST_EQ(artifact3.artifact, "");
   TEST_EQ(artifact3.context, "");
 }

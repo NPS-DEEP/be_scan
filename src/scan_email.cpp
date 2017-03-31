@@ -195,11 +195,11 @@ namespace be_scan {
       if (buffer[index] == '@') {
         if (buffer[index+1] != '\0') {
           // unicode 8
-          int start = find_start(index);
+          size_t start = find_start(index);
           if (start == index) {
             continue;
           }
-          int stop = find_stop(index);
+          size_t stop = find_stop(index);
           if (stop == index) {
             continue;
           }
@@ -219,17 +219,17 @@ namespace be_scan {
 
           // advance index and return
           ++index;
-          return artifact_t("email", feature,
+          return artifact_t("email", start, feature,
                             artifact_context(buffer, buffer_size,
                             start, stop-start+1, 16));
 
         } else {
           // unicode 16
-          int start = find_start16(index);
+          size_t start = find_start16(index);
           if (start == index) {
             continue;
           }
-          int stop = find_stop16(index);
+          size_t stop = find_stop16(index);
           if (stop == index) {
             continue;
           }
@@ -240,7 +240,7 @@ namespace be_scan {
 
           // build unicode 8 email address from this
           std::stringstream ss;
-          for (int j=start; j <= stop+1; j+=2) {
+          for (size_t j=start; j <= stop+1; j+=2) {
             ss << buffer[j];
           }
 
@@ -256,14 +256,14 @@ namespace be_scan {
 
           // advance index and return
           ++index;
-          return artifact_t("email", feature16,
+          return artifact_t("email", start, feature16,
                             artifact_context(buffer, buffer_size,
                             start, stop-start+1, 16));
         }
       }
     }
     // no more artifacts for this buffer
-    return artifact_t("", "", "");
+    return artifact_t("", 0, "", "");
   }
 }
 

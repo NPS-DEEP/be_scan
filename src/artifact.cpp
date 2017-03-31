@@ -18,14 +18,17 @@
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
 #include <config.h>
+#include <stdint.h>
 #include <string>
 #include "be_scan.hpp"
 
 namespace be_scan {
     artifact_t::artifact_t(const std::string& p_artifact_class,
+                           const size_t p_buffer_offset,
                            const std::string& p_artifact,
                            const std::string& p_context) :
                       artifact_class(p_artifact_class),
+                      buffer_offset(p_buffer_offset),
                       artifact(p_artifact),
                       context(p_context) {
     }
