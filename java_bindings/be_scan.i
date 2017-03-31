@@ -6,6 +6,7 @@
 // use Java camelCase instead of underscore_case
 // http://stackoverflow.com/questions/8440115/how-to-rename-swig-generated-proxy-java-classes-created-from-c-structures/8444962#comment10444840_8444962
 %rename (Artifact) artifact_t;
+//%rename (BEBuffer) be_buffer_t;
 %rename (artifactClass) artifact_class;
 %rename (BEScan) be_scan_t;
 %rename (nextArtifact) next_artifact;

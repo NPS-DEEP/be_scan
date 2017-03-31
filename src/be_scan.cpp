@@ -19,7 +19,9 @@
 
 #include <config.h>
 #include <string>
+#include <cstring>
 #include <set>
+#include <iostream>
 #include "be_scan.hpp"
 #include "scan_email.hpp"
 
@@ -35,26 +37,45 @@ namespace be_scan {
     return "email"; // zz "email exif ..."
   }
 
+  // new copy, return NULL if malloc fails
+  static char* new_buffer(const char* const buffer, size_t buffer_size) {
+    char* b = new (std::nothrow) char[buffer_size];
+    if (b == NULL) {
+      // malloc failed
+      return NULL;
+    }
+    ::memcpy(b, buffer, buffer_size);
+    return b;
+  }
+
   // constructor
   be_scan_t::be_scan_t(const std::string& p_selected_scanners,
                        const char* const p_buffer,
                        size_t p_buffer_size) :
                 selected_scanners(p_selected_scanners),
-                buffer(p_buffer),
+                buffer(new_buffer(p_buffer, p_buffer_size)),
                 buffer_size(p_buffer_size),
-                scan_email(0) {
+                scan_email(0),
+                is_initialized(buffer != NULL) {
 
     // start the email scanner
     scan_email = new scan_email_t(buffer, buffer_size);
   }
 
   artifact_t be_scan_t::next_artifact() {
+    if (!is_initialized) {
+      return artifact_t("","","");
+    }
     return scan_email->next();
   }
 
   // destructor
   be_scan_t::~be_scan_t() {
+    // delete scanner
     delete scan_email;
+
+    // delete buffer
+    delete[] buffer;
   }
 }
 

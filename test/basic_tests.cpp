@@ -42,6 +42,8 @@ void test_buffer1() {
 
   be_scan::be_scan_t scanner("email", bytes1, string1.size());
 
+  TEST_EQ(scanner.is_initialized, true);
+
   be_scan::artifact_t artifact1 = scanner.next_artifact();
   TEST_EQ(artifact1.artifact_class, "email");
   TEST_EQ(artifact1.artifact, "someone@somewhere.com");
@@ -57,7 +59,6 @@ void test_buffer1() {
   TEST_EQ(artifact3.artifact, "");
   TEST_EQ(artifact3.context, "");
 }
-
 
 // ************************************************************
 // main

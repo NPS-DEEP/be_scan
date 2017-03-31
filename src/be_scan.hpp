@@ -27,11 +27,21 @@
 
 #include <string>
 #include <stdint.h>
-#include <stdint.h>
 
 namespace be_scan {
 
   class scan_email_t;
+
+//  /**
+//   * Data to be scanned is contained within this structure.
+//   */
+//  class be_buffer_t {
+//    public:
+//    const char* const buffer;
+//    const size_t buffer_size;
+//    be_buffer_t(const char* const p_buffer, const size_t p_buffer_size);
+//    ~be_buffer_t();
+//  };
 
   /**
    * Artifacts are returned using this structure.
@@ -71,6 +81,11 @@ namespace be_scan {
     scan_email_t* scan_email;
 
     public:
+    /**
+     * False if the scanner failed to allocate memory for the buffer.
+     */
+    const bool is_initialized;
+
     /**
      * Create a scan instance given scanners to use and a buffer to scan.
      *

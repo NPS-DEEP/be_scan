@@ -158,7 +158,6 @@ namespace be_scan {
   }
 
   bool scan_email_t::valid_top_level_domain(const std::string& feature) {
-std::cout << "TLD.a: '" << feature << "'\n";
     // find last dot, it will preceed the top-level domain name
     const size_t pos = feature.rfind('.');
     const size_t size = feature.size();
@@ -167,7 +166,6 @@ std::cout << "TLD.a: '" << feature << "'\n";
       return false;
     }
 
-std::cout << "TLD.b\n";
     // extract top-level domain name
     std::stringstream ss;
     for (size_t i=pos+1; i <= size-1; ++i) {
@@ -179,12 +177,11 @@ std::cout << "TLD.b\n";
       ss << c;
     }
 
-std::cout << "TLD.c '" << ss.str() << "'\n";
     // require to recognize the domain name
     return (domain_names.find(ss.str()) != domain_names.end());
   }
 
-//  public:
+  //  public:
   scan_email_t::scan_email_t(const char* const p_buffer,
                              const size_t p_buffer_size) :
                   buffer(p_buffer),
@@ -193,43 +190,32 @@ std::cout << "TLD.c '" << ss.str() << "'\n";
   }
 
   artifact_t scan_email_t::next() {
-std::cout << "scan_email_t::next.a\n";
     // progress forward to artifact or end of buffer
     for (; index<buffer_size-1; ++index) {
-std::cout << "scan_email_t::next.b index: " << index << ", int: " << (int)buffer[index] << "\n";
       if (buffer[index] == '@') {
-std::cout << "scan_email_t::next.c\n";
         if (buffer[index+1] != '\0') {
           // unicode 8
           int start = find_start(index);
           if (start == index) {
             continue;
           }
-std::cout << "scan_email_t::next.d\n";
           int stop = find_stop(index);
           if (stop == index) {
             continue;
           }
 
-std::cout << "scan_email_t::next.e\n";
           // build email address from this
           const std::string feature = std::string(&buffer[start], stop-start+1);
 
-std::cout << "scan_email_t::next.f\n";
           // validate simple
           if (!valid_top_level_domain(feature)) {
             continue;
           }
 
-std::cout << "scan_email_t::next.g\n";
           // validate regex
 //          if (!valid_regex(feature)) {
 //            continue;
 //          }
-artifact_t z("email", feature,
-                            artifact_context(buffer, buffer_size,
-                            start, stop-start+1, 16));
-std::cout << "scan_email_t::next.g2 '" << z.artifact_class << "'" << std::endl;
 
           // advance index and return
           ++index;
@@ -237,7 +223,6 @@ std::cout << "scan_email_t::next.g2 '" << z.artifact_class << "'" << std::endl;
                             artifact_context(buffer, buffer_size,
                             start, stop-start+1, 16));
 
-std::cout << "scan_email_t::next.h\n";
         } else {
           // unicode 16
           int start = find_start16(index);
@@ -278,7 +263,6 @@ std::cout << "scan_email_t::next.h\n";
       }
     }
     // no more artifacts for this buffer
-std::cout << "scan_email_t::next.i\n";
     return artifact_t("", "", "");
   }
 }

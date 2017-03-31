@@ -38,18 +38,15 @@ namespace be_scan {
     if (buffer_size == 0) {
       return "";
     }
-std::cout << "artifact_context.a\n";
 
+    // find valid bounds for the context
     const size_t start = artifact_offset < artifact_padding ?
                             0 : artifact_offset - artifact_padding;
-
     const size_t stop = artifact_offset + artifact_length + artifact_padding >=
                     buffer_size ? buffer_size - 1 :
                     artifact_offset + artifact_length + artifact_padding - 1;
 
-std::cout << "artifact_context.b start: " << start << ",  stop: " << stop << "\n";
-std::string z(&buffer[start], stop - start + 1);
-std::cout << "z:'" << z << "'\n";
+    // return the context
     return std::string(&buffer[start], stop - start + 1);
   }
 }
