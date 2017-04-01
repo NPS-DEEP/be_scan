@@ -33,12 +33,12 @@ public final class Tests {
     System.out.println("Available scanners: '" + available_scanners + "'");
   }
 
-static byte[] buffer1 = "someone@somewhere.com\tsomeone2@somewhere2.com\n".getBytes();
+static byte[] buffer1 = "someone@somewhere.com\0someone2@somewhere2.com\n".getBytes();
   private static void testBuffer1() {
 //    static byte[] buffer1 = "someone@somewhere.com\tsomeone2@somewhere2.com\n".getBytes();
     System.out.println("test buffer 1 size: " + buffer1.length);
     edu.nps.deep.be_scan.BEScan scanner =
-            new edu.nps.deep.be_scan.BEScan("email", buffer1, buffer1.length);
+            new edu.nps.deep.be_scan.BEScan("email", buffer1);
 
     testEquals(scanner.getIsInitialized(), true);
 
@@ -47,13 +47,13 @@ static byte[] buffer1 = "someone@somewhere.com\tsomeone2@somewhere2.com\n".getBy
     testEquals(artifact.getArtifactClass(), "email");
     testEquals(artifact.getBufferOffset(), 0);
     testEquals(artifact.getArtifact(), "someone@somewhere.com");
-    testEquals(artifact.getContext(), "someone@somewhere.com\tsomeone2@somewh");
+    testEquals(artifact.getContext(), "someone@somewhere.com\0someone2@somewh");
 
     artifact = scanner.nextArtifact();
     testEquals(artifact.getArtifactClass(), "email");
     testEquals(artifact.getBufferOffset(), 22);
     testEquals(artifact.getArtifact(), "someone2@somewhere2.com");
-    testEquals(artifact.getContext(), "e@somewhere.com\tsomeone2@somewhere2.com\n");
+    testEquals(artifact.getContext(), "e@somewhere.com\0someone2@somewhere2.com\n");
 
     artifact = scanner.nextArtifact();
     testEquals(artifact.getArtifactClass(), "");
