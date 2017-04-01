@@ -38,7 +38,8 @@ static byte[] buffer1 = "someone@somewhere.com\0someone2@somewhere2.com\n".getBy
 //    static byte[] buffer1 = "someone@somewhere.com\tsomeone2@somewhere2.com\n".getBytes();
     System.out.println("test buffer 1 size: " + buffer1.length);
     edu.nps.deep.be_scan.BEScan scanner =
-            new edu.nps.deep.be_scan.BEScan("email", buffer1);
+//            new edu.nps.deep.be_scan.BEScan("email", buffer1);
+            new edu.nps.deep.be_scan.BEScan("email", buffer1, buffer1.length);
 
     testEquals(scanner.getIsInitialized(), true);
 

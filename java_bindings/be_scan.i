@@ -13,11 +13,12 @@
 %rename (isInitialized) is_initialized;
 %rename (nextArtifact) next_artifact;
 
-//// http://stackoverflow.com/questions/33504659/passing-byte-from-java-to-c
-//%apply char *BYTE { char *p_buffer };
+// http://stackoverflow.com/questions/33504659/passing-byte-from-java-to-c
+%apply char *BYTE { char *p_buffer };
 
-//http://stackoverflow.com/questions/12497175/correct-way-to-interact-with-arrays-using-swig
-%apply(char *STRING, size_t LENGTH) { (const char * const p_buffer, size_t p_buffer_size) };
+// not compatible with SWIG 1.3.40
+////http://stackoverflow.com/questions/12497175/correct-way-to-interact-with-arrays-using-swig
+//%apply(char *STRING, size_t LENGTH) { (const char * const p_buffer, size_t p_buffer_size) };
 
 %{
 #include "be_scan.hpp"
