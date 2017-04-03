@@ -56,6 +56,15 @@ namespace be_scan {
                const size_t p_buffer_offset,
                const std::string& p_artifact,
                const std::string& p_context);
+    /**
+     * For Java, return as byte[] which can include \0.
+     */
+    void javaArtifact(std::string& java_artifact);
+
+    /**
+     * For Java, return as byte[] which can include \0.
+     */
+    void javaContext(std::string& java_context);
   };
 
   /**
