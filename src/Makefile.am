@@ -28,14 +28,12 @@ BE_SCAN_INCS = \
 	be_scan.cpp \
 	be_scan.hpp \
 	flex_scan_exception.hpp \
-	flex_scan_parameters.hpp \
+	flex_extra_parameters.hpp \
 	scan_email.cpp \
-	scan_email.hpp
+	scan_email.hpp \
+	scan_email_flex.flex
 
 lib_LTLIBRARIES = libbe_scan.la
-
-libbe_scan_la_CPPFLAGS = \
-	-I${top_srcdir}/datastax
 
 #libbe_scan_la_LDFLAGS = -PIC -avoid-version -module 
 libbe_scan_la_LDFLAGS = -PIC -avoid-version \

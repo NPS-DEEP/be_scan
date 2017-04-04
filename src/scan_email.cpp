@@ -189,6 +189,10 @@ namespace be_scan {
                   index(0) {
   }
 
+  scan_email_t::~scan_email_t() {
+    flex_close();
+  }
+
   artifact_t scan_email_t::next() {
     // progress forward to artifact or end of buffer
     for (; index<buffer_size-1; ++index) {

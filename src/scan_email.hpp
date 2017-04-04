@@ -31,6 +31,7 @@
 #include <set>
 #include "be_scan.hpp"
 #include "artifact_context.hpp"
+#include "flex_extra_parameters.hpp"
 namespace be_scan {
 
 class scan_email_t {
@@ -48,9 +49,15 @@ class scan_email_t {
   size_t find_stop16(const size_t at);
   bool valid_top_level_domain(const std::string& feature);
 
+  // implemented in flex email scanner
+  void flex_init(flex_extra_parameters_t& flex_extra_parameters);
+  void flex_scan(const std::string& potential_feature);
+  void flex_close();
+
   public:
   scan_email_t(const char* const p_buffer,
                const size_t p_buffer_size);
+  ~scan_email_t();
 
   artifact_t next();
 };
