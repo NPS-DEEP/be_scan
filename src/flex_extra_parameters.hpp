@@ -24,13 +24,16 @@
 #include <string>
 #include <iostream>
 
+typedef void* yyscan_t; // flex
+
 namespace be_scan {
 
   class flex_extra_parameters_t {
 
     public:
-    std::string flex_feature;
-    const size_t flex_offset;
+    yyscan_t scanner;
+    size_t flex_offset;
+    size_t flex_size;
   };
 } // end namespace
 

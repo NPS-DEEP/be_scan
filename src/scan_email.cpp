@@ -186,7 +186,9 @@ namespace be_scan {
                              const size_t p_buffer_size) :
                   buffer(p_buffer),
                   buffer_size(p_buffer_size),
-                  index(0) {
+                  index(0),
+                  flex_extra_parameters() {
+    flex_init();
   }
 
   scan_email_t::~scan_email_t() {
@@ -199,11 +201,11 @@ namespace be_scan {
       if (buffer[index] == '@') {
         if (buffer[index+1] != '\0') {
           // unicode 8
-          size_t start = find_start(index);
+          const size_t start = find_start(index);
           if (start == index) {
             continue;
           }
-          size_t stop = find_stop(index);
+          const size_t stop = find_stop(index);
           if (stop == index) {
             continue;
           }
@@ -217,15 +219,22 @@ namespace be_scan {
           }
 
           // validate regex
-//          if (!valid_regex(feature)) {
-//            continue;
-//          }
+          flex_scan(feature); // sets flex_extra_parameters
+          if (flex_extra_parameters.flex_size == 0) {
+            // not valid in flex
+            continue;
+          }
 
-          // advance index and return
-          ++index;
-          return artifact_t("email", start, feature,
+          // refine the location of the artifact based on regex
+          const size_t offset = start + flex_extra_parameters.flex_offset;
+          const size_t size = flex_extra_parameters.flex_size;
+
+          // advance index past artifact
+          index += stop - start + 1;
+
+          return artifact_t("email", offset, std::string(offset, size),
                             artifact_context(buffer, buffer_size,
-                            start, stop-start+1, 16));
+                            start+offset, size, 16));
 
         } else {
           // unicode 16
@@ -242,27 +251,38 @@ namespace be_scan {
           // zz NOTE: in future, return unicode 8 feature
           const std::string feature16 = std::string(&buffer[start], stop-start+1);
 
-          // build unicode 8 email address from this
+          // build unicode 8 from this
           std::stringstream ss;
           for (size_t j=start; j <= stop+1; j+=2) {
             ss << buffer[j];
           }
 
+          // get the feature as unicode 8
+          const std::string feature8 = ss.str();
+
           // validate simple
-          if (!valid_top_level_domain(ss.str())) {
+          if (!valid_top_level_domain(feature8)) {
             continue;
           }
 
           // validate regex
-//          if (!valid_regex(ss.str())) {
-//            continue;
-//          }
+          flex_scan(feature8); // sets flex_extra_parameters
+          if (flex_extra_parameters.flex_size == 0) {
+            // not valid in flex
+            continue;
+          }
 
-          // advance index and return
-          ++index;
-          return artifact_t("email", start, feature16,
+          // refine the location of the artifact based on regex
+          const size_t offset = start + flex_extra_parameters.flex_offset;
+          const size_t size = flex_extra_parameters.flex_size;
+
+          // advance index past artifact
+          index += stop - start + 1;
+
+          return artifact_t("email", offset,
+                            std::string(&buffer[start+offset], size*2),
                             artifact_context(buffer, buffer_size,
-                            start, stop-start+1, 16));
+                            start+offset, size*2, 16));
         }
       }
     }

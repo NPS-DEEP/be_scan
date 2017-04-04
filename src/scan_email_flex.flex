@@ -8,6 +8,7 @@
 %{
 #include "config.h"
 #include <cstring>
+#include "scan_email.hpp"
 #include "flex_extra_parameters.hpp"
 #include "flex_scan_exception.hpp"
 
@@ -77,53 +78,53 @@ EMAIL	{ALNUM}[a-zA-Z0-9._%\-+]{1,128}{ALNUM}@{ALNUM}[a-zA-Z0-9._%\-]{1,128}\.{TL
 /* ******************** FLEX Rules ******************** */
 %%
 
-{EMAIL}/[^a-zA-Z]	{
-    flex_extra_parameters->flex_feature = std::string(yytext, yyleng);
-}
 
 .|\n { 
-    ++flex_extra_parameters->flex_offset;
+    ++yyextra->flex_offset;
 }
 
+{EMAIL}/[^a-zA-Z]	{
+    yyextra->flex_size = yyleng;
+    return 0;
+}
 
 %%
 /* ******************** FLEX User Code ******************** */
 // allocate space for scanner, initialize it, and give it visibility
 // to flex_extra_parameters
-void be_scan::scan_email_t::flex_init(
-                        flex_extra_parameters_t& flex_extra_parameters) {
+void be_scan::scan_email_t::flex_init() {
   yyscan_t scanner;
+  flex_extra_parameters.scanner = &scanner;
   yylex_init(&scanner);
-  yyset_extra(&flex_extra_parameters, scanner);
+  yyset_extra(&flex_extra_parameters, &scanner);
 }
 
 // scan buffer, leaving any result in flex_extra_parameters
 void be_scan::scan_email_t::flex_scan(const std::string& buffer) {
   // copy buffer into flex
-  bp = yy_scan_bytes(buffer, buffer.size(), scanner);
-  yy_switch_to_buffer(bp, scanner);
+  bp = yy_scan_bytes(buffer.c_str(), buffer.size(),
+                     flex_extra_parameters.scanner);
+  yy_switch_to_buffer(bp, flex_extra_parameters.scanner);
 
   // initialize the flex offset
-  flex_extra_parameters->flex_feature = "";
-  flex_extra_parameters->flex_offset = 0;
+  flex_extra_parameters.flex_offset = 0;
+  flex_extra_parameters.flex_size = 0;
 
   // scan
   try {
-    yylex(scanner);
+    yylex(flex_extra_parameters.scanner);
   } catch (be_scan::flex_scan_exception *e) {
     // warn to stderr, return no match, and keep going
-    std::err << "email flex scan error: " << std::string(e->what());
+    std::cerr << "email flex scan error: " << std::string(e->what());
     delete e;
   }
 
   // delete the flex buffer
-  yy_delete_buffer(bp, scanner);
-
-  return 
+  yy_delete_buffer(bp, flex_extra_parameters.scanner);
 }
 
-boid be_scan::flex_close() {
-  yylex_destroy(scanner);
+void be_scan::scan_email_t::flex_close() {
+  yylex_destroy(flex_extra_parameters.scanner);
   (void)yyunput;			// avoids defined but not used
 }
 

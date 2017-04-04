@@ -40,6 +40,7 @@ class scan_email_t {
   const char* const buffer;
   const size_t buffer_size;
   size_t index;
+  flex_extra_parameters_t flex_extra_parameters;
 
   const static std::set<std::string> domain_names;
 
@@ -50,7 +51,7 @@ class scan_email_t {
   bool valid_top_level_domain(const std::string& feature);
 
   // implemented in flex email scanner
-  void flex_init(flex_extra_parameters_t& flex_extra_parameters);
+  void flex_init();
   void flex_scan(const std::string& potential_feature);
   void flex_close();
 
