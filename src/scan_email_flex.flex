@@ -94,15 +94,16 @@ EMAIL	{ALNUM}[a-zA-Z0-9._%\-+]{1,128}{ALNUM}@{ALNUM}[a-zA-Z0-9._%\-]{1,128}\.{TL
 // to flex_extra_parameters
 void be_scan::scan_email_t::flex_init() {
   yyscan_t scanner;
-  flex_extra_parameters.scanner = &scanner;
   yylex_init(&scanner);
-  yyset_extra(&flex_extra_parameters, &scanner);
+  flex_extra_parameters.scanner = scanner;
+  yyset_extra(&flex_extra_parameters, scanner);
 }
 
 // scan buffer, leaving any result in flex_extra_parameters
 void be_scan::scan_email_t::flex_scan(const std::string& buffer) {
+const std::string padded_buffer = buffer + " ";
   // copy buffer into flex
-  bp = yy_scan_bytes(buffer.c_str(), buffer.size(),
+  bp = yy_scan_bytes(padded_buffer.c_str(), padded_buffer.size(),
                      flex_extra_parameters.scanner);
   yy_switch_to_buffer(bp, flex_extra_parameters.scanner);
 

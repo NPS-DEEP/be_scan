@@ -232,9 +232,9 @@ namespace be_scan {
           // advance index past artifact
           index += stop - start + 1;
 
-          return artifact_t("email", offset, std::string(offset, size),
+          return artifact_t("email", offset, std::string(&buffer[offset], size),
                             artifact_context(buffer, buffer_size,
-                            start+offset, size, 16));
+                            offset, size, 16));
 
         } else {
           // unicode 16
@@ -280,9 +280,9 @@ namespace be_scan {
           index += stop - start + 1;
 
           return artifact_t("email", offset,
-                            std::string(&buffer[start+offset], size*2),
+                            std::string(&buffer[offset], size*2),
                             artifact_context(buffer, buffer_size,
-                            start+offset, size*2, 16));
+                            offset, size*2, 16));
         }
       }
     }
