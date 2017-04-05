@@ -22,8 +22,8 @@
  * Used by diagnostics to escape unprintable string characters.
  */
 
-#ifndef BE_SCAN_HPP
-#define BE_SCAN_HPP
+#ifndef ESCAPE_HPP
+#define ESCAPE_HPP
 
 #include <string>
 #include <sstream>
@@ -31,7 +31,7 @@
 
 namespace be_scan {
 
-  static std::string hexesc(char ch) {
+  static std::string hexesc(unsigned char ch) {
     char buf[10];
     snprintf(buf,sizeof(buf),"\\x%02X",ch);
     return std::string(buf);
@@ -40,7 +40,7 @@ namespace be_scan {
   inline std::string escape(const std::string &in) {
     std::stringstream ss;
     for(std::string::const_iterator it = in.begin(); it != in.end(); it++) {
-      char c = *it;
+      unsigned char c = *it;
 
       if (c < ' ' || c > '~' || c == '\\') {
         // show as \xXX
