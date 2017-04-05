@@ -22,6 +22,7 @@
 #include <stdint.h>
 #include <iostream>
 #include "artifact_context.hpp"
+#include "escape.hpp"
 
 namespace be_scan {
 
@@ -46,6 +47,8 @@ namespace be_scan {
                     buffer_size ? buffer_size - 1 :
                     artifact_offset + artifact_length + artifact_padding - 1;
 
+std::cout << "artifact_context '" << escape(std::string(&buffer[start], stop - start + 1)) << std::endl
+;
     // return the context
     return std::string(&buffer[start], stop - start + 1);
   }
