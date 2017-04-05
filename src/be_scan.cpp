@@ -77,5 +77,10 @@ namespace be_scan {
     // delete buffer
     delete[] buffer;
   }
+
+  // loopback test
+  void be_scan_t::javaTestLoopback(std::string& s) {
+    s = std::string(buffer, buffer_size);
+  }
 }
 

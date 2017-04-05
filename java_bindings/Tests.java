@@ -30,10 +30,10 @@ public final class Tests {
     }
   }
 
-  private static String escape(String input) {
+  private static String escape(byte[] bytes) {
     StringBuilder sb = new StringBuilder();
-    for (int i=0; i<input.length(); ++i) {
-      char c = input.charAt(i);
+    for (int i=0; i<bytes.length; ++i) {
+      char c = (char)bytes[i];
       if (c < ' ' || c > '~' || c == '\\') {
         // show as \xXX
         sb.append(String.format("\\x%02X", (int)c&0xff));
@@ -44,6 +44,7 @@ public final class Tests {
     }
     return sb.toString();
   }
+
 
   private static void testVersion() {
     String version = edu.nps.deep.be_scan.be_scan_jni.version();
@@ -57,18 +58,10 @@ public final class Tests {
   }
 
 static byte[] buffer1 = "someone@somewhere.com\0someone2@somewhere2.com\n".getBytes();
+  // NOTE: Beware using getBytes() because it adds additional bytes for
+  // negative characters.  Use with positive characters only.
   private static void testBuffer1() {
 
-/*
-// http://stackoverflow.com/questions/12192624/swig-convert-return-type-stdstringbinary-to-java-byte
-edu.nps.deep.be_scan.Bar b = new edu.nps.deep.be_scan.Bar();
-byte[] bb = b.foo();
-System.out.println("bb length: " + bb.length);
-System.out.println(bb[0] + "," + bb[1] + "," + bb[2] + "," + bb[3] + "," + bb[4] + ".");
-testEquals(bb, "Ho\0la".getBytes());
-*/
-
-//    static byte[] buffer1 = "someone@somewhere.com\tsomeone2@somewhere2.com\n".getBytes();
     System.out.println("test buffer 1 size: " + buffer1.length);
     edu.nps.deep.be_scan.BEScan scanner =
 //            new edu.nps.deep.be_scan.BEScan("email", buffer1);
@@ -96,33 +89,21 @@ testEquals(bb, "Ho\0la".getBytes());
     testEquals(artifact.javaContext(), "".getBytes());
   }
 
-  // make sure 0x00 and 0x0ff go through JNI
-  public static void testBytes() {
-    final char x00 = '\0';
-    final char x7f = (char)((byte)127);
-    final char x80 = (char)((byte)128);
-    final char xfd = (char)((byte)253);
-    final char xfe = (char)((byte)254);
-    final char xff = (char)((byte)255);
-    StringBuilder sb = new StringBuilder();
-    sb.append(x00); sb.append(x7f); sb.append(x80); 
-    sb.append(xfd); sb.append(xfe); sb.append(xff); 
-    sb.append("someone3@somewhere3.com");
-    sb.append(x00); sb.append(x7f); sb.append(x80); 
-    sb.append(xfd); sb.append(xfe); sb.append(xff); 
-    final byte[] buffer = sb.toString().getBytes();
-    edu.nps.deep.be_scan.BEScan scanner =
-//            new edu.nps.deep.be_scan.BEScan("email", buffer);
-            new edu.nps.deep.be_scan.BEScan("email", buffer, buffer.length);
-    edu.nps.deep.be_scan.Artifact artifact;
-    artifact = scanner.nextArtifact();
-    testEquals(artifact.javaArtifact(), "someone3@somewhere3.com".getBytes());
-    testEquals(artifact.javaContext(), buffer);
+  // make sure byte patterns make it out and back through JNI
+  public static void testLoopback() {
+    // set up byte pattern
+    byte[] bytes = new byte[256];
+    for (int i=0; i<256; i++) {
+      bytes[i]=(byte)i;
+    }
 
-    // also test escape function
-    final String escapedString="\\x00\\x7F\\x80\\xFD\\xFE\\xFFsomeone3@somewhere3.com\\x00\\x7F\\x80\\xFD\\xFE\\xFF";
-    testEquals(escape(new String(artifact.javaContext(), java.nio.charset.Charset.forName("UTF-8"))), escapedString);
-    testEquals(escape(new String(artifact.javaContext())), escapedString);
+    // open scanner with byte pattern
+    edu.nps.deep.be_scan.BEScan scanner =
+//            new edu.nps.deep.be_scan.BEScan("email", buffer1);
+            new edu.nps.deep.be_scan.BEScan("email", bytes, bytes.length);
+//    System.out.println(escape(bytes));
+//    System.out.println(escape(scanner.javaTestLoopback()));
+    testEquals(escape(scanner.javaTestLoopback()), "\\x00\\x01\\x02\\x03\\x04\\x05\\x06\\x07\\x08\\x09\\x0A\\x0B\\x0C\\x0D\\x0E\\x0F\\x10\\x11\\x12\\x13\\x14\\x15\\x16\\x17\\x18\\x19\\x1A\\x1B\\x1C\\x1D\\x1E\\x1F !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\x5C]^_`abcdefghijklmnopqrstuvwxyz{|}~\\x7F\\x80\\x81\\x82\\x83\\x84\\x85\\x86\\x87\\x88\\x89\\x8A\\x8B\\x8C\\x8D\\x8E\\x8F\\x90\\x91\\x92\\x93\\x94\\x95\\x96\\x97\\x98\\x99\\x9A\\x9B\\x9C\\x9D\\x9E\\x9F\\xA0\\xA1\\xA2\\xA3\\xA4\\xA5\\xA6\\xA7\\xA8\\xA9\\xAA\\xAB\\xAC\\xAD\\xAE\\xAF\\xB0\\xB1\\xB2\\xB3\\xB4\\xB5\\xB6\\xB7\\xB8\\xB9\\xBA\\xBB\\xBC\\xBD\\xBE\\xBF\\xC0\\xC1\\xC2\\xC3\\xC4\\xC5\\xC6\\xC7\\xC8\\xC9\\xCA\\xCB\\xCC\\xCD\\xCE\\xCF\\xD0\\xD1\\xD2\\xD3\\xD4\\xD5\\xD6\\xD7\\xD8\\xD9\\xDA\\xDB\\xDC\\xDD\\xDE\\xDF\\xE0\\xE1\\xE2\\xE3\\xE4\\xE5\\xE6\\xE7\\xE8\\xE9\\xEA\\xEB\\xEC\\xED\\xEE\\xEF\\xF0\\xF1\\xF2\\xF3\\xF4\\xF5\\xF6\\xF7\\xF8\\xF9\\xFA\\xFB\\xFC\\xFD\\xFE\\xFF");
   }
 
   public static void main(String[] args) {
@@ -130,7 +111,7 @@ testEquals(bb, "Ho\0la".getBytes());
     testVersion();
     testAvailableScanners();
     testBuffer1();
-    testBytes();
+    testLoopback();
   }
 }
 

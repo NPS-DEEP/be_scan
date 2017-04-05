@@ -46,6 +46,18 @@
          (const jbyte*)$1->c_str());
 }
 
+// void javaTestLoopback(std::string&)
+%typemap(jtype) void javaTestLoopback "byte[]"
+%typemap(jstype) void javaTestLoopback "byte[]"
+%typemap(jni) void javaTestLoopback "jbyteArray"
+%typemap(javaout) void javaTestLoopback { return $jnicall; }
+%typemap(in, numinputs=0) std::string& java_test_loopback (std::string temp) "$1=&temp;"
+%typemap(argout) std::string& java_test_loopback {
+  $result = JCALL1(NewByteArray, jenv, $1->size());
+  JCALL4(SetByteArrayRegion, jenv, $result, 0, $1->size(),
+         (const jbyte*)$1->c_str());
+}
+
 //// http://stackoverflow.com/questions/12192624/swig-convert-return-type-stdstringbinary-to-java-byte
 //%typemap(jtype) void foo "byte[]"
 //%typemap(jstype) void foo "byte[]"
