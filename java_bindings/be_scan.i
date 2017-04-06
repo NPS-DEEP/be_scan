@@ -13,6 +13,7 @@
 %rename (BEScan) be_scan_t;
 %rename (isInitialized) is_initialized;
 %rename (nextArtifact) next_artifact;
+%rename (testLoopback) test_loopback;
 
 // http://stackoverflow.com/questions/33504659/passing-byte-from-java-to-c
 %apply char *BYTE { char *p_buffer };
@@ -46,13 +47,13 @@
          (const jbyte*)$1->c_str());
 }
 
-// void javaTestLoopback(std::string&)
-%typemap(jtype) void javaTestLoopback "byte[]"
-%typemap(jstype) void javaTestLoopback "byte[]"
-%typemap(jni) void javaTestLoopback "jbyteArray"
-%typemap(javaout) void javaTestLoopback { return $jnicall; }
-%typemap(in, numinputs=0) std::string& java_test_loopback (std::string temp) "$1=&temp;"
-%typemap(argout) std::string& java_test_loopback {
+// void test_loopback(std::string&)
+%typemap(jtype) void test_loopback "byte[]"
+%typemap(jstype) void test_loopback "byte[]"
+%typemap(jni) void test_loopback "jbyteArray"
+%typemap(javaout) void test_loopback { return $jnicall; }
+%typemap(in, numinputs=0) std::string& loopback_buffer (std::string temp) "$1=&temp;"
+%typemap(argout) std::string& loopback_buffer {
   $result = JCALL1(NewByteArray, jenv, $1->size());
   JCALL4(SetByteArrayRegion, jenv, $result, 0, $1->size(),
          (const jbyte*)$1->c_str());

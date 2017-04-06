@@ -79,7 +79,7 @@ namespace be_scan {
   }
 
   // loopback test
-  void be_scan_t::javaTestLoopback(std::string& s) {
+  void be_scan_t::test_loopback(std::string& s) {
     s = std::string(buffer, buffer_size);
   }
 }

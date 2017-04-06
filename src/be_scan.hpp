@@ -126,7 +126,7 @@ namespace be_scan {
     /**
      * For diagnostics only, test loopback of input buffer.
      */
-    void javaTestLoopback(std::string& java_test_loopback);
+    void test_loopback(std::string& loopback_buffer);
   };
 }
 
