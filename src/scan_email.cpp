@@ -220,7 +220,6 @@ namespace be_scan {
 //          if (!valid_top_level_domain(feature)) {
 //            continue;
 //          }
-std::cout << "next 8 found " << start << ": '" << escape(feature) << "'" << std::endl;
 
           // validate regex
           flex_scan(feature); // sets flex_extra_parameters
@@ -233,7 +232,6 @@ std::cout << "next 8 found " << start << ": '" << escape(feature) << "'" << std:
           const size_t offset = start + flex_extra_parameters.flex_offset;
           const size_t size = flex_extra_parameters.flex_size;
 
-std::cout << "flex 8 confirmed " << offset << ": '" << escape(std::string(&buffer[offset], size)) << "'" << std::endl;
           // advance index past the @ character
           ++index;
 
@@ -242,24 +240,20 @@ std::cout << "flex 8 confirmed " << offset << ": '" << escape(std::string(&buffe
                             offset, size, 16));
 
         } else {
-std::cout << "16.a\n";
           // unicode 16
           size_t start = find_start16(index);
           if (start == index) {
             continue;
           }
-std::cout << "16.b\n";
           size_t stop = find_stop16(index);
           if (stop == index) {
             continue;
           }
 
-std::cout << "16.c\n";
           // generate returned unicode 16 feature
           // zz NOTE: in future, return unicode 8 feature
           const std::string feature16 = std::string(&buffer[start], stop-start+1);
 
-std::cout << "next 16 found " << start << ": '" << escape(feature16) << "'" << std::endl;
           // build unicode 8 from this
           std::stringstream ss;
           for (size_t j=start; j <= stop+1; j+=2) {
@@ -285,7 +279,6 @@ std::cout << "next 16 found " << start << ": '" << escape(feature16) << "'" << s
           const size_t offset = start + flex_extra_parameters.flex_offset;
           const size_t size = flex_extra_parameters.flex_size;
 
-std::cout << "flex 16 confirmed " << offset << ": '" << escape(std::string(&buffer[offset], size*2)) << "'" << std::endl;
           // advance index past the @ character
           ++index;
 
