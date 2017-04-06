@@ -25,6 +25,7 @@
 #include "be_scan.hpp"
 #include "scan_email.hpp"
 #include "artifact_context.hpp"
+#include "escape.hpp"
 
 namespace be_scan {
 
@@ -41,6 +42,16 @@ namespace be_scan {
   // Use RFC 5322 except do not recognize backslash or quoted string.
   // Specifically: local part <= 64 characters, domain <= 255 characters and
   // not space or "(),:;<>@[\]
+  inline bool not_local_part(const unsigned char c) {
+    return (c<0x20 || c >0x7f || c=='\"' || c=='(' || c==')' || c==',' ||
+            c==':' || c==';' || c=='<' || c=='>' || c=='@' || c=='[' ||
+            c=='\\' || c==']');
+  }
+  inline bool not_domain(const unsigned char c) {
+    return (c<0x20 || c >0x7f || c=='\"' || c=='(' || c==')' || c==',' ||
+            c==':' || c==';' || c=='<' || c=='>' || c=='@' || c=='[' ||
+            c=='\\' || c==']');
+  }
 
   // find local part of email address, return start else "at" point
   size_t scan_email_t::find_start(const size_t at) {
@@ -58,9 +69,7 @@ namespace be_scan {
 
       // done if next char is invalid
       unsigned char c = buffer[start-1];
-      if (c<0x20 || c >0x7f || c=='\"' || c=='(' || c==')' || c==',' ||
-          c==':' || c==';' || c=='<' || c=='>' || c=='@' || c=='[' ||
-          c=='\\' || c==']') {
+      if (not_local_part(c)) {
         return start;
       }
 
@@ -85,9 +94,7 @@ namespace be_scan {
 
       // done if next char is invalid
       unsigned char c = buffer[stop+1];
-      if (c<0x20 || c >0x7f || c=='\"' || c=='(' || c==')' || c==',' ||
-          c==':' || c==';' || c=='<' || c=='>' || c=='@' || c=='[' ||
-          c=='\\' || c==']') {
+      if (not_domain(c)) {
         return stop;
       }
 
@@ -115,9 +122,7 @@ namespace be_scan {
         return start;
       }
       unsigned char c = buffer[start-2];
-      if (c<0x20 || c >0x7f || c=='\"' || c=='(' || c==')' || c==',' ||
-          c==':' || c==';' || c=='<' || c=='>' || c=='@' || c=='[' ||
-          c=='\\' || c==']') {
+      if (not_local_part(c)) {
         return start;
       }
 
@@ -142,13 +147,11 @@ namespace be_scan {
       }
 
       // done if next char is invalid
-      if (buffer[stop+2] != '\0') {
+      if (buffer[stop+1] != '\0') {
         return stop;
       }
-      unsigned char c = buffer[stop+1];
-      if (c<0x20 || c >0x7f || c=='\"' || c=='(' || c==')' || c==',' ||
-          c==':' || c==';' || c=='<' || c=='>' || c=='@' || c=='[' ||
-          c=='\\' || c==']') {
+      unsigned char c = buffer[stop+2];
+      if (not_domain(c)) {
         return stop;
       }
 
@@ -214,9 +217,10 @@ namespace be_scan {
           const std::string feature = std::string(&buffer[start], stop-start+1);
 
           // validate simple
-          if (!valid_top_level_domain(feature)) {
-            continue;
-          }
+//          if (!valid_top_level_domain(feature)) {
+//            continue;
+//          }
+std::cout << "next 8 found " << start << ": '" << escape(feature) << "'" << std::endl;
 
           // validate regex
           flex_scan(feature); // sets flex_extra_parameters
@@ -229,28 +233,33 @@ namespace be_scan {
           const size_t offset = start + flex_extra_parameters.flex_offset;
           const size_t size = flex_extra_parameters.flex_size;
 
-          // advance index past artifact
-          index += stop - start + 1;
+std::cout << "flex 8 confirmed " << offset << ": '" << escape(std::string(&buffer[offset], size)) << "'" << std::endl;
+          // advance index past the @ character
+          ++index;
 
           return artifact_t("email", offset, std::string(&buffer[offset], size),
                             artifact_context(buffer, buffer_size,
                             offset, size, 16));
 
         } else {
+std::cout << "16.a\n";
           // unicode 16
           size_t start = find_start16(index);
           if (start == index) {
             continue;
           }
+std::cout << "16.b\n";
           size_t stop = find_stop16(index);
           if (stop == index) {
             continue;
           }
 
+std::cout << "16.c\n";
           // generate returned unicode 16 feature
           // zz NOTE: in future, return unicode 8 feature
           const std::string feature16 = std::string(&buffer[start], stop-start+1);
 
+std::cout << "next 16 found " << start << ": '" << escape(feature16) << "'" << std::endl;
           // build unicode 8 from this
           std::stringstream ss;
           for (size_t j=start; j <= stop+1; j+=2) {
@@ -261,9 +270,9 @@ namespace be_scan {
           const std::string feature8 = ss.str();
 
           // validate simple
-          if (!valid_top_level_domain(feature8)) {
-            continue;
-          }
+//          if (!valid_top_level_domain(feature8)) {
+//            continue;
+//          }
 
           // validate regex
           flex_scan(feature8); // sets flex_extra_parameters
@@ -276,8 +285,9 @@ namespace be_scan {
           const size_t offset = start + flex_extra_parameters.flex_offset;
           const size_t size = flex_extra_parameters.flex_size;
 
-          // advance index past artifact
-          index += stop - start + 1;
+std::cout << "flex 16 confirmed " << offset << ": '" << escape(std::string(&buffer[offset], size*2)) << "'" << std::endl;
+          // advance index past the @ character
+          ++index;
 
           return artifact_t("email", offset,
                             std::string(&buffer[offset], size*2),

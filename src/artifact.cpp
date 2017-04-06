@@ -33,6 +33,13 @@ namespace be_scan {
                       context(p_context) {
     }
 
+    artifact_t::artifact_t() :
+                      artifact_class(""),
+                      buffer_offset(0),
+                      artifact(""),
+                      context("") {
+    }
+
     // get around Java \0 limitation, see be_scan.i
     void artifact_t::javaArtifact(std::string& a) {
       a = artifact;
