@@ -42,6 +42,8 @@ namespace be_scan {
   // Use RFC 5322 except do not recognize backslash or quoted string.
   // Specifically: local part <= 64 characters, domain <= 255 characters and
   // not space or "(),:;<>@[\]
+  const static size_t MAX_LOCAL_PART_SIZE = 129;
+  const static size_t MAX_DOMAIN_SIZE = 138;
   inline bool not_local_part(const unsigned char c) {
     return (c<0x20 || c >0x7f || c=='\"' || c=='(' || c==')' || c==',' ||
             c==':' || c==';' || c=='<' || c=='>' || c=='@' || c=='[' ||
@@ -62,8 +64,8 @@ namespace be_scan {
         return start;
       }
 
-      // invalid if local part > 64 bytes long
-      if (at - start > 64) {
+      // invalid if local part is too long
+      if (at - start > MAX_LOCAL_PART_SIZE) {
         return at;
       }
 
@@ -87,8 +89,8 @@ namespace be_scan {
         return stop;
       }
 
-      // invalid if domain part > 256 bytes long
-      if (stop - at > 256) {
+      // invalid if domain is too long
+      if (stop - at > MAX_DOMAIN_SIZE) {
         return at;
       }
 
@@ -112,8 +114,8 @@ namespace be_scan {
         return start;
       }
 
-      // invalid if local part > 64 bytes long
-      if (at - start > 64 * 2) {
+      // invalid if local part is too long
+      if (at - start > MAX_LOCAL_PART_SIZE * 2) {
         return at;
       }
 
@@ -141,8 +143,8 @@ namespace be_scan {
         return stop;
       }
 
-      // invalid if domain part > 256 bytes long
-      if (stop - at > 256 * 2) {
+      // invalid if domain is too long
+      if (stop - at > MAX_DOMAIN_SIZE * 2) {
         return at;
       }
 
