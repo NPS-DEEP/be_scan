@@ -33,10 +33,14 @@ namespace be_scan {
 //  const char* const scan_email_t::buffer;
 //  const size_t scan_email_t::buffer_size;
 //  size_t scan_email_t::index;
+//  size_t scan_email_t::flex_start;
+//  size_t scan_email_t::flex_stop;
 
+/*
   const std::set<std::string> scan_email_t::domain_names {
 "AC","AD","AE","AERO","AF","AG","AI","AL","AM","AN","AO","AQ","AR","ARPA","AS","ASIA","AT","AU","AW","AX","AZ","BA","BB","BD","BE","BF","BG","BH","BI","BIZ","BJ","BL","BM","BN","BO","BR","BS","BT","BV","BW","BY","BZ","CA","CAT","CC","CD","CF","CG","CH","CI","CK","CL","CM","CN","CO","COM","COOP","CR","CU","CV","CX","CY","CZ","DE","DJ","DK","DM","DO","DZ","EC","EDU","EE","EG","EH","ER","ES","ET","EU","FI","FJ","FK","FM","FO","FR","GA","GB","GD","GE","GF","GG","GH","GI","GL","GM","GN","GOV","GP","GQ","GR","GS","GT","GU","GW","GY","HK","HM","HN","HR","HT","HU","ID","IE","IL","IM","IN","INFO","INT","IO","IQ","IR","IS","IT","JE","JM","JO","JOBS","JP","KE","KG","KH","KI","KM","KN","KP","KR","KW","KY","KZ","LA","LB","LC","LI","LK","LR","LS","LT","LU","LV","LY","MA","MC","MD","ME","MF","MG","MH","MIL","MK","ML","MM","MN","MO","MOBI","MP","MQ","MR","MS","MT","MU","MUSEUM","MV","MW","MX","MY","MZ","NA","NAME","NC","NE","NET","NF","NG","NI","NL","NO","NP","NR","NU","NZ","OM","ORG","PA","PE","PF","PG","PH","PK","PL","PM","PN","PR","PRO","PS","PT","PW","PY","QA","RE","RO","RS","RU","RW","SA","SB","SC","SD","SE","SG","SH","SI","SJ","SK","SL","SM","SN","SO","SR","ST","SU","SV","SY","SZ","TC","TD","TEL","TF","TG","TH","TJ","TK","TL","TM","TN","TO","TP","TR","TRAVEL","TT","TV","TW","TZ","UA","UG","UK","UM","US","UY","UZ","VA","VC","VE","VG","VI","VN","VU","WF","WS","YE","YT","YU","ZA","ZM","ZW"
   };
+*/
 
   // from https://en.wikipedia.org/wiki/Email_address
   // Use RFC 5322 except do not recognize backslash or quoted string.
@@ -55,7 +59,7 @@ namespace be_scan {
             c=='\\' || c==']');
   }
 
-  // find local part of email address, return start else "at" point
+  // find optimistic start of local part
   size_t scan_email_t::find_start(const size_t at) {
     size_t start = at;
     while (true) {
@@ -64,9 +68,14 @@ namespace be_scan {
         return start;
       }
 
-      // invalid if local part is too long
+      // done if adjacent to previous end
+      if (flex_stop != 0 && start == flex_stop + 1) {
+        return start;
+      }
+
+      // done if local part is too long
       if (at - start > MAX_LOCAL_PART_SIZE) {
-        return at;
+        return start;
       }
 
       // done if next char is invalid
@@ -80,12 +89,12 @@ namespace be_scan {
     }
   }
 
-  // find domain part of email address, return stop else "at" point
+  // find optimistic end of domain
   size_t scan_email_t::find_stop(const size_t at) {
     size_t stop = at;
     while (true) {
       // done if at EOF
-      if (stop == buffer_size - 1) {
+      if (stop + 1 == buffer_size) {
         return stop;
       }
 
@@ -105,26 +114,27 @@ namespace be_scan {
     }
   }
 
-  // find local part of email address, return start else "at" point
+  // find optimistic start of local part pair
   size_t scan_email_t::find_start16(const size_t at) {
     size_t start = at;
     while (true) {
-      // done if at beginning
-      if (start <= 1) {
+      // done if at beginning, specifically, start is at 0 or 1
+      if (start < 2) {
         return start;
       }
 
-      // invalid if local part is too long
+      // done if adjacent to previous end, specifically, at stop+1 or stop+2
+      if (flex_stop != 0 && start <= flex_stop + 2) {
+        return start;
+      }
+
+      // done if local part is too long
       if (at - start > MAX_LOCAL_PART_SIZE * 2) {
-        return at;
+        return start;
       }
 
       // done if next char pair is invalid
-      if (buffer[start-1] != '\0') {
-        return start;
-      }
-      unsigned char c = buffer[start-2];
-      if (not_local_part(c)) {
+      if ((buffer[start-1] != '\0') || not_local_part(buffer[start-2])) {
         return start;
       }
 
@@ -133,35 +143,31 @@ namespace be_scan {
     }
   }
 
-  // find domain part of email address, return stop else "at" point
-  // where stop is first byte of last pair
+  // find optimistic end of domain pair, where second byte of pair is at end + 1
   size_t scan_email_t::find_stop16(const size_t at) {
     size_t stop = at;
     while (true) {
-      // done if at EOF
-      if (stop >= buffer_size - 2) {
+      // done if byte from pair plus next pair is EOF
+      if (stop +3 >= buffer_size) {
         return stop;
       }
 
-      // invalid if domain is too long
+      // done if domain is too long
       if (stop - at > MAX_DOMAIN_SIZE * 2) {
-        return at;
-      }
-
-      // done if next char is invalid
-      if (buffer[stop+1] != '\0') {
-        return stop;
-      }
-      unsigned char c = buffer[stop+2];
-      if (not_domain(c)) {
         return stop;
       }
 
-      // char is valid so step forward to it
+      // done if next char pair is invalid
+      if ((buffer[stop+3] != '\0') || not_local_part(buffer[stop+2])) {
+        return stop;
+      }
+
+      // char pair is valid so step forward to it
       stop += 2;
     }
   }
 
+/*
   bool scan_email_t::valid_top_level_domain(const std::string& feature) {
     // find last dot, it will preceed the top-level domain name
     const size_t pos = feature.rfind('.');
@@ -185,6 +191,7 @@ namespace be_scan {
     // require to recognize the domain name
     return (domain_names.find(ss.str()) != domain_names.end());
   }
+*/
 
   //  public:
   scan_email_t::scan_email_t(const char* const p_buffer,
@@ -192,6 +199,8 @@ namespace be_scan {
                   buffer(p_buffer),
                   buffer_size(p_buffer_size),
                   index(0),
+                  flex_start(0),
+                  flex_stop(0),
                   flex_extra_parameters() {
     flex_init();
   }
@@ -201,17 +210,17 @@ namespace be_scan {
   }
 
   artifact_t scan_email_t::next() {
-    // progress forward to artifact or end of buffer
-    for (; index<buffer_size-1; ++index) {
+    // progress forward to artifact or to near end of buffer
+    for (; index<buffer_size-2; ++index) {
       if (buffer[index] == '@') {
         if (buffer[index+1] != '\0') {
           // unicode 8
           const size_t start = find_start(index);
-          if (start == index) {
+          if (start+1 > index) {   // require at least one byte
             continue;
           }
           const size_t stop = find_stop(index);
-          if (stop == index) {
+          if (stop < index+4) {    // require at least four bytes
             continue;
           }
 
@@ -229,37 +238,42 @@ namespace be_scan {
             // not valid in flex
             continue;
           }
+std::cout << "next start " << start << ", flex start: " << flex_start << std::endl;
 
-          // refine the location of the artifact based on regex
-          const size_t offset = start + flex_extra_parameters.flex_offset;
-          const size_t size = flex_extra_parameters.flex_size;
+          // define start and stop based on flex
+          flex_start = start + flex_extra_parameters.flex_offset;
+          flex_stop = flex_start + flex_extra_parameters.flex_size - 1;
 
-          // advance index past the @ character
-          ++index;
+          // advance past the artifact
+          index = stop + 1;
+std::cout << "next index " << index << std::endl;
 
-          return artifact_t("email", offset, std::string(&buffer[offset], size),
-                            artifact_context(buffer, buffer_size,
-                            offset, size, 16));
+          // accept the artifact
+          size_t size = flex_stop - flex_start + 1;
+          return artifact_t("email", flex_start,
+                 std::string(&buffer[flex_start], size),
+                 artifact_context(buffer, buffer_size, flex_start, size, 16));
 
         } else {
           // unicode 16
-          size_t start = find_start16(index);
-          if (start == index) {
+          const size_t start = find_start16(index);
+          if (start+2 > index) {   // require at least one pair
             continue;
           }
-          size_t stop = find_stop16(index);
-          if (stop == index) {
+          const size_t stop = find_stop16(index);
+          if (stop < index+8) {    // require at least four pairs
             continue;
           }
 
           // generate returned unicode 16 feature
           // zz NOTE: in future, return unicode 8 feature
-          const std::string feature16 = std::string(&buffer[start], stop-start+1);
+          const std::string feature16 = std::string(&buffer[start],
+                                                    stop-start+1);
 
           // build unicode 8 from this
           std::stringstream ss;
-          for (size_t j=start; j <= stop+1; j+=2) {
-            ss << buffer[j];
+          for (size_t i=start; i <= stop; i+=2) {
+            ss << buffer[i];
           }
 
           // get the feature as unicode 8
@@ -277,22 +291,23 @@ namespace be_scan {
             continue;
           }
 
-          // refine the location of the artifact based on regex
-          const size_t offset = start + flex_extra_parameters.flex_offset;
-          const size_t size = flex_extra_parameters.flex_size;
+          // define start and stop based on flex
+          flex_start = start + flex_extra_parameters.flex_offset * 2;
+          flex_stop = flex_start + (flex_extra_parameters.flex_size - 1) * 2;
 
-          // advance index past the @ character
-          ++index;
+          // advance past the artifact
+          index = stop +1;
 
-          return artifact_t("email", offset,
-                            std::string(&buffer[offset], size*2),
-                            artifact_context(buffer, buffer_size,
-                            offset, size*2, 16));
+          // accept the artifact
+          size_t size = flex_stop - flex_start + 2;
+          return artifact_t("email", flex_start,
+                 std::string(&buffer[start], size),
+                 artifact_context(buffer, buffer_size, flex_start, size, 16));
         }
       }
     }
     // no more artifacts for this buffer
-    return artifact_t("", 0, "", "");
+    return artifact_t();
   }
 }
 

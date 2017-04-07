@@ -45,23 +45,24 @@ void test_buffer1() {
 
   TEST_EQ(scanner.is_initialized, true);
 
-  be_scan::artifact_t artifact1 = scanner.next_artifact();
-  TEST_EQ(artifact1.artifact_class, "email");
-  TEST_EQ(artifact1.buffer_offset, 0);
-  TEST_EQ(artifact1.artifact, "someone@somewhere.com");
-  TEST_EQ(artifact1.context, "someone@somewhere.com\tsomeone2@somewh");
+  be_scan::artifact_t artifact;
+  artifact = scanner.next_artifact();
+  TEST_EQ(artifact.artifact_class, "email");
+  TEST_EQ(artifact.buffer_offset, 0);
+  TEST_EQ(artifact.artifact, "someone@somewhere.com");
+  TEST_EQ(artifact.context, "someone@somewhere.com\tsomeone2@somewh");
 
-  be_scan::artifact_t artifact2 = scanner.next_artifact();
-  TEST_EQ(artifact2.artifact_class, "email");
-  TEST_EQ(artifact2.buffer_offset, 22);
-  TEST_EQ(artifact2.artifact, "someone2@somewhere2.com");
-  TEST_EQ(artifact2.context, "e@somewhere.com\tsomeone2@somewhere2.com\n");
+  artifact = scanner.next_artifact();
+  TEST_EQ(artifact.artifact_class, "email");
+  TEST_EQ(artifact.buffer_offset, 22);
+  TEST_EQ(artifact.artifact, "someone2@somewhere2.com");
+  TEST_EQ(artifact.context, "e@somewhere.com\tsomeone2@somewhere2.com\n");
 
-  be_scan::artifact_t artifact3 = scanner.next_artifact();
-  TEST_EQ(artifact3.artifact_class, "");
-  TEST_EQ(artifact3.buffer_offset, 0);
-  TEST_EQ(artifact3.artifact, "");
-  TEST_EQ(artifact3.context, "");
+  artifact = scanner.next_artifact();
+  TEST_EQ(artifact.artifact_class, "");
+  TEST_EQ(artifact.buffer_offset, 0);
+  TEST_EQ(artifact.artifact, "");
+  TEST_EQ(artifact.context, "");
 }
 
 void test_email() {
@@ -130,8 +131,11 @@ void test_email() {
   artifact = scanner.next_artifact();
   std::cout << "artifact: '" << escape(artifact.artifact) << "'" << std::endl;
   std::cout << "context: '" << escape(artifact.context) << "'" << std::endl;
-  TEST_EQ(escape(artifact.artifact), escape(std::string("m\x00r\x00u\x00" "b\x00y\x00" "e\x00" "a\x00p\x00" "e\x00n\x00@\x00h\x00o\x00t\x00m\x00" "a\x00i\x00l\x00.\x00" "c\x00o\x00m\x00", 44)));
-  TEST_EQ(escape(artifact.context), escape(std::string("eapen@hotmail.com\x00r\x00u\x00" "b\x00y\x00" "e\x00" "a\x00p\x00" "e\x00n\x00@\x00h\x00o\x00t\x00m\x00" "a\x00i\x00l\x00.\x00" "c\x00o\x00m\x00\x00\x00M\x00S\x00N\x00 \x00M\x00" "e\x00s\x00", 76)));
+
+  TEST_EQ(escape(artifact.artifact), escape(std::string("r\x00u\x00" "b\x00y\x00" "e\x00" "a\x00p\x00" "e\x00n\x00@\x00h\x00o\x00t\x00m\x00" "a\x00i\x00l\x00.\x00" "c\x00o\x00m\x00", 42)));
+
+  TEST_EQ(escape(artifact.context), escape(std::string("pen@hotmail.com\x00r\x00u\x00" "b\x00y\x00" "e\x00" "a\x00p\x00" "e\x00n\x00@\x00h\x00o\x00t\x00m\x00" "a\x00i\x00l\x00.\x00" "c\x00o\x00m\x00\x00\x00M\x00S\x00N\x00 \x00M\x00" "e\x00s\x00", 74)));
+
   artifact = scanner.next_artifact();
   std::cout << "artifact: '" << escape(artifact.artifact) << "'" << std::endl;
   std::cout << "context: '" << escape(artifact.context) << "'" << std::endl;

@@ -40,6 +40,8 @@ class scan_email_t {
   const char* const buffer;
   const size_t buffer_size;
   size_t index;
+  size_t flex_start;
+  size_t flex_stop;
   flex_extra_parameters_t flex_extra_parameters;
 
   const static std::set<std::string> domain_names;
@@ -54,6 +56,10 @@ class scan_email_t {
   void flex_init();
   void flex_scan(const std::string& potential_feature);
   void flex_close();
+
+  // do not allow copy or assignment
+  scan_email_t(const scan_email_t&) = delete;
+  scan_email_t& operator=(const scan_email_t&) = delete;
 
   public:
   scan_email_t(const char* const p_buffer,
