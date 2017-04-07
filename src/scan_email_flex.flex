@@ -29,9 +29,6 @@
 #define YY_SKIP_YYWRAP            /* Never wrap */
 #define YY_NO_INPUT
 
-//#define YY_INPUT(buffer, result, max_size) (result = \
-//            yyemail_get_extra(yyscanner)->get_input(buffer, max_size));
-
 #define YY_FATAL_ERROR(msg) {throw be_scan::flex_scan_exception(msg);}
 
 #define YY_EXTRA_TYPE be_scan::flex_extra_parameters_t*

@@ -92,6 +92,12 @@ namespace be_scan {
     const size_t buffer_size;
     scan_email_t* scan_email;
 
+#ifndef SWIG
+    // do not allow copy or assignment
+    be_scan_t(const be_scan_t&) = delete;
+    be_scan_t& operator=(const be_scan_t&) = delete;
+#endif
+
     public:
     /**
      * False if the scanner failed to allocate memory for the buffer.

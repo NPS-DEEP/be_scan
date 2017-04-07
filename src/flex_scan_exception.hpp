@@ -21,19 +21,21 @@
 #define FLEX_SCAN_EXCEPTION_HPP
 
 #include <stdint.h>
+#include <string>
 #include <exception>
 
 namespace be_scan {
 
   class flex_scan_exception: public std::exception {
-    public:
-    const char *msg;
+    private:
+    const std::string msg;
 
-    flex_scan_exception(const char *m) : msg(m) {
+    public:
+    flex_scan_exception(const char *m) : msg(std::string(m)) {
     }
 
     virtual const char *what() const throw() {
-      return msg;
+      return msg.c_str();
     }
   };
 
