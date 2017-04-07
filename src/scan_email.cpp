@@ -238,7 +238,6 @@ namespace be_scan {
             // not valid in flex
             continue;
           }
-std::cout << "next start " << start << ", flex start: " << flex_start << std::endl;
 
           // define start and stop based on flex
           flex_start = start + flex_extra_parameters.flex_offset;
@@ -246,7 +245,6 @@ std::cout << "next start " << start << ", flex start: " << flex_start << std::en
 
           // advance past the artifact
           index = stop + 1;
-std::cout << "next index " << index << std::endl;
 
           // accept the artifact
           size_t size = flex_stop - flex_start + 1;
