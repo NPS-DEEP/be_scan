@@ -37,7 +37,7 @@ C_FLAGS_TO_TEST="-MD -Wpointer-arith -Wmissing-declarations -Wmissing-prototypes
     -Wbad-function-cast -Wcast-qual -Wundef -Wredundant-decls -Wdisabled-optimization \
     -Wfloat-equal -Wmultichar -Wc++-compat -Wmissing-noreturn \
     -Wmissing-format-attribute -Wundef -Weffcpp -Wsuggest-attribute=noreturn \
-    -Wdeprecated-register -Wunreachable-code"
+    -Wdeprecated-register"
 
 if test x"${mingw}" != "xyes" ; then
   # add the warnings we do not want to do on mingw
@@ -119,7 +119,7 @@ CXX_FLAGS_TO_TEST="-Wall -MD -D_FORTIFY_SOURCE=2 -Wpointer-arith \
     -Wredundant-decls -Wdisabled-optimization \
     -Wfloat-equal -Wmultichar -Wmissing-noreturn \
     -Woverloaded-virtual -Wsign-promo \
-    -funit-at-a-time -Wunreachable-code"
+    -funit-at-a-time"
 
 if test x"${mingw}" != "xyes" ; then
   # add the warnings we don't want to do on mingw
