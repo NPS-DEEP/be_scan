@@ -4,6 +4,8 @@
 %include "std_set.i"
 %include "std_pair.i"
 
+%apply std::string& OUTPUT { std::string& loopback_buffer };
+
 %{
 #include "be_scan.hpp"
 %}

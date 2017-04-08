@@ -1,5 +1,4 @@
-SUBDIRS = src test java_bindings
-#SUBDIRS = src test java_bindings python_bindings
+SUBDIRS = src test java_bindings python_bindings
 
 RELEASE	= $(PACKAGE)-$(VERSION)
 

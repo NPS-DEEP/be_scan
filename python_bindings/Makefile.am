@@ -30,10 +30,10 @@ BUILT_SOURCES = be_scan_wrap.cpp
 # SWIG needs to find be_scan.hpp to prepare Python interfaces
 be_scan_wrap.cpp: be_scan.i \
                ${top_srcdir}/src/be_scan.hpp \
-               ../src_libbe_scan/libbe_scan.la
+               ../src/libbe_scan.la
 	rm -f be_scan.hpp
 	ln -s ${top_srcdir}/src/be_scan.hpp .
-	$(SWIG) $(AX_SWIG_PYTHON_OPT) -threads -o $@ $<
+	$(SWIG) $(AX_SWIG_PYTHON_OPT) -o $@ $<
 	rm be_scan.hpp
 
 # install be_scan.py
@@ -49,10 +49,10 @@ pyexec_LTLIBRARIES = _be_scan.la
 _be_scan_la_SOURCES = be_scan_wrap.cpp be_scan.i
 
 # _be_scan.la requires relocatable be_scan library libbe_scan.so
-_be_scan_la_LIBADD = ../src_libbe_scan/libbe_scan.la
+_be_scan_la_LIBADD = ../src/libbe_scan.la
 
 # c++ flags for compiling _be_scan.la
-_be_scan_la_CPPFLAGS = ${PYTHON_CPPFLAGS} -Wno-deprecated-register -I${top_srcdir}/src_libbe_scan
+_be_scan_la_CPPFLAGS = ${PYTHON_CPPFLAGS} -Wno-deprecated-register -I${top_srcdir}/src
 
 
 # for testing

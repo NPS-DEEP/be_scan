@@ -13,9 +13,8 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
                  test/Makefile
                  java_bindings/Makefile
+                 python_bindings/Makefile
                 ])
-#                 python_bindings/Makefile
-
 
 # define CC and CXX as desired for alternate compilers
 # for example "./configure CC=clang CXX=clang++"
