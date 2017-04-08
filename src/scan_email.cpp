@@ -211,7 +211,7 @@ namespace be_scan {
 
   artifact_t scan_email_t::next() {
     // progress forward to artifact or to near end of buffer
-    for (; index<buffer_size-2; ++index) {
+    for (; index+2<buffer_size; ++index) {
       if (buffer[index] == '@') {
         if (buffer[index+1] != '\0') {
           // unicode 8
@@ -255,18 +255,23 @@ namespace be_scan {
         } else {
           // unicode 16
           const size_t start = find_start16(index);
+//zzstd::cout << "next16.a " << start << "\n";
           if (start+2 > index) {   // require at least one pair
             continue;
           }
           const size_t stop = find_stop16(index);
+//zzstd::cout << "next16.b " << stop << "\n";
           if (stop < index+8) {    // require at least four pairs
             continue;
           }
 
+//zzstd::cout << "next16.c\n";
+/*
           // generate returned unicode 16 feature
           // zz NOTE: in future, return unicode 8 feature
           const std::string feature16 = std::string(&buffer[start],
-                                                    stop-start+1);
+                                                    stop-start+2);
+*/
 
           // build unicode 8 from this
           std::stringstream ss;
@@ -277,6 +282,7 @@ namespace be_scan {
           // get the feature as unicode 8
           const std::string feature8 = ss.str();
 
+//zzstd::cout << "next16.d '" << feature8 << "'\n";
           // validate simple
 //          if (!valid_top_level_domain(feature8)) {
 //            continue;
@@ -298,8 +304,9 @@ namespace be_scan {
 
           // accept the artifact
           size_t size = flex_stop - flex_start + 2;
+//zzstd::cout << "next16.e '" << escape(std::string(&buffer[flex_start], size)) << "\n";
           return artifact_t("email", flex_start,
-                 std::string(&buffer[start], size),
+                 std::string(&buffer[flex_start], size),
                  artifact_context(buffer, buffer_size, flex_start, size, 16));
         }
       }

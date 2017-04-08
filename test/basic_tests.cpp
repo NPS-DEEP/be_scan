@@ -36,12 +36,11 @@ void test_available_scanners() {
   TEST_EQ(available_scanners, be_scan::available_scanners());
 }
 
-void test_buffer1() {
-  std::string string1 = "someone@somewhere.com\tsomeone2@somewhere2.com\n";
-  std::cout << "string1 size: " << string1.size() << "\n";
-  const char* const bytes1 = string1.c_str();
+void test_buffer8() {
+  std::string string8 = "someone@somewhere.com\tsomeone2@somewhere2.com\n";
+  const char* const bytes8 = string8.c_str();
 
-  be_scan::be_scan_t scanner("email", bytes1, string1.size());
+  be_scan::be_scan_t scanner("email", bytes8, string8.size());
 
   TEST_EQ(scanner.is_initialized, true);
 
@@ -64,6 +63,56 @@ void test_buffer1() {
   TEST_EQ(artifact.artifact, "");
   TEST_EQ(artifact.context, "");
 }
+
+void test_buffer16() {
+  std::string string16(" \0a\0a\0a\0@\0b\0b\0.\0z\0w\0 \0", 22);
+  const char* const bytes16 = string16.c_str();
+
+  be_scan::be_scan_t scanner("email", bytes16, string16.size());
+
+  be_scan::artifact_t artifact;
+  artifact = scanner.next_artifact();
+  TEST_EQ(artifact.artifact_class, "email");
+  TEST_EQ(artifact.buffer_offset, 2);
+  TEST_EQ(artifact.artifact, std::string("a\0a\0a\0@\0b\0b\0.\0z\0w\0", 18));
+  TEST_EQ(artifact.context, std::string(" \0a\0a\0a\0@\0b\0b\0.\0z\0w\0 \0", 22));
+
+  artifact = scanner.next_artifact();
+  TEST_EQ(artifact.artifact_class, "");
+  TEST_EQ(artifact.buffer_offset, 0);
+  TEST_EQ(artifact.artifact, "");
+  TEST_EQ(artifact.context, "");
+}
+
+void test_boundaries() {
+  be_scan::artifact_t artifact;
+  std::string string;
+  string = std::string("");
+  be_scan::be_scan_t scanner0("email", string.c_str(), 0);
+  artifact = scanner0.next_artifact();
+  string = std::string(" ");
+  be_scan::be_scan_t scanner1("email", string.c_str(), 1);
+  artifact = scanner1.next_artifact();
+  string = std::string("  ");
+  be_scan::be_scan_t scanner2("email", string.c_str(), 2);
+  artifact = scanner2.next_artifact();
+  string = std::string("@\0",2);
+  be_scan::be_scan_t scanner3("email", string.c_str(), 2);
+  artifact = scanner3.next_artifact();
+  string = std::string("\0@",2);
+  be_scan::be_scan_t scanner4("email", string.c_str(), 2);
+  artifact = scanner4.next_artifact();
+  string = std::string("\0@\0",3);
+  be_scan::be_scan_t scanner5("email", string.c_str(), 3);
+  artifact = scanner5.next_artifact();
+  string = std::string("a\0@\0",4);
+  be_scan::be_scan_t scanner6("email", string.c_str(), 4);
+  artifact = scanner6.next_artifact();
+  string = std::string("a\0@\0a",5);
+  be_scan::be_scan_t scanner7("email", string.c_str(), 5);
+  artifact = scanner7.next_artifact();
+}
+
 
 void test_email() {
 /*
@@ -119,31 +168,31 @@ void test_email() {
   be_scan::be_scan_t scanner("email", buffer.c_str(), buffer.size());
   be_scan::artifact_t artifact;
   artifact = scanner.next_artifact();
-  std::cout << "artifact: '" << escape(artifact.artifact) << "'" << std::endl;
-  std::cout << "context: '" << escape(artifact.context) << "'" << std::endl;
+  //std::cout << "artifact: '" << escape(artifact.artifact) << "'" << std::endl;
+  //std::cout << "context: '" << escape(artifact.context) << "'" << std::endl;
   TEST_EQ(artifact.artifact, "Emailnorbert@emirates.net.ae");
   TEST_EQ(escape(artifact.context), escape(std::string("4575\x01\x00\x00\x00\xFF\xFF\xFF\xFF\x05\x00\x17\x00" "Emailnorbert@emirates.net.ae\x04\x00\x00\x00\xFF\xFF\xFF\xFF\x08\x00\x04\x00Modi", 60)));
   artifact = scanner.next_artifact();
-  std::cout << "artifact: '" << escape(artifact.artifact) << "'" << std::endl;
-  std::cout << "context: '" << escape(artifact.context) << "'" << std::endl;
+  //std::cout << "artifact: '" << escape(artifact.artifact) << "'" << std::endl;
+  //std::cout << "context: '" << escape(artifact.context) << "'" << std::endl;
   TEST_EQ(artifact.artifact, "Contact5rubyeapen@hotmail.com");
   TEST_EQ(escape(artifact.context), escape(std::string("\x00\x00\x00\x15\x00\x00\x00\x00\xFF\xFF\xFF\xFF\x08\x00\x9E\x00" "Contact5rubyeapen@hotmail.com\x00r\x00u\x00" "b\x00y\x00" "e\x00" "a\x00p\x00" "e", 61)));
   artifact = scanner.next_artifact();
-  std::cout << "artifact: '" << escape(artifact.artifact) << "'" << std::endl;
-  std::cout << "context: '" << escape(artifact.context) << "'" << std::endl;
+  //std::cout << "artifact: '" << escape(artifact.artifact) << "'" << std::endl;
+  //std::cout << "context: '" << escape(artifact.context) << "'" << std::endl;
 
   TEST_EQ(escape(artifact.artifact), escape(std::string("r\x00u\x00" "b\x00y\x00" "e\x00" "a\x00p\x00" "e\x00n\x00@\x00h\x00o\x00t\x00m\x00" "a\x00i\x00l\x00.\x00" "c\x00o\x00m\x00", 42)));
 
   TEST_EQ(escape(artifact.context), escape(std::string("pen@hotmail.com\x00r\x00u\x00" "b\x00y\x00" "e\x00" "a\x00p\x00" "e\x00n\x00@\x00h\x00o\x00t\x00m\x00" "a\x00i\x00l\x00.\x00" "c\x00o\x00m\x00\x00\x00M\x00S\x00N\x00 \x00M\x00" "e\x00s\x00", 74)));
 
   artifact = scanner.next_artifact();
-  std::cout << "artifact: '" << escape(artifact.artifact) << "'" << std::endl;
-  std::cout << "context: '" << escape(artifact.context) << "'" << std::endl;
+  //std::cout << "artifact: '" << escape(artifact.artifact) << "'" << std::endl;
+  //std::cout << "context: '" << escape(artifact.context) << "'" << std::endl;
   TEST_EQ(artifact.artifact, "E6EJ5FK5GL6HM3GK4FJ5FI5GG7DI5DH3DH5II7GI8HI9JJ6HL8DL2@H0AH.BH");
   TEST_EQ(artifact.context, "CG-DI.EG/FF1BE1>E6EJ5FK5GL6HM3GK4FJ5FI5GG7DI5DH3DH5II7GI8HI9JJ6HL8DL2@H0AH.BH0DH3HH2EF2CE3AG/");
   artifact = scanner.next_artifact();
-  std::cout << "artifact: '" << escape(artifact.artifact) << "'" << std::endl;
-  std::cout << "context: '" << escape(artifact.context) << "'" << std::endl;
+  //std::cout << "artifact: '" << escape(artifact.artifact) << "'" << std::endl;
+  //std::cout << "context: '" << escape(artifact.context) << "'" << std::endl;
   TEST_EQ(artifact.artifact, "8e1@k5Fo4Fn4Gm.Bi");
   artifact = scanner.next_artifact();
   TEST_EQ(artifact.artifact, "");
@@ -157,7 +206,9 @@ int main(int argc, char* argv[]) {
   // tests
   test_version();
   test_available_scanners();
-  test_buffer1();
+  test_buffer8();
+  test_buffer16();
+  test_boundaries();
   test_email();
 
   // done
