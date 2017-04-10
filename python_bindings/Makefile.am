@@ -25,6 +25,8 @@
 ## the be_scan_wrap.cpp source and also be_scan.py that will be generated
 BUILT_SOURCES = be_scan_wrap.cpp
 
+SCANNER = artscan.py
+
 # recipe for be_scan_wrap.c
 # note that SWIG creates be_scan_wrap.c and be_scan.py
 # SWIG needs to find be_scan.hpp to prepare Python interfaces
@@ -63,4 +65,13 @@ TESTS = $(testfile)
 clean-local:
 	rm -f be_scan.py be_scan_wrap.cpp be_scan.hpp
 	rm -rf temp_*
+
+install-exec-hook:
+	echo " ( cp '$(srcdir)/$(SCANNER)' '$(DESTDIR)$(bindir)/$(SCANNER)' )"; \
+	mkdir -p $(DESTDIR)$(bindir)
+	cp -p $(srcdir)/$(SCANNER) $(DESTDIR)$(bindir)/$(SCANNER)
+
+uninstall-hook:
+	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $(SCANNER) ")"; \
+	cd $(DESTDIR)$(bindir) && rm -f $(SCANNER)
 
