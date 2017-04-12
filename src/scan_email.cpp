@@ -208,6 +208,7 @@ namespace be_scan {
   }
 
   scan_email_t::~scan_email_t() {
+    // emit log statistics
     std::cout << "flex_bytes_considered: " << flex_bytes_considered << std::endl;
     std::cout << "flex_bytes_accepted: " << flex_bytes_accepted << std::endl;
     flex_close();
@@ -228,6 +229,9 @@ namespace be_scan {
             continue;
           }
 
+          // update log statistics
+          flex_bytes_considered += stop - start + 1;
+
           // build email address from this
           const std::string feature = std::string(&buffer[start], stop-start+1);
 
@@ -236,8 +240,6 @@ namespace be_scan {
 //            continue;
 //          }
 
-flex_bytes_considered += stop - start + 1;
-//std::cout << "considering " << stop - start + 1 << std::endl;
           // validate regex
           flex_scan(feature); // sets flex_extra_parameters
           if (flex_extra_parameters.flex_size == 0) {
@@ -248,11 +250,12 @@ flex_bytes_considered += stop - start + 1;
           // define start and stop based on flex
           flex_start = start + flex_extra_parameters.flex_offset;
           flex_stop = flex_start + flex_extra_parameters.flex_size - 1;
-flex_bytes_accepted += flex_stop - flex_start + 1;
-//std::cout << "accepting " << flex_stop - flex_start + 1 << std::endl;
 
           // advance past the artifact
           index = stop + 1;
+
+          // update log statistics
+          flex_bytes_accepted += flex_stop - flex_start + 1;
 
           // accept the artifact
           size_t size = flex_stop - flex_start + 1;
@@ -273,6 +276,9 @@ flex_bytes_accepted += flex_stop - flex_start + 1;
             continue;
           }
 
+          // update log statistics
+          flex_bytes_considered += stop - start + 2;
+
 //std::cout << "next16.c\n";
 /*
           // generate returned unicode 16 feature
@@ -289,8 +295,6 @@ flex_bytes_accepted += flex_stop - flex_start + 1;
 //          if (!valid_top_level_domain(feature)) {
 //            continue;
 //          }
-flex_bytes_considered += stop - start + 2;
-//std::cout << "considering16 " << stop - start + 2 << std::endl;
 
           // validate regex
           flex_scan(feature); // sets flex_extra_parameters
@@ -302,11 +306,12 @@ flex_bytes_considered += stop - start + 2;
           // define start and stop based on flex
           flex_start = start + flex_extra_parameters.flex_offset;
           flex_stop = flex_start + flex_extra_parameters.flex_size - 1;
-flex_bytes_accepted += flex_stop - flex_start + 1;
-//std::cout << "accepting16 " << flex_stop - flex_start + 1 << std::endl;
 
           // advance past the artifact
           index = stop + 1;
+
+          // update log statistics
+          flex_bytes_accepted += flex_stop - flex_start + 1;
 
           // accept the artifact
           size_t size = flex_stop - flex_start + 1;
