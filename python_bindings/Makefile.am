@@ -25,7 +25,8 @@
 ## the be_scan_wrap.cpp source and also be_scan.py that will be generated
 BUILT_SOURCES = be_scan_wrap.cpp
 
-SCANNER = artscan.py
+ARTSCAN = artscan.py
+ARTSCAN_ALL = artscan_all.py
 
 # recipe for be_scan_wrap.c
 # note that SWIG creates be_scan_wrap.c and be_scan.py
@@ -67,11 +68,15 @@ clean-local:
 	rm -rf temp_*
 
 install-exec-hook:
-	echo " ( cp '$(srcdir)/$(SCANNER)' '$(DESTDIR)$(bindir)/$(SCANNER)' )"; \
 	mkdir -p $(DESTDIR)$(bindir)
-	cp -p $(srcdir)/$(SCANNER) $(DESTDIR)$(bindir)/$(SCANNER)
+	echo " ( cp '$(srcdir)/$(ARTSCAN)' '$(DESTDIR)$(bindir)/$(ARTSCAN)' )"; \
+	cp -p $(srcdir)/$(ARTSCAN) $(DESTDIR)$(bindir)/$(ARTSCAN)
+	echo " ( cp '$(srcdir)/$(ARTSCAN_ALL)' '$(DESTDIR)$(bindir)/$(ARTSCAN_ALL)' )"; \
+	cp -p $(srcdir)/$(ARTSCAN_ALL) $(DESTDIR)$(bindir)/$(ARTSCAN_ALL)
 
 uninstall-hook:
-	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $(SCANNER) ")"; \
-	cd $(DESTDIR)$(bindir) && rm -f $(SCANNER)
+	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $(ARTSCAN) ")"; \
+	cd $(DESTDIR)$(bindir) && rm -f $(ARTSCAN)
+	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $(ARTSCAN_all) ")"; \
+	cd $(DESTDIR)$(bindir) && rm -f $(ARTSCAN_all)
 

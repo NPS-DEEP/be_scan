@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from argparse import ArgumentParser
+import os
 import be_scan
 
 # escape unprintable bytes
@@ -23,25 +24,29 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     filesize = os.stat(args.filename).st_size
-    splitsize = 2^27    # 128MiB
-    for (offset=0; offset < filesize; offset += splitsize):
+    splitsize = 134217728     # 2^27 = 128MiB
+    offset = 0
+    while (offset < filesize):
 
         # open the file for reading binary
         with open(args.filename, mode='rb') as f:
-            f.seek(args.offset)
+            f.seek(offset)
             data = f.read(splitsize)
 
-        # scan the data
-        scanner = be_scan.be_scan_t("email", data, len(data))
-        while True:
-            artifact = scanner.next_artifact()
-            if artifact.artifact_class == "":
-                break
-            print("artifact at %d: %s: '%s', '%s'" %(
-                     args.offset + artifact.buffer_offset,
-                     artifact.artifact_class,
-                     escape(artifact.artifact),
-                     escape(artifact.context)))
+            # scan the data
+            scanner = be_scan.be_scan_t("email", data, len(data))
+            while True:
+                artifact = scanner.next_artifact()
+                if artifact.artifact_class == "":
+                    break
+                print("artifact at %d: %s: '%s', '%s'" %(
+                         offset + artifact.buffer_offset,
+                         artifact.artifact_class,
+                         escape(artifact.artifact),
+                         escape(artifact.context)))
+
+        offset += splitsize
+        print("offset: %d" %offset)
 
     print("Done.")
 
