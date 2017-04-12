@@ -42,6 +42,8 @@ class scan_email_t {
   size_t index;
   size_t flex_start;
   size_t flex_stop;
+  size_t flex_bytes_considered;
+  size_t flex_bytes_accepted;
   flex_extra_parameters_t flex_extra_parameters;
 
   const static std::set<std::string> domain_names;
