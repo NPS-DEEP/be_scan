@@ -17,7 +17,7 @@ def escape(data):
 if __name__=="__main__":
 
     # parse filename, offset, count
-    parser = ArgumentParser(prog='scan.py',
+    parser = ArgumentParser(prog='artscan.py',
              description="Scan a file for forensic artifacts.")
     parser.add_argument("filename", help="file to scan", type=str)
     parser.add_argument("offset", help="offset in file to start", type=int)
