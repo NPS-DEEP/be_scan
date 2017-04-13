@@ -26,7 +26,6 @@
 BUILT_SOURCES = be_scan_wrap.cpp
 
 ARTSCAN = artscan.py
-ARTSCAN_ALL = artscan_all.py
 
 # recipe for be_scan_wrap.c
 # note that SWIG creates be_scan_wrap.c and be_scan.py
@@ -71,12 +70,8 @@ install-exec-hook:
 	mkdir -p $(DESTDIR)$(bindir)
 	echo " ( cp '$(srcdir)/$(ARTSCAN)' '$(DESTDIR)$(bindir)/$(ARTSCAN)' )"; \
 	cp -p $(srcdir)/$(ARTSCAN) $(DESTDIR)$(bindir)/$(ARTSCAN)
-	echo " ( cp '$(srcdir)/$(ARTSCAN_ALL)' '$(DESTDIR)$(bindir)/$(ARTSCAN_ALL)' )"; \
-	cp -p $(srcdir)/$(ARTSCAN_ALL) $(DESTDIR)$(bindir)/$(ARTSCAN_ALL)
 
 uninstall-hook:
 	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $(ARTSCAN) ")"; \
 	cd $(DESTDIR)$(bindir) && rm -f $(ARTSCAN)
-	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $(ARTSCAN_all) ")"; \
-	cd $(DESTDIR)$(bindir) && rm -f $(ARTSCAN_all)
 
