@@ -22,16 +22,16 @@ if __name__=="__main__":
              description="Scan a file for forensic artifacts.")
     parser.add_argument("filename", help="file to scan", type=str)
     parser.add_argument("-s", "--start",
-                        help="start offset in file",
+                        help="the start offset in the file",
                         default=0, type=int)
     parser.add_argument("-c", "--count",
-                        help="number of bytes to process",
+                        help="the number of bytes to process",
                         default=0, type=int)
     parser.add_argument("-b", "--break_size",
-                        help="size to split processing into",
+                        help="the size, in bytes, to split processing into",
                         default=2**27, type=int)  # 2^27 = 128MiB = 134217728
     parser.add_argument("-v", "--verbose",
-                        help="show the input bytes",
+                        help="show the bytes being scanned",
                         action="store_true")
     args = parser.parse_args()
 
