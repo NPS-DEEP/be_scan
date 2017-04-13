@@ -12,7 +12,6 @@
 %rename (bufferOffset) buffer_offset;
 %rename (BEScan) be_scan_t;
 %rename (isInitialized) is_initialized;
-%rename (nextArtifact) next_artifact;
 %rename (testLoopback) test_loopback;
 
 // http://stackoverflow.com/questions/33504659/passing-byte-from-java-to-c

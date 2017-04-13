@@ -123,7 +123,7 @@ namespace be_scan {
      * Returns:
      *   artifact_t - The artifact or an artifact with blank data if done.
      */
-    artifact_t next_artifact();
+    artifact_t next();
 
     /**
      * Destructor.

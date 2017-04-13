@@ -30,7 +30,7 @@ ARTSCAN = artscan.py
 # recipe for be_scan_wrap.c
 # note that SWIG creates be_scan_wrap.c and be_scan.py
 # SWIG needs to find be_scan.hpp to prepare Python interfaces
-be_scan_wrap.cpp: be_scan.i \
+be_scan_wrap.cpp: be_scan.i ${top_srcdir}/src/be_scan.hpp \
                ${top_srcdir}/src/be_scan.hpp \
                ../src/libbe_scan.la
 	rm -f be_scan.hpp

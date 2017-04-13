@@ -70,19 +70,19 @@ static byte[] buffer1 = "someone@somewhere.com\0someone2@somewhere2.com\n".getBy
     testEquals(scanner.getIsInitialized(), true);
 
     edu.nps.deep.be_scan.Artifact artifact;
-    artifact = scanner.nextArtifact();
+    artifact = scanner.next();
     testEquals(artifact.getArtifactClass(), "email");
     testEquals(artifact.getBufferOffset(), 0);
     testEquals(artifact.javaArtifact(), "someone@somewhere.com".getBytes());
     testEquals(artifact.javaContext(), "someone@somewhere.com\0someone2@somewh".getBytes());
 
-    artifact = scanner.nextArtifact();
+    artifact = scanner.next();
     testEquals(artifact.getArtifactClass(), "email");
     testEquals(artifact.getBufferOffset(), 22);
     testEquals(artifact.javaArtifact(), "someone2@somewhere2.com".getBytes());
     testEquals(artifact.javaContext(), "e@somewhere.com\0someone2@somewhere2.com\n".getBytes());
 
-    artifact = scanner.nextArtifact();
+    artifact = scanner.next();
     testEquals(artifact.getArtifactClass(), "");
     testEquals(artifact.getBufferOffset(), 0);
     testEquals(artifact.javaArtifact(), "".getBytes());

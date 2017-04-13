@@ -55,7 +55,7 @@ if __name__=="__main__":
             # scan the data
             scanner = be_scan.be_scan_t("email", data, len(data))
             while True:
-                artifact = scanner.next_artifact()
+                artifact = scanner.next()
                 if artifact.artifact_class == "":
                     break
                 print("artifact at %d: %s: '%s', '%s'" %(

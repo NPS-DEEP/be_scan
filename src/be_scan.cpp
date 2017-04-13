@@ -62,7 +62,7 @@ namespace be_scan {
     scan_email = new scan_email_t(buffer, buffer_size);
   }
 
-  artifact_t be_scan_t::next_artifact() {
+  artifact_t be_scan_t::next() {
     if (!is_initialized) {
       return artifact_t();
     }
