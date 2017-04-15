@@ -48,11 +48,15 @@ def test_loopback():
     str_equals(scanner.test_loopback(), "\0a\0a\0")
     print("len: %d" % len(scanner.test_loopback()))
 
+def test_escape():
+    str_equals(be_scan.escape("\0", "\\x00")
+
 # main
 if __name__=="__main__":
     test_environment()
     test_version()
     test_loopback()
+    test_escape()
 
     print("Done.")
 

@@ -35,7 +35,6 @@ LDADD = ../src/libbe_scan.la
 BASIC_TESTS_INCS = \
 	basic_tests.cpp \
 	be_scan.hpp \
-	escape.hpp \
 	unit_test.h
 
 run_tests_valgrind:

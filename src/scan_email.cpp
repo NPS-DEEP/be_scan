@@ -25,9 +25,10 @@
 #include "be_scan.hpp"
 #include "scan_email.hpp"
 #include "artifact_context.hpp"
-#include "escape.hpp"
 
 namespace be_scan {
+
+  const std::string scan_email_t::name("email");
 
 //  private:
 //  const char* const scan_email_t::buffer;

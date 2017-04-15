@@ -23,7 +23,11 @@
 #include <set>
 #include <iostream>
 #include "be_scan.hpp"
-#include "scan_email.hpp"
+#include "scanner.hpp"
+
+const char* be_scan_version() {
+  return PACKAGE_VERSION;
+}
 
 namespace be_scan {
 
@@ -34,13 +38,14 @@ namespace be_scan {
 
   // available scanners
   std::string available_scanners() {
-    return "email"; // zz "email exif ..."
+    return scanner_t::available_scanners();
   }
 
   // new copy, return NULL if malloc fails
   static char* new_buffer(const char* const buffer, size_t buffer_size) {
     char* b = new (std::nothrow) char[buffer_size];
     if (b == NULL) {
+      std::cerr << "be_scan error: unable to allocate buffer resources\n";
       // malloc failed
       return NULL;
     }
@@ -49,30 +54,30 @@ namespace be_scan {
   }
 
   // constructor
-  be_scan_t::be_scan_t(const std::string& p_selected_scanners,
+  be_scan_t::be_scan_t(const std::string& selected_scanners,
                        const char* const p_buffer,
                        size_t p_buffer_size) :
-                selected_scanners(p_selected_scanners),
                 buffer(new_buffer(p_buffer, p_buffer_size)),
                 buffer_size(p_buffer_size),
-                scan_email(0),
+                scanner(0),
                 is_initialized(buffer != NULL) {
 
-    // start the email scanner
-    scan_email = new scan_email_t(buffer, buffer_size);
+    // open the recursive scanner
+    scanner = new scanner_t(selected_scanners, buffer, buffer_size);
   }
 
   artifact_t be_scan_t::next() {
     if (!is_initialized) {
+      std::cerr << "be_scan error: not initialized, unable to allocate buffer resources\n";
       return artifact_t();
     }
-    return scan_email->next();
+    return scanner->next();
   }
 
   // destructor
   be_scan_t::~be_scan_t() {
     // delete scanner
-    delete scan_email;
+    delete scanner;
 
     // delete buffer
     delete[] buffer;
@@ -81,6 +86,31 @@ namespace be_scan {
   // loopback test
   void be_scan_t::test_loopback(std::string& s) {
     s = std::string(buffer, buffer_size);
+  }
+
+  // escape
+  static std::string hexesc(unsigned char ch) {
+    char buf[10];
+    snprintf(buf,sizeof(buf),"\\x%02X",ch);
+    return std::string(buf);
+  }
+  std::string escape(const std::string &in) {
+    std::stringstream ss;
+    for(std::string::const_iterator it = in.begin(); it != in.end(); it++) {
+      unsigned char c = *it;
+
+      if (c < ' ' || c > '~' || c == '\\') {
+        // show as \xXX
+        ss << hexesc(c);
+      } else {
+        // show ascii character
+        ss << c;
+      }
+    }
+    return ss.str();
+  }
+  std::string escape(const char* const buffer, size_t buffer_size) {
+    return escape(std::string(buffer, buffer_size));
   }
 }
 

@@ -28,20 +28,14 @@
 #include <string>
 #include <stdint.h>
 
+/**
+ * Version of the be_scan library.
+ */
+const char* be_scan_version();
+
 namespace be_scan {
 
-  class scan_email_t;
-
-//  /**
-//   * Data to be scanned is contained within this structure.
-//   */
-//  class be_buffer_t {
-//    public:
-//    const char* const buffer;
-//    const size_t buffer_size;
-//    be_buffer_t(const char* const p_buffer, const size_t p_buffer_size);
-//    ~be_buffer_t();
-//  };
+  class scanner_t;
 
   /**
    * Artifacts are returned using this structure.
@@ -74,10 +68,10 @@ namespace be_scan {
   const char* version();
 
   /**
-   * Get a list of available scanners.
+   * The complete list of available scanners.
    *
    * Returns:
-   *   List of available scanners separated by a space chaacter.
+   *   List of available scanners separated by space charcters.
    */
   std::string available_scanners();
 
@@ -87,10 +81,9 @@ namespace be_scan {
   class be_scan_t {
 
     private:
-    const std::string selected_scanners;
     const char* const buffer;
     const size_t buffer_size;
-    scan_email_t* scan_email;
+    scanner_t* scanner;
 
 #ifndef SWIG
     // do not allow copy or assignment
@@ -100,7 +93,7 @@ namespace be_scan {
 
     public:
     /**
-     * False if the scanner failed to allocate memory for the buffer.
+     * False if C++ failed to allocate memory for the buffer.
      */
     const bool is_initialized;
 
@@ -108,11 +101,11 @@ namespace be_scan {
      * Create a scan instance given scanners to use and a buffer to scan.
      *
      * Parameters:
-     *   p_selected_scanners - The scanners to use during the scan.
+     *   selected_scanners - The scanners to use during the scan.
      *   p_buffer - The buffer of bytes to scan.
      *   p_buffer_size - The number of bytes in the buffer to scan.
      */
-    be_scan_t(const std::string& p_selected_scanners,
+    be_scan_t(const std::string& selected_scanners,
               const char* const p_buffer,
               size_t p_buffer_size);
 
@@ -135,6 +128,30 @@ namespace be_scan {
      */
     void test_loopback(std::string& loopback_buffer);
   };
+
+  /**
+   * A helper function for formatting binary data into a printable string
+   * by escaping non-printable bytes.
+   *
+   * Parameters:
+   *   in - The binary input string.
+   * Returns:
+   *   Escaped output.
+   */
+  std::string escape(const std::string& in);
+
+  /**
+   * A helper function for formatting binary data into a printable string
+   * by escaping non-printable bytes.
+   *
+   * Parameters:
+   *   buffer - The buffer of bytes to format.
+   *   buffer_size - The number of bytes in the buffer to format.
+   *   selected_scanners - The scanners to use during the scan.
+   * Returns:
+   *   Escaped output.
+   */
+  std::string escape(const char* const buffer, size_t buffer_size);
 }
 
 #endif

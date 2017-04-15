@@ -62,6 +62,7 @@ class scan_email_t {
   scan_email_t& operator=(const scan_email_t&) = delete;
 
   public:
+  static const std::string name;
   scan_email_t(const char* const p_buffer,
                const size_t p_buffer_size);
   ~scan_email_t();

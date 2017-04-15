@@ -22,7 +22,6 @@
 #include <stdint.h>
 #include <iostream>
 #include "artifact_context.hpp"
-#include "escape.hpp"
 
 namespace be_scan {
 

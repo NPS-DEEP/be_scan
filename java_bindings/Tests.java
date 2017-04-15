@@ -31,20 +31,8 @@ public final class Tests {
   }
 
   private static String escape(byte[] bytes) {
-    StringBuilder sb = new StringBuilder();
-    for (int i=0; i<bytes.length; ++i) {
-      char c = (char)bytes[i];
-      if (c < ' ' || c > '~' || c == '\\') {
-        // show as \xXX
-        sb.append(String.format("\\x%02X", (int)c&0xff));
-      } else {
-        // show ascii character
-        sb.append(c);
-      }
-    }
-    return sb.toString();
+    return edu.nps.deep.be_scan.be_scan_jni.escape(bytes);
   }
-
 
   private static void testVersion() {
     String version = edu.nps.deep.be_scan.be_scan_jni.version();

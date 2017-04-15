@@ -27,9 +27,9 @@ BE_SCAN_INCS = \
 	artifact.cpp \
 	be_scan.cpp \
 	be_scan.hpp \
-	escape.hpp \
 	flex_scan_exception.hpp \
 	flex_extra_parameters.hpp \
+	scanner.hpp \
 	scan_email.cpp \
 	scan_email.hpp \
 	scan_email_flex.flex
