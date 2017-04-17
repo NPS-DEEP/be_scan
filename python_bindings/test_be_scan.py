@@ -49,7 +49,7 @@ def test_loopback():
     print("len: %d" % len(scanner.test_loopback()))
 
 def test_escape():
-    str_equals(be_scan.escape("\0", "\\x00")
+    str_equals(be_scan.escape("\0"), "\\x00")
 
 # main
 if __name__=="__main__":

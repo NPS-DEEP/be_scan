@@ -109,8 +109,8 @@ namespace be_scan {
     }
     return ss.str();
   }
-  std::string escape(const char* const buffer, size_t buffer_size) {
-    return escape(std::string(buffer, buffer_size));
+  std::string escape(const char* const p_buffer, size_t p_buffer_size) {
+    return escape(std::string(p_buffer, p_buffer_size));
   }
 }
 

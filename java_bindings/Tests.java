@@ -31,7 +31,7 @@ public final class Tests {
   }
 
   private static String escape(byte[] bytes) {
-    return edu.nps.deep.be_scan.be_scan_jni.escape(bytes);
+    return edu.nps.deep.be_scan.be_scan_jni.escape(bytes, bytes.length);
   }
 
   private static void testVersion() {

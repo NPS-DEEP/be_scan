@@ -151,7 +151,7 @@ namespace be_scan {
    * Returns:
    *   Escaped output.
    */
-  std::string escape(const char* const buffer, size_t buffer_size);
+  std::string escape(const char* const p_buffer, size_t p_buffer_size);
 }
 
 #endif
