@@ -39,17 +39,27 @@ if __name__=="__main__":
                         action="store_true")
     args = parser.parse_args()
 
+    # get inputs, fixing out-of-bounds input
     offset = args.start
     filesize = os.stat(args.filename).st_size
+    if offset > filesize:
+        offset = filesize
+    count = args.count
+    if count == 0 or count+offset > filesize:
+        count = filesize - offset
     splitsize = args.break_size
     scanners = args.enable
 
-    while (offset < filesize):
+    while (count > 0):
 
         # open the file for reading binary
         with open(args.filename, mode='rb') as f:
             f.seek(offset)
-            data = f.read(splitsize)
+            if count < splitsize:
+                data = f.read(count)
+            else:
+                data = f.read(splitsize)
+            count -= len(data)
 
             # runtime status
             print("File %s start %d count %d\n" % (args.filename, offset,
