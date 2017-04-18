@@ -27,6 +27,7 @@
 
 #include <string>
 #include <stdint.h>
+#include <set>
 
 /**
  * Version of the be_scan library.
@@ -83,7 +84,11 @@ namespace be_scan {
     private:
     const char* const buffer;
     const size_t buffer_size;
-    scanner_t* scanner;
+    std::set<std::string> scanners;
+    std::set<std::string>::const_iterator scanner_it;
+    scanner_t* opened_scanner;
+    void open_next();
+    void close_opened();
 
 #ifndef SWIG
     // do not allow copy or assignment

@@ -230,6 +230,13 @@ else
 fi
 
 #################################################################
+# We can enable code under development by defining HAVE_DEVEL,
+# use "#ifdef HAVE_DEVEL"
+AC_ARG_ENABLE([devel], AS_HELP_STRING([--enable-devel], \
+              [Enable inclusion of code that is under development]), \
+              AC_DEFINE(HAVE_DEVEL, 1, [Include code under development]))
+
+#################################################################
 # report some values
 AC_MSG_NOTICE([
 *************************************

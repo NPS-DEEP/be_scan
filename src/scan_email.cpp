@@ -23,12 +23,11 @@
 #include <sstream>
 #include <set>
 #include "be_scan.hpp"
+#include "scanner.hpp"
 #include "scan_email.hpp"
 #include "artifact_context.hpp"
 
 namespace be_scan {
-
-  const std::string scan_email_t::name("email");
 
 //  private:
 //  const char* const scan_email_t::buffer;
@@ -348,4 +347,11 @@ std::cout << "next16.e '" << escape(std::string(&buffer[flex_start], size)) << "
     return artifact_t();
   }
 }
+
+extern "C"
+be_scan::scanner_t* scan_email(const char* const buffer,
+                               const size_t buffer_size) {
+  return new be_scan::scan_email_t(buffer, buffer_size);
+}
+
 

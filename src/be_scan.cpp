@@ -23,10 +23,22 @@
 #include <set>
 #include <iostream>
 #include "be_scan.hpp"
-#include "scanner.hpp"
+#include "scan_email.hpp"
 
 const char* be_scan_version() {
   return PACKAGE_VERSION;
+}
+
+// split()
+// adapted from http://stackoverflow.com/questions/236129/how-to-split-a-string-in-c
+std::set<std::string> split(const std::string &s, char delim) {
+  std::set<std::string> elems;
+  std::stringstream ss(s);
+  std::string item;
+  while(std::getline(ss, item, delim)) {
+    elems.insert(item);
+  }
+  return elems;
 }
 
 namespace be_scan {
@@ -38,7 +50,7 @@ namespace be_scan {
 
   // available scanners
   std::string available_scanners() {
-    return scanner_t::available_scanners();
+    return "email";
   }
 
   // new copy, return NULL if malloc fails
@@ -54,16 +66,49 @@ namespace be_scan {
   }
 
   // constructor
-  be_scan_t::be_scan_t(const std::string& selected_scanners,
+  be_scan_t::be_scan_t(const std::string& p_requested_scanners,
                        const char* const p_buffer,
                        size_t p_buffer_size) :
                 buffer(new_buffer(p_buffer, p_buffer_size)),
                 buffer_size(p_buffer_size),
-                scanner(0),
+                scanners(std::set<std::string>()),
+                scanner_it(),
+                opened_scanner(NULL),
                 is_initialized(buffer != NULL) {
 
-    // open the recursive scanner
-    scanner = new scanner_t(selected_scanners, buffer, buffer_size);
+    if (!is_initialized) {
+      // the buffer was not allocated so stay closed
+      return;
+    }
+
+    // identify the requested scanners
+    scanners = split(p_requested_scanners, ' ');
+
+    // start the scanner iterator
+    scanner_it = scanners.begin();
+
+    // open the next scanner
+    open_next();
+  }
+
+  void be_scan_t::open_next() {
+    while (scanner_it != scanners.end()) {
+      std::string scanner = *scanner_it++;
+      if (scanner == "email") {
+        opened_scanner = scan_email(buffer, buffer_size);
+        break;
+      } else {
+        std::cerr << "be_scan_error: unrecognized scanner type '"
+                  << scanner << "'\n";
+      }
+    }
+  }
+
+  void be_scan_t::close_opened() {
+    if (opened_scanner != NULL) {
+      delete opened_scanner;
+      opened_scanner = NULL;
+    }
   }
 
   artifact_t be_scan_t::next() {
@@ -71,15 +116,29 @@ namespace be_scan {
       std::cerr << "be_scan error: not initialized, unable to allocate buffer resources\n";
       return artifact_t();
     }
-    return scanner->next();
+    // return the next artifact, progressing through scanners as they finish
+    while (opened_scanner != NULL) {
+      artifact_t artifact = opened_scanner->next();
+      if(artifact.artifact_class != "") {
+        // this scanner has an artifact to return
+        return artifact;
+      } else {
+        // this scanner has no artifact so move on to the next
+        close_opened();
+        open_next();
+      }
+    }
+
+    // no more scanners so done
+    return artifact_t();
   }
 
   // destructor
   be_scan_t::~be_scan_t() {
-    // delete scanner
-    delete scanner;
+    // close scanner if open
+    close_opened();
 
-    // delete buffer
+    // delete the allocated buffer
     delete[] buffer;
   }
 

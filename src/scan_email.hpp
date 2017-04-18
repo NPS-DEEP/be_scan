@@ -30,11 +30,12 @@
 #include <stdint.h>
 #include <set>
 #include "be_scan.hpp"
+#include "scanner.hpp"
 #include "artifact_context.hpp"
 #include "flex_extra_parameters.hpp"
 namespace be_scan {
 
-class scan_email_t {
+class scan_email_t : public scanner_t {
 
   private:
   const char* const buffer;
@@ -62,15 +63,18 @@ class scan_email_t {
   scan_email_t& operator=(const scan_email_t&) = delete;
 
   public:
-  static const std::string name;
-  scan_email_t(const char* const p_buffer,
-               const size_t p_buffer_size);
+  scan_email_t(const char* const p_buffer, const size_t p_buffer_size);
+
   ~scan_email_t();
 
   artifact_t next();
 };
 
 }
+
+extern "C"
+be_scan::scanner_t* scan_email(const char* const buffer,
+                               const size_t buffer_size);
 
 #endif
 
