@@ -34,6 +34,10 @@ BE_SCAN_INCS = \
 	scan_email.hpp \
 	scan_email_flex.flex
 
+DEV_INCS = \
+	scan_names.cpp \
+	scan_names.hpp
+
 lib_LTLIBRARIES = libbe_scan.la
 
 AM_CFLAGS = $(BE_SCAN_CFLAGS)
@@ -43,7 +47,7 @@ AM_CXXFLAGS = $(BE_SCAN_CXXFLAGS)
 libbe_scan_la_LDFLAGS = -PIC -avoid-version \
                         -export-dynamic -no-undefined
 
-libbe_scan_la_SOURCES = $(BE_SCAN_INCS)
+libbe_scan_la_SOURCES = $(BE_SCAN_INCS) $(DEV_INCS)
 
 include_HEADERS = be_scan.hpp
 

@@ -30,6 +30,10 @@ if __name__=="__main__":
     parser.add_argument("-b", "--break_size",
                         help="the size, in bytes, to split processing into",
                         default=2**27, type=int)  # 2^27 = 128MiB = 134217728
+    default_scanners = be_scan.available_scanners()
+    parser.add_argument("-e", "--enable",
+                        help="enable specific scanners, default: '%s'" %
+                        default_scanners, default = default_scanners, type=str)
     parser.add_argument("-v", "--verbose",
                         help="show the bytes being scanned",
                         action="store_true")
@@ -38,6 +42,7 @@ if __name__=="__main__":
     offset = args.start
     filesize = os.stat(args.filename).st_size
     splitsize = args.break_size
+    scanners = args.enable
 
     while (offset < filesize):
 
@@ -53,7 +58,7 @@ if __name__=="__main__":
                 print("%s\n" % escape(data))
 
             # scan the data
-            scanner = be_scan.be_scan_t("email", data, len(data))
+            scanner = be_scan.be_scan_t(scanners, data, len(data))
             while True:
                 artifact = scanner.next()
                 if artifact.artifact_class == "":

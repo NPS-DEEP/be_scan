@@ -24,6 +24,9 @@
 #include <iostream>
 #include "be_scan.hpp"
 #include "scan_email.hpp"
+#ifdef HAVE_DEVEL
+#include "scan_names.hpp"
+#endif
 
 const char* be_scan_version() {
   return PACKAGE_VERSION;
@@ -50,7 +53,11 @@ namespace be_scan {
 
   // available scanners
   std::string available_scanners() {
+#ifdef HAVE_DEVEL
+    return "email names";
+#else
     return "email";
+#endif
   }
 
   // new copy, return NULL if malloc fails
@@ -97,6 +104,11 @@ namespace be_scan {
       if (scanner == "email") {
         opened_scanner = scan_email(buffer, buffer_size);
         break;
+#ifdef HAVE_DEVEL
+      } else if (scanner == "names") {
+        opened_scanner = scan_names(buffer, buffer_size);
+        break;
+#endif
       } else {
         std::cerr << "be_scan_error: unrecognized scanner type '"
                   << scanner << "'\n";
