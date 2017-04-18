@@ -21,7 +21,7 @@
 #define FLEX_SCAN_EXCEPTION_HPP
 
 // superclass requires *msg so suppress the warning
-  #ifdef HAVE_DIAGNOSTIC_EFFCPP
+#ifdef HAVE_DIAGNOSTIC_EFFCPP
 #pragma GCC diagnostic ignored "-Weffc++"
 #endif
 
