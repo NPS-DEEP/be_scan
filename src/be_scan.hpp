@@ -139,11 +139,11 @@ namespace be_scan {
    * by escaping non-printable bytes.
    *
    * Parameters:
-   *   in - The binary input string.
+   *   input - The binary input string.
    * Returns:
    *   Escaped output.
    */
-  std::string escape(const std::string& in);
+  std::string escape(const std::string& input);
 
   /**
    * A helper function for formatting binary data into a printable string
