@@ -36,7 +36,7 @@ C_FLAGS_TO_TEST="-MD -Wpointer-arith -Wmissing-declarations -Wmissing-prototypes
     -Wshadow -Wwrite-strings -Wcast-align -Waggregate-return \
     -Wbad-function-cast -Wcast-qual -Wundef -Wredundant-decls -Wdisabled-optimization \
     -Wfloat-equal -Wmultichar -Wc++-compat -Wmissing-noreturn \
-    -Wmissing-format-attribute -Wundef -Weffcpp -Wsuggest-attribute=noreturn \
+    -Wmissing-format-attribute -Wundef -Weffc++ -Wsuggest-attribute=noreturn \
     -Wdeprecated-register"
 
 if test x"${mingw}" != "xyes" ; then
