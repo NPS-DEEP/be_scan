@@ -26,6 +26,7 @@
 
 namespace be_scan {
 
+/*
   class flex_scan_exception: public std::exception {
     public:
     const char *msg;
@@ -37,8 +38,8 @@ namespace be_scan {
       return msg;
     }
   };
+*/
 
-/*
   class flex_scan_exception: public std::exception {
     private:
     const std::string msg;
@@ -51,7 +52,6 @@ namespace be_scan {
       return msg.c_str();
     }
   };
-*/
 
 } // end namespace
 
