@@ -81,9 +81,9 @@ do
            AC_DEFINE(HAVE_DIAGNOSTIC_CAST_QUAL,1,
              [Indicates that the compiler supports -Wcast-qual])
            ;;
-         -Weffcpp)
+         -Weffc++)
            AC_DEFINE(HAVE_DIAGNOSTIC_EFFCPP,1,
-             [Indicates that the compiler supports -Weffcpp])
+             [Indicates that the compiler supports -Weffc++])
            ;;
          -Wsuggest-attribute=noreturn)
            AC_DEFINE(HAVE_DIAGNOSTIC_SUGGEST_ATTRIBUTE,1,
