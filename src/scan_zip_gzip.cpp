@@ -24,21 +24,21 @@
 #include <sstream>
 #include <set>
 #include "be_scan.hpp"
-#include "scan_zip.hpp"
+#include "scan_zip_gzip.hpp"
 
 namespace be_scan {
 
-  scan_zip_t::scan_zip_t(const char* const p_buffer,
-                         const size_t p_buffer_size) :
-                  buffer(p_buffer),
-                  buffer_size(p_buffer_size),
-                  index(0) {
+  scan_zip_gzip_t::scan_zip_gzip_t(const char* const p_buffer,
+                                   const size_t p_buffer_size) :
+              buffer(reinterpret_cast<const unsigned char*>(p_buffer)),
+              buffer_size(p_buffer_size),
+              index(0) {
   }
 
-  scan_zip_t::~scan_zip_t() {
+  scan_zip_gzip_t::~scan_zip_gzip_t() {
   }
 
-  artifact_t scan_zip_t::next() {
+  artifact_t scan_zip_gzip_t::next() {
 
     // progress forward scanning for compression signatures
     for (; index<buffer_size; ++index) {
@@ -76,8 +76,8 @@ namespace be_scan {
 }
 
 extern "C"
-be_scan::scanner_t* scan_zip(const char* const buffer,
+be_scan::scanner_t* scan_zip_gzip(const char* const buffer,
                              const size_t buffer_size) {
-  return new be_scan::scan_zip_t(buffer, buffer_size);
+  return new be_scan::scan_zip_gzip_t(buffer, buffer_size);
 }
 

@@ -20,16 +20,17 @@
 #ifndef FLEX_SCAN_EXCEPTION_HPP
 #define FLEX_SCAN_EXCEPTION_HPP
 
-// superclass requires *msg so suppress the warning
-#ifdef HAVE_DIAGNOSTIC_EFFCPP
-#pragma GCC diagnostic ignored "-Weffc++"
-#endif
-
 #include <stdint.h>
 #include <string>
 #include <exception>
 
 namespace be_scan {
+
+// superclass requires *msg so suppress the warning
+#ifdef HAVE_DIAGNOSTIC_EFFCPP
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#endif
 
   class flex_scan_exception: public std::exception {
     public:
@@ -42,6 +43,9 @@ namespace be_scan {
       return msg;
     }
   };
+#ifdef HAVE_DIAGNOSTIC_EFFCPP
+#pragma GCC diagnostic pop
+#endif
 
 /*
   class flex_scan_exception: public std::exception {

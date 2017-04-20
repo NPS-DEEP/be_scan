@@ -33,38 +33,38 @@
 #include "scanner.hpp"
 namespace be_scan {
 
-class scan_zip_t : public scanner_t {
+class scan_zip_gzip_t : public scanner_t {
 
   private:
-  const char* const buffer;
+  const unsigned char* const buffer;
   const size_t buffer_size;
   size_t index;
 
   // do not allow copy or assignment
-  scan_zip_t(const scan_zip_t&) = delete;
-  scan_zip_t& operator=(const scan_zip_t&) = delete;
+  scan_zip_gzip_t(const scan_zip_gzip_t&) = delete;
+  scan_zip_gzip_t& operator=(const scan_zip_gzip_t&) = delete;
 
   public:
   static const std::string name;
-  scan_zip_t(const char* const p_buffer,
+  scan_zip_gzip_t(const char* const p_buffer,
              const size_t p_buffer_size);
-  ~scan_zip_t();
+  ~scan_zip_gzip_t();
 
   artifact_t next();
 };
 
-artifact_t uncompress_zip(const char* const in_buf,
+artifact_t uncompress_zip(const unsigned char* const in_buf,
                           const size_t in_size,
                           const size_t in_offset);
 
-artifact_t uncompress_gzip(const char* const in_buf,
+artifact_t uncompress_gzip(const unsigned char* const in_buf,
                            const size_t in_size,
                            const size_t in_offset);
 }
 
 extern "C"
-be_scan::scanner_t* scan_zip(const char* const buffer,
-                             const size_t buffer_size);
+be_scan::scanner_t* scan_zip_gzip(const char* const buffer,
+                                  const size_t buffer_size);
 
 #endif
 

@@ -25,6 +25,7 @@
 #include <iostream>
 #include "be_scan.hpp"
 #include "scan_email.hpp"
+#include "scan_zip_gzip.hpp"
 #ifdef HAVE_DEVEL
 #include "scan_names.hpp"
 #endif
@@ -73,7 +74,7 @@ namespace be_scan {
   }
 
   // loopback test
-  void be_scan_t::test_loopback(std::string& s) {
+  void be_scan_t::test_loopback(std::string& s) const {
     s = std::string(buffer, buffer_size);
   }
 
@@ -108,9 +109,9 @@ namespace be_scan {
   // available scanners
   std::string available_scanners() {
 #ifdef HAVE_DEVEL
-    return "email zip names";
+    return "email zip_gzip names";
 #else
-    return "email zip";
+    return "email zip_gzip";
 #endif
   }
 
@@ -151,6 +152,9 @@ namespace be_scan {
         opened_scanner = scan_names(buffer, buffer_size);
         break;
 #endif
+      } else if (scanner == "zip_gzip") {
+        opened_scanner = scan_zip_gzip(buffer, buffer_size);
+        break;
       } else {
         std::cerr << "be_scan_error: unrecognized scanner type '"
                   << scanner << "'\n";

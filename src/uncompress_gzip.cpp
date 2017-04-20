@@ -42,11 +42,11 @@
 namespace be_scan {
 
   // return artifact, which may be blank
-  artifact_t uncompress_gzip(const char* const in_buf,
+  artifact_t uncompress_gzip(const unsigned char* const in_buf,
                              const size_t in_size,
                              const size_t in_offset) {
 
-    char* out_buf = NULL;
+    unsigned char* out_buf = NULL;
     size_t out_size = 0;
 
     const size_t max_out_size = 256*1024*1024;
@@ -58,7 +58,7 @@ namespace be_scan {
     }
 
     // create the destination uncompressed buffer
-    out_buf = new (std::nothrow) char[max_out_size]();
+    out_buf = new (std::nothrow) unsigned char[max_out_size]();
     if (out_buf == NULL) {
       // bad_alloc
       return artifact_t("gzip", in_offset, "", "", NULL, 0, true);
@@ -74,7 +74,7 @@ namespace be_scan {
     zs.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(
                                                         in_buf + in_offset));
     zs.avail_in = max_in_size;
-    zs.next_out = reinterpret_cast<unsigned char*>(out_buf);
+    zs.next_out = out_buf;
     zs.avail_out = max_out_size;
 
     int r = inflateInit2(&zs,16+MAX_WBITS);
@@ -84,7 +84,8 @@ namespace be_scan {
       out_size = zs.total_out;
       r = inflateEnd(&zs);
       return artifact_t("gzip", in_offset, "gzip", "",
-                        out_buf, out_size, false);
+                        reinterpret_cast<const char*>(out_buf),
+                        out_size, false);
     } else {
       // inflate failed
       delete[] out_buf;

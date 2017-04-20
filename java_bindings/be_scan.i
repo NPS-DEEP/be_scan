@@ -11,7 +11,7 @@
 %rename (artifactClass) artifact_class;
 %rename (bufferOffset) buffer_offset;
 %rename (BEScan) be_scan_t;
-%rename (isInitialized) is_initialized;
+%rename (badAlloc) bad_alloc;
 %rename (testLoopback) test_loopback;
 
 // http://stackoverflow.com/questions/33504659/passing-byte-from-java-to-c
@@ -20,6 +20,10 @@
 // not compatible with SWIG 1.3.40
 ////http://stackoverflow.com/questions/12497175/correct-way-to-interact-with-arrays-using-swig
 //%apply(char *STRING, size_t LENGTH) { (const char * const p_buffer, size_t p_buffer_size) };
+
+// to protect the buffer and to suppress a warning, do not offer
+// visibility to artifact.new_buffer
+%ignore be_scan::artifact_t::new_buffer;
 
 // C Strings need to return byte[] with \0 bytes intact.
 // void javaArtifact(std::string&)

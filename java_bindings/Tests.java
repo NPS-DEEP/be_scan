@@ -55,7 +55,7 @@ static byte[] buffer1 = "someone@somewhere.com\0someone2@somewhere2.com\n".getBy
 //            new edu.nps.deep.be_scan.BEScan("email", buffer1);
             new edu.nps.deep.be_scan.BEScan("email", buffer1, buffer1.length);
 
-    testEquals(scanner.getIsInitialized(), true);
+    testEquals(scanner.getBadAlloc(), false);
 
     edu.nps.deep.be_scan.Artifact artifact;
     artifact = scanner.next();

@@ -29,12 +29,12 @@ BE_SCAN_INCS = \
 	extract_context.hpp \
 	flex_scan_exception.hpp \
 	flex_extra_parameters.hpp \
-	scanner.hpp \
 	scan_email.cpp \
-	scan_email.hpp \
-	scan_zip.cpp \
-	scan_zip.hpp \
 	scan_email_flex.flex \
+	scan_email.hpp \
+	scanner.hpp \
+	scan_zip_gzip.cpp \
+	scan_zip_gzip.hpp \
 	uncompress_gzip.cpp \
 	uncompress_zip.cpp
 

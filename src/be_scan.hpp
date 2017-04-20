@@ -45,6 +45,11 @@ namespace be_scan {
    * bad_alloc is true if there was not enough memory to fully retrieve
    * the artifact.
    */
+// We intentionally have a pointer, so suppress the compiler warning.
+#ifdef HAVE_DIAGNOSTIC_EFFCPP
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Weffc++"
+#endif
   class artifact_t {
     public:
     std::string artifact_class;
@@ -68,7 +73,7 @@ namespace be_scan {
      * can be scanned.  It is your responsibility to delete this new
      * data else you will have a memory leak.
      */
-    bool has_new_data();
+    bool has_new_data() const;
 
     /**
      * Artifacts from decompression scanners include a buffer containing
@@ -78,26 +83,19 @@ namespace be_scan {
     void delete_new_buffer();
 
     /**
-     * allow copy
+     * For Java, return as byte[] which can include \0.
      */
-    artifact_t(const artifact_t& a);
-
-    /**
-     * allow assignment
-     */
-    artifact_t& operator=(const artifact_t& a);
+    void javaArtifact(std::string& java_artifact) const;
 
     /**
      * For Java, return as byte[] which can include \0.
      */
-    void javaArtifact(std::string& java_artifact);
-
-    /**
-     * For Java, return as byte[] which can include \0.
-     */
-    void javaContext(std::string& java_context);
+    void javaContext(std::string& java_context) const;
 
   };
+#ifdef HAVE_DIAGNOSTIC_EFFCPP
+#pragma GCC diagnostic pop
+#endif
 
   /**
    * Version of the be_scan library.
@@ -167,7 +165,7 @@ namespace be_scan {
     /**
      * For diagnostics only, test loopback of input buffer.
      */
-    void test_loopback(std::string& loopback_buffer);
+    void test_loopback(std::string& loopback_buffer) const;
   };
 
   /**
@@ -192,14 +190,6 @@ namespace be_scan {
    *   Escaped output.
    */
   std::string escape(const char* const p_buffer, size_t p_buffer_size);
-
-  /**
-   * The complete list of available decompressors.
-   *
-   * Returns:
-   *   List of available decompressors separated by space charcters.
-   */
-  std::string available_decompressors();
 
 }
 

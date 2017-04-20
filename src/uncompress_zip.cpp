@@ -52,11 +52,11 @@ namespace be_scan {
   }
 
   // return artifact, which may be blank
-  artifact_t uncompress_zip(const char* const in_buf,
+  artifact_t uncompress_zip(const unsigned char* const in_buf,
                             const size_t in_size,
                             const size_t in_offset) {
 
-    char* out_buf = NULL;
+    unsigned char* out_buf = NULL;
     size_t out_size = 0;
 
     // validate the buffer range
@@ -65,7 +65,7 @@ namespace be_scan {
       return artifact_t();
     }
 
-    const char* const b = in_buf + in_offset;
+    const unsigned char* const b = in_buf + in_offset;
 
     const uint32_t compr_size=u32(b+18);
     const uint32_t uncompr_size=u32(b+22);
@@ -104,7 +104,7 @@ namespace be_scan {
     }
 
     // create the uncompressed buffer
-    out_buf = new (std::nothrow) uint8_t[potential_uncompressed_size]();
+    out_buf = new (std::nothrow) unsigned char[potential_uncompressed_size]();
     if (out_buf == NULL) {
       // bad_alloc
       return artifact_t("zip", in_offset, "", "", NULL, 0, true);
@@ -116,7 +116,7 @@ namespace be_scan {
     zs.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(
                                          in_buf + compressed_offset));
     zs.avail_in = compressed_size;
-    zs.next_out = reinterpret_cast<unsigned char*>(out_buf);
+    zs.next_out = out_buf;
     zs.avail_out = potential_uncompressed_size;
 
     // initialize zlib for this decompression
@@ -132,7 +132,8 @@ namespace be_scan {
       // close zlib
       inflateEnd(&zs);
       return artifact_t("zip", in_offset, "zip", "",
-                        out_buf, out_size, false);
+                        reinterpret_cast<const char*>(out_buf),
+                        out_size, false);
  
     } else {
 

@@ -41,7 +41,7 @@ void test_buffer8() {
 
   be_scan::be_scan_t scanner("email", bytes8, string8.size());
 
-  TEST_EQ(scanner.is_initialized, true);
+  TEST_EQ(scanner.bad_alloc, false);
 
   be_scan::artifact_t artifact;
   artifact = scanner.next();
