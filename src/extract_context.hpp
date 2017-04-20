@@ -22,19 +22,19 @@
  * Generate context for artifact within buffer
  */
 
-#ifndef ARTIFACT_CONTEXT_HPP
-#define ARTIFACT_CONTEXT_HPP
+#ifndef EXTRACT_CONTEXT_HPP
+#define EXTRACT_CONTEXT_HPP
 
 #include <string>
 #include <stdint.h>
 
 namespace be_scan {
 
-  std::string artifact_context(const char* const buffer,
-                               const size_t buffer_size,
-                               const size_t artifact_offset,
-                               const size_t artifact_length,
-                               const size_t artifact_padding);
+  std::string extract_context(const char* const buffer,
+                              const size_t buffer_size,
+                              const size_t artifact_offset,
+                              const size_t artifact_length,
+                              const size_t artifact_padding);
 }
 
 #endif

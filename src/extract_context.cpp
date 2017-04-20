@@ -21,14 +21,14 @@
 #include <string>
 #include <stdint.h>
 #include <iostream>
-#include "artifact_context.hpp"
+#include "extract_context.hpp"
 
 namespace be_scan {
 
   /*
    * Return the context for the point within the buffer
    */
-  std::string artifact_context(const char* const buffer,
+  std::string extract_context(const char* const buffer,
                                const size_t buffer_size,
                                const size_t artifact_offset,
                                const size_t artifact_length,

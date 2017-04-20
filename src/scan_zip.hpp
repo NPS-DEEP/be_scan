@@ -22,56 +22,49 @@
  * Generate context for artifact within buffer
  */
 
-#ifndef SCAN_NAMES_HPP
-#define SCAN_NAMES_HPP
+#ifndef SCAN_ZIP_HPP
+#define SCAN_ZIP_HPP
 
 #include <config.h>
 
-#ifdef HAVE_DEVEL
-
 #include <string>
 #include <stdint.h>
-#include <set>
 #include "be_scan.hpp"
 #include "scanner.hpp"
-#include "extract_context.hpp"
 namespace be_scan {
 
-class scan_names_t : public scanner_t {
+class scan_zip_t : public scanner_t {
 
   private:
   const char* const buffer;
   const size_t buffer_size;
   size_t index;
-  size_t flex_start;
-  size_t flex_stop;
-
-  size_t find_start(const size_t at);
-  size_t find_stop(const size_t at);
-  size_t find_start16(const size_t at);
-  size_t find_stop16(const size_t at);
 
   // do not allow copy or assignment
-  scan_names_t(const scan_names_t&) = delete;
-  scan_names_t& operator=(const scan_names_t&) = delete;
+  scan_zip_t(const scan_zip_t&) = delete;
+  scan_zip_t& operator=(const scan_zip_t&) = delete;
 
   public:
   static const std::string name;
-  scan_names_t(const char* const p_buffer,
-               const size_t p_buffer_size);
-  ~scan_names_t();
+  scan_zip_t(const char* const p_buffer,
+             const size_t p_buffer_size);
+  ~scan_zip_t();
 
   artifact_t next();
 };
 
+artifact_t uncompress_zip(const char* const in_buf,
+                          const size_t in_size,
+                          const size_t in_offset);
+
+artifact_t uncompress_gzip(const char* const in_buf,
+                           const size_t in_size,
+                           const size_t in_offset);
 }
 
 extern "C"
-be_scan::scanner_t* scan_names(const char* const buffer,
-                               const size_t buffer_size);
-
-
-#endif // HAVE_DEVEL
+be_scan::scanner_t* scan_zip(const char* const buffer,
+                             const size_t buffer_size);
 
 #endif
 

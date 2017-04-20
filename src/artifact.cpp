@@ -26,18 +26,63 @@ namespace be_scan {
     artifact_t::artifact_t(const std::string& p_artifact_class,
                            const size_t p_buffer_offset,
                            const std::string& p_artifact,
-                           const std::string& p_context) :
+                           const std::string& p_context,
+                           const char* const p_new_buffer,
+                           const size_t p_new_buffer_size,
+                           const bool p_bad_alloc) :
                       artifact_class(p_artifact_class),
                       buffer_offset(p_buffer_offset),
                       artifact(p_artifact),
-                      context(p_context) {
+                      context(p_context),
+                      new_buffer(p_new_buffer),
+                      new_buffer_size(p_new_buffer_size),
+                      bad_alloc(p_bad_alloc) {
     }
 
+    // blank
     artifact_t::artifact_t() :
                       artifact_class(""),
                       buffer_offset(0),
                       artifact(""),
-                      context("") {
+                      context(""),
+                      new_buffer(NULL),
+                      new_buffer_size(0),
+                      bad_alloc(false) {
+    }
+
+    // allow copy
+    artifact_t::artifact_t(const artifact_t& a) :
+                      artifact_class(a.artifact_class),
+                      buffer_offset(a.buffer_offset),
+                      artifact(a.artifact),
+                      context(a.context),
+                      new_buffer(a.new_buffer),
+                      new_buffer_size(a.new_buffer_size),
+                      bad_alloc(a.bad_alloc) {
+    }
+
+    // allow assignment
+    artifact_t &artifact_t::operator=(const artifact_t& a) {
+      artifact_class = a.artifact_class;
+      buffer_offset = a.buffer_offset;
+      artifact = a.artifact;
+      context = a.context;
+      new_buffer = a.new_buffer;
+      new_buffer_size = a.new_buffer_size;
+      bad_alloc = a.bad_alloc;
+      return *this;
+    }
+
+    bool artifact_t::has_new_data() {
+      return (new_buffer != NULL);
+    }
+
+    void artifact_t::delete_new_buffer() {
+      if(new_buffer != NULL) {
+        delete[] new_buffer;
+        new_buffer = NULL;
+        new_buffer_size = 0;
+      }
     }
 
     // get around Java \0 limitation, see be_scan.i

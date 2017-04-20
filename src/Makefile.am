@@ -22,17 +22,21 @@
 CLEANFILES = scan_email_flex.cpp
 
 BE_SCAN_INCS = \
-	artifact_context.cpp \
-	artifact_context.hpp \
 	artifact.cpp \
 	be_scan.cpp \
 	be_scan.hpp \
+	extract_context.cpp \
+	extract_context.hpp \
 	flex_scan_exception.hpp \
 	flex_extra_parameters.hpp \
 	scanner.hpp \
 	scan_email.cpp \
 	scan_email.hpp \
-	scan_email_flex.flex
+	scan_zip.cpp \
+	scan_zip.hpp \
+	scan_email_flex.flex \
+	uncompress_gzip.cpp \
+	uncompress_zip.cpp
 
 DEV_INCS = \
 	scan_names.cpp \

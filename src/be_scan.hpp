@@ -40,6 +40,10 @@ namespace be_scan {
 
   /**
    * Artifacts are returned using this structure.
+   *
+   * Some artifacts can include decompressed data which you must delete.
+   * bad_alloc is true if there was not enough memory to fully retrieve
+   * the artifact.
    */
   class artifact_t {
     public:
@@ -47,11 +51,42 @@ namespace be_scan {
     size_t buffer_offset;
     std::string artifact;
     std::string context;
+    const char* new_buffer;
+    size_t new_buffer_size;
+    bool bad_alloc;
+    
     artifact_t();
     artifact_t(const std::string& p_artifact_class,
                const size_t p_buffer_offset,
                const std::string& p_artifact,
-               const std::string& p_context);
+               const std::string& p_context,
+               const char* const p_new_buffer,
+               const size_t p_new_buffer_size,
+               const bool p_bad_alloc);
+    /**
+     * Returns true if this artifact includes decompressed data that
+     * can be scanned.  It is your responsibility to delete this new
+     * data else you will have a memory leak.
+     */
+    bool has_new_data();
+
+    /**
+     * Artifacts from decompression scanners include a buffer containing
+     * new decompressed data.  It is your responsibility to delete this
+     * new data else you will have a memory leak.
+     */
+    void delete_new_buffer();
+
+    /**
+     * allow copy
+     */
+    artifact_t(const artifact_t& a);
+
+    /**
+     * allow assignment
+     */
+    artifact_t& operator=(const artifact_t& a);
+
     /**
      * For Java, return as byte[] which can include \0.
      */
@@ -61,6 +96,7 @@ namespace be_scan {
      * For Java, return as byte[] which can include \0.
      */
     void javaContext(std::string& java_context);
+
   };
 
   /**
@@ -100,17 +136,17 @@ namespace be_scan {
     /**
      * False if C++ failed to allocate memory for the buffer.
      */
-    const bool is_initialized;
+    const bool bad_alloc;
 
     /**
      * Create a scan instance given scanners to use and a buffer to scan.
      *
      * Parameters:
-     *   selected_scanners - The scanners to use during the scan.
+     *   requested_scanners - The scanners to use during the scan.
      *   p_buffer - The buffer of bytes to scan.
      *   p_buffer_size - The number of bytes in the buffer to scan.
      */
-    be_scan_t(const std::string& selected_scanners,
+    be_scan_t(const std::string& requested_scanners,
               const char* const p_buffer,
               size_t p_buffer_size);
 
@@ -150,13 +186,21 @@ namespace be_scan {
    * by escaping non-printable bytes.
    *
    * Parameters:
-   *   buffer - The buffer of bytes to format.
-   *   buffer_size - The number of bytes in the buffer to format.
-   *   selected_scanners - The scanners to use during the scan.
+   *   p_buffer - The buffer of bytes to format.
+   *   p_buffer_size - The number of bytes in the buffer to format.
    * Returns:
    *   Escaped output.
    */
   std::string escape(const char* const p_buffer, size_t p_buffer_size);
+
+  /**
+   * The complete list of available decompressors.
+   *
+   * Returns:
+   *   List of available decompressors separated by space charcters.
+   */
+  std::string available_decompressors();
+
 }
 
 #endif

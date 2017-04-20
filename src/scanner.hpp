@@ -19,19 +19,12 @@
 
 /**
  * \file
- * Manages scanning through multiple scanners as though there were one
- * scanner.  Add new scanners here.
+ * Enables scanning through multiple scanners as though there were one
+ * scanner.
  */
 
 #ifndef SCANNER_HPP
 #define SCANNER_HPP
-
-#include <string>
-#include <stdint.h>
-#include <queue>
-#include <sstream>
-#include <cassert>
-#include "be_scan.hpp"
 
 namespace be_scan {
 

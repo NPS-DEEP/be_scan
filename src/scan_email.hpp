@@ -31,7 +31,7 @@
 #include <set>
 #include "be_scan.hpp"
 #include "scanner.hpp"
-#include "artifact_context.hpp"
+#include "extract_context.hpp"
 #include "flex_extra_parameters.hpp"
 namespace be_scan {
 

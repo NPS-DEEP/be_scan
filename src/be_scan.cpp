@@ -19,6 +19,7 @@
 
 #include <config.h>
 #include <string>
+#include <sstream>
 #include <cstring>
 #include <set>
 #include <iostream>
@@ -32,9 +33,12 @@ const char* be_scan_version() {
   return PACKAGE_VERSION;
 }
 
+// ************************************************************
+// private support functions
+// ************************************************************
 // split()
 // adapted from http://stackoverflow.com/questions/236129/how-to-split-a-string-in-c
-std::set<std::string> split(const std::string &s, char delim) {
+static std::set<std::string> split(const std::string &s, char delim) {
   std::set<std::string> elems;
   std::stringstream ss(s);
   std::string item;
@@ -44,46 +48,84 @@ std::set<std::string> split(const std::string &s, char delim) {
   return elems;
 }
 
+  /**
+   * Copy the buffer, return NULL if malloc fails.
+   */
+static char* copy_buffer(const char* const buffer, size_t buffer_size) {
+  char* b = new (std::nothrow) char[buffer_size];
+  if (b == NULL) {
+    std::cerr << "be_scan error: unable to allocate memory for buffer copy\n";
+    // malloc failed
+    return NULL;
+  }
+  ::memcpy(b, buffer, buffer_size);
+  return b;
+}
+
 namespace be_scan {
 
+// ************************************************************
+// general support
+// ************************************************************
   // Version of the be_scan library.
   const char* version() {
     return PACKAGE_VERSION;
   }
 
+  // loopback test
+  void be_scan_t::test_loopback(std::string& s) {
+    s = std::string(buffer, buffer_size);
+  }
+
+  // escape
+  static std::string hexesc(unsigned char ch) {
+    char buf[10];
+    snprintf(buf,sizeof(buf),"\\x%02X",ch);
+    return std::string(buf);
+  }
+  std::string escape(const std::string &in) {
+    std::stringstream ss;
+    for(std::string::const_iterator it = in.begin(); it != in.end(); it++) {
+      unsigned char c = *it;
+
+      if (c < ' ' || c > '~' || c == '\\') {
+        // show as \xXX
+        ss << hexesc(c);
+      } else {
+        // show ascii character
+        ss << c;
+      }
+    }
+    return ss.str();
+  }
+  std::string escape(const char* const p_buffer, size_t p_buffer_size) {
+    return escape(std::string(p_buffer, p_buffer_size));
+  }
+
+// ************************************************************
+// scanner
+// ************************************************************
   // available scanners
   std::string available_scanners() {
 #ifdef HAVE_DEVEL
-    return "email names";
+    return "email zip names";
 #else
-    return "email";
+    return "email zip";
 #endif
-  }
-
-  // new copy, return NULL if malloc fails
-  static char* new_buffer(const char* const buffer, size_t buffer_size) {
-    char* b = new (std::nothrow) char[buffer_size];
-    if (b == NULL) {
-      std::cerr << "be_scan error: unable to allocate buffer resources\n";
-      // malloc failed
-      return NULL;
-    }
-    ::memcpy(b, buffer, buffer_size);
-    return b;
   }
 
   // constructor
   be_scan_t::be_scan_t(const std::string& p_requested_scanners,
                        const char* const p_buffer,
                        size_t p_buffer_size) :
-                buffer(new_buffer(p_buffer, p_buffer_size)),
+                buffer(copy_buffer(p_buffer, p_buffer_size)),
                 buffer_size(p_buffer_size),
                 scanners(std::set<std::string>()),
                 scanner_it(),
                 opened_scanner(NULL),
-                is_initialized(buffer != NULL) {
+                bad_alloc(buffer == NULL) {
 
-    if (!is_initialized) {
+    if (bad_alloc) {
       // the buffer was not allocated so stay closed
       return;
     }
@@ -124,9 +166,10 @@ namespace be_scan {
   }
 
   artifact_t be_scan_t::next() {
-    if (!is_initialized) {
+    if (bad_alloc) {
+      // return a bad_alloc artifact
       std::cerr << "be_scan error: not initialized, unable to allocate buffer resources\n";
-      return artifact_t();
+      return artifact_t("", 0, "", "", NULL, 0, true);
     }
     // return the next artifact, progressing through scanners as they finish
     while (opened_scanner != NULL) {
@@ -151,37 +194,9 @@ namespace be_scan {
     close_opened();
 
     // delete the allocated buffer
-    delete[] buffer;
-  }
-
-  // loopback test
-  void be_scan_t::test_loopback(std::string& s) {
-    s = std::string(buffer, buffer_size);
-  }
-
-  // escape
-  static std::string hexesc(unsigned char ch) {
-    char buf[10];
-    snprintf(buf,sizeof(buf),"\\x%02X",ch);
-    return std::string(buf);
-  }
-  std::string escape(const std::string &in) {
-    std::stringstream ss;
-    for(std::string::const_iterator it = in.begin(); it != in.end(); it++) {
-      unsigned char c = *it;
-
-      if (c < ' ' || c > '~' || c == '\\') {
-        // show as \xXX
-        ss << hexesc(c);
-      } else {
-        // show ascii character
-        ss << c;
-      }
+    if (buffer != NULL) {
+      delete[] buffer;
     }
-    return ss.str();
-  }
-  std::string escape(const char* const p_buffer, size_t p_buffer_size) {
-    return escape(std::string(p_buffer, p_buffer_size));
   }
 }
 

@@ -25,7 +25,7 @@
 #include "be_scan.hpp"
 #include "scanner.hpp"
 #include "scan_email.hpp"
-#include "artifact_context.hpp"
+#include "extract_context.hpp"
 
 namespace be_scan {
 
@@ -250,7 +250,8 @@ namespace be_scan {
           size_t size = flex_stop - flex_start + 1;
           return artifact_t("email", flex_start,
                  std::string(&buffer[flex_start], size),
-                 artifact_context(buffer, buffer_size, flex_start, size, 16));
+                 extract_context(buffer, buffer_size, flex_start, size, 16),
+                 NULL, 0, false);
 
         } else {
           // unicode 16
@@ -300,7 +301,8 @@ namespace be_scan {
           size_t size = flex_stop - flex_start + 1;
           return artifact_t("email", flex_start,
                  std::string(&buffer[flex_start], size),
-                 artifact_context(buffer, buffer_size, flex_start, size, 16));
+                 extract_context(buffer, buffer_size, flex_start, size, 16),
+                 NULL, 0, false);
 
 /*
           // build unicode 8 from this
@@ -338,7 +340,8 @@ std::cout << "next16.d '" << escape(feature8) << "'\n";
 std::cout << "next16.e '" << escape(std::string(&buffer[flex_start], size)) << "\n";
           return artifact_t("email", flex_start,
                  std::string(&buffer[flex_start], size),
-                 artifact_context(buffer, buffer_size, flex_start, size, 16));
+                 extract_context(buffer, buffer_size, flex_start, size, 16),
+                 NULL, 0, false);
 */
         }
       }
