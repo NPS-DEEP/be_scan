@@ -191,6 +191,14 @@ Host:[ \t]?([a-zA-Z0-9._]{1,64}) {
     }
 }
 
+((https?)|afp|smb):\/\/[a-zA-Z0-9_%/\-+@:=&\?#~.;]{1,384}	{
+    // move forward
+    yyextra->flex_offset += yyleng;
+    if (yyextra->flex_offset > yyextra->region_stop + 1) {
+      return 0;
+    }
+}
+
 [a-zA-Z0-9]\0([a-zA-Z0-9._%\-+]\0){1,128}@\0([a-zA-Z0-9._%\-]\0){1,128}\.\0({U_TLD1}|{U_TLD2}|{U_TLD3}|{U_TLD4})/[^a-zA-Z]|([^][^\0])	{
 //std::cout << "flex16.a\n";
     if (yyextra->flex_offset < yyextra->region_start) {
