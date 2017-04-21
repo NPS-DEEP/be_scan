@@ -15,9 +15,9 @@ def escape(data):
     return escaped
 
 def show(artifact, path):
-    print("artifact at %s: %s: '%s', '%s'" %(
-                      path,
+    print("%s %s\t%s\t%s" %(
                       artifact.artifact_class,
+                      path,
                       escape(artifact.artifact),
                       escape(artifact.context)))
 
@@ -31,7 +31,7 @@ def recurse(artifact_in, path_in, depth):
         artifact = scanner.next()
         if artifact.artifact_class == "":
             break
-        path = "%s-%s-%d" % (path_in, artifact_in.artifact_class,
+        path = "%s-%s-%d" % (path_in, artifact_in.artifact_class.upper(),
                              artifact.buffer_offset)
 
         # show this artifact
@@ -99,8 +99,8 @@ if __name__=="__main__":
             count -= len(data)
 
             # runtime status
-            print("File %s start %d count %d\n" % (args.filename, offset,
-                                                   len(data)))
+            print("File %s start %d count %d" % (args.filename, offset,
+                                                 len(data)))
             if args.verbose:
                 print("%s\n" % escape(data))
 
