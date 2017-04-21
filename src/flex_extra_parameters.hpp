@@ -34,6 +34,8 @@ namespace be_scan {
     yyscan_t scanner;
     size_t flex_offset;
     size_t flex_size;
+    size_t region_start;
+    size_t region_stop;
   };
 } // end namespace
 

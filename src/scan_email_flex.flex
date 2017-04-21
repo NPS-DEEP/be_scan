@@ -37,6 +37,13 @@ YY_EXTRA_TYPE yyemail_get_extra(yyscan_t yyscanner);
 /* pointer for buffer scanning */
 YY_BUFFER_STATE bp;
 
+/* Address some common false positives in email scanner */
+inline bool validate_email(const char *email)
+{
+    if(strstr(email,"..")) return false;
+    return true;
+}
+
 %}
 
 %option extra-type = "be_scan::flex_extra_parameters_t*"
@@ -87,58 +94,139 @@ U_TLD4		(Q\0A\0|R\0E\0|R\0O\0|R\0S\0|R\0U\0|R\0W\0|S\0A\0|S\0B\0|S\0C\0|S\0D\0|S
 %%
 
 {DAYOFWEEK},[ \t\x0A\x0D]+[0-9]{1,2}[ \t\x0A\x0D]+{MONTH}[ \t\x0A\x0D]+{YEAR}[ \t\x0A\x0D]+[0-2][0-9]:[0-5][0-9]:[0-5][0-9][ \t\x0A\x0D]+([+-][0-2][0-9][0314][05]|{ABBREV}) {
-    return 0;
+    // move forward
+    yyextra->flex_offset += yyleng;
+    if (yyextra->flex_offset > yyextra->region_stop) {
+      return 0;
+    }
 }
 
 Message-ID:([ \t\x0A]|\x0D\x0A)?<{PC}{1,80}> {
-    return 0;
+    // move forward
+    yyextra->flex_offset += yyleng;
+    if (yyextra->flex_offset > yyextra->region_stop) {
+      return 0;
+    }
 }
 
 Subject:[ \t]?({PC}{1,80}) {
-    return 0;
+    // move forward
+    yyextra->flex_offset += yyleng;
+    if (yyextra->flex_offset > yyextra->region_stop) {
+      return 0;
+    }
 }
 
 Cookie:[ \t]?({PC}{1,80}) {   
-    return 0;
+    // move forward
+    yyextra->flex_offset += yyleng;
+    if (yyextra->flex_offset > yyextra->region_stop) {
+      return 0;
+    }
 }
 
 Host:[ \t]?([a-zA-Z0-9._]{1,64}) {   
-    return 0;
+    // move forward
+    yyextra->flex_offset += yyleng;
+    if (yyextra->flex_offset > yyextra->region_stop) {
+      return 0;
+    }
 }
 
+
+
+
 {EMAIL}/[^a-zA-Z]	{
-    yyextra->flex_size = yyleng;
-    return 0;
+std::cout << "flex8.a\n";
+    if (yyextra->flex_offset < yyextra->region_start) {
+      // too soon so keep going
+std::cout << "flex8.b\n";
+      yyextra->flex_offset += yyleng;
+    } else if (yyextra->flex_offset + yyleng - 1 > yyextra->region_stop) {
+std::cout << "flex8.c flex_offset: " << yyextra->flex_offset << ", yyleng: " << yyleng << ", region_stop: " << yyextra->region_stop << "\n";
+      // too far so stop
+      return 0;
+    } else {
+std::cout << "flex8.d\n";
+      // in range so use it
+      if (validate_email(yytext)) {
+std::cout << "flex8.e\n";
+        yyextra->flex_size = yyleng;
+      }
+      return 0;
+    }
+    // here so keep going
 }
 
 
 {INUM}?\.{INUM}\.{INUM}\.{INUM}\.{INUM}	{
-    return 0;
+    // move forward
+    yyextra->flex_offset += yyleng;
+    if (yyextra->flex_offset > yyextra->region_stop) {
+      return 0;
+    }
 }
 
 [0-9][0-9][0-9][0-9]\.{INUM}\.{INUM}\.{INUM}	{
-    return 0;
+    // move forward
+    yyextra->flex_offset += yyleng;
+    if (yyextra->flex_offset > yyextra->region_stop) {
+      return 0;
+    }
 }
 
 {INUM}\.{INUM}\.{INUM}\.{INUM}/[^0-9\-\.\+A-Z_] {
-    return 0;
+    // move forward
+    yyextra->flex_offset += yyleng;
+    if (yyextra->flex_offset > yyextra->region_stop) {
+      return 0;
+    }
 }
 
 [^0-9A-Z:]{HEX}{HEX}:{HEX}{HEX}:{HEX}{HEX}:{HEX}{HEX}:{HEX}{HEX}:{HEX}{HEX}/[^0-9A-Z:] {
-    return 0;
+    // move forward
+    yyextra->flex_offset += yyleng;
+    if (yyextra->flex_offset > yyextra->region_stop) {
+      return 0;
+    }
 }
 
 [a-zA-Z0-9]\0([a-zA-Z0-9._%\-+]\0){1,128}@\0([a-zA-Z0-9._%\-]\0){1,128}\.\0({U_TLD1}|{U_TLD2}|{U_TLD3}|{U_TLD4})/[^a-zA-Z]|([^][^\0])	{
-    yyextra->flex_size = yyleng;
-    return 0;
+std::cout << "flex16.a\n";
+    if (yyextra->flex_offset < yyextra->region_start) {
+      // too soon so keep going
+std::cout << "flex16.b\n";
+      yyextra->flex_offset += yyleng;
+    } else if (yyextra->flex_offset + yyleng - 2 > yyextra->region_stop) {
+std::cout << "flex16.c flex_offset: " << yyextra->flex_offset << ", yyleng: " << yyleng << ", region_stop: " << yyextra->region_stop << "\n";
+      // too far so stop
+      return 0;
+    } else {
+std::cout << "flex16.d\n";
+      // in range so use it
+      if (validate_email(yytext)) {
+std::cout << "flex16.e\n";
+        yyextra->flex_size = yyleng;
+      }
+      return 0;
+    }
+    // here so keep going
 }
 
 h\0t\0t\0p\0(s\0)?:\0([a-zA-Z0-9_%/\-+@:=&\?#~.;]\0){1,128}/[^a-zA-Z0-9_%\/\-+@:=&\?#~.;]|([^][^\0])	{
-    return 0;
+    // move forward
+    yyextra->flex_offset += yyleng;
+    if (yyextra->flex_offset > yyextra->region_stop) {
+      return 0;
+    }
 }
 
 .|\n {
+    // move forward
     ++yyextra->flex_offset;
+    if (yyextra->flex_offset > yyextra->region_stop) {
+      return 0;
+    }
 }
 
 %%

@@ -216,32 +216,51 @@ namespace be_scan {
         if (buffer[index+1] != '\0') {
           // unicode 8
           const size_t start = find_start(index);
+//std::cout << "next8.a start: " << start << "\n";
           if (start+1 > index) {   // require at least one byte
             continue;
           }
           const size_t stop = find_stop(index);
+//std::cout << "next8.b stop: " << stop << "\n";
           if (stop < index+4) {    // require at least four bytes
             continue;
           }
 
-          // build email address from this
-          const std::string feature = std::string(&buffer[start], stop-start+1);
+//        // build email address from this
+//        const std::string feature = std::string(&buffer[start], stop-start+1);
 
-          // validate simple
-//          if (!valid_top_level_domain(feature)) {
-//            continue;
-//          }
+          // build the containing region
+
+          // define start and stop points with respect to the buffer
+          size_t buffer_start = start < 150 ? 0 : start - 150;
+          size_t buffer_stop = stop + 150 >= buffer_size ? buffer_size :
+                                       stop + 150 - 1;
+//std::cout << "next8.c buffer_start: " << buffer_start << "\n";
+//std::cout << "next8.d buffer_stop: " << buffer_stop << "\n";
+
+          // set the region string
+          const std::string region_string = std::string(&buffer[buffer_start],
+                                               buffer_stop - buffer_start + 1);
+
+          // set the start and stop points with respect to the region string
+          flex_extra_parameters.region_start = start - buffer_start;
+          flex_extra_parameters.region_stop = stop - buffer_start;
+//std::cout << "next8.e region_start: " << flex_extra_parameters.region_start << "\n";
+//std::cout << "next8.f region_stop: " << flex_extra_parameters.region_stop << "\n";
 
           // validate regex
-          flex_scan(feature); // sets flex_extra_parameters
+//std::cout << "next8.f2 region_string: " << escape(region_string) << "\n";
+          flex_scan(region_string); // sets flex_extra_parameters
           if (flex_extra_parameters.flex_size == 0) {
             // not valid in flex
             continue;
           }
 
           // define start and stop based on flex
-          flex_start = start + flex_extra_parameters.flex_offset;
+          flex_start = buffer_start + flex_extra_parameters.flex_offset;
           flex_stop = flex_start + flex_extra_parameters.flex_size - 1;
+//std::cout << "next8.g flex_start: " << flex_start << "\n";
+//std::cout << "next8.h flex_stop: " << flex_stop << "\n";
 
           // advance past the artifact
           index = stop + 1;
@@ -267,32 +286,38 @@ namespace be_scan {
           }
 
 //std::cout << "next16.c\n";
-/*
-          // generate returned unicode 16 feature
-          // zz NOTE: in future, return unicode 8 feature
-          const std::string feature16 = std::string(&buffer[start],
-                                                    stop-start+2);
-*/
 
+          // build the containing region
 
-          // build email address from this
-          const std::string feature = std::string(&buffer[start], stop-start+2);
+          // define start and stop points with respect to the buffer
+          size_t buffer_start = start < 150 ? 0 : start - 150;
+          size_t buffer_stop = stop + 151 >= buffer_size ? buffer_size :
+                                       stop + 151 - 1;
 
-          // validate simple
-//          if (!valid_top_level_domain(feature)) {
-//            continue;
-//          }
+//std::cout << "next16.c buffer_start: " << buffer_start << "\n";
+//std::cout << "next16.d buffer_stop: " << buffer_stop << "\n";
+          // set the region string
+          const std::string region_string = std::string(&buffer[buffer_start],
+                                               buffer_stop - buffer_start + 1);
+
+          // set the start and stop points with respect to the region string
+          flex_extra_parameters.region_start = start - buffer_start;
+          flex_extra_parameters.region_stop = stop - buffer_start;
+//std::cout << "next16.e region_start: " << flex_extra_parameters.region_start << "\n";
+//std::cout << "next16.f region_stop: " << flex_extra_parameters.region_stop << "\n";
 
           // validate regex
-          flex_scan(feature); // sets flex_extra_parameters
+          flex_scan(region_string); // sets flex_extra_parameters
           if (flex_extra_parameters.flex_size == 0) {
             // not valid in flex
             continue;
           }
 
           // define start and stop based on flex
-          flex_start = start + flex_extra_parameters.flex_offset;
+          flex_start = buffer_start + flex_extra_parameters.flex_offset;
           flex_stop = flex_start + flex_extra_parameters.flex_size - 1;
+//std::cout << "next16.g flex_start: " << flex_start << "\n";
+//std::cout << "next16.h flex_stop: " << flex_stop << "\n";
 
           // advance past the artifact
           index = stop + 1;

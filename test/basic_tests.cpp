@@ -45,6 +45,8 @@ void test_buffer8() {
 
   be_scan::artifact_t artifact;
   artifact = scanner.next();
+  std::cout << "artifact: '" << be_scan::escape(artifact.artifact) << "'" << std::endl;
+  std::cout << "context: '" << be_scan::escape(artifact.context) << "'" << std::endl;
   TEST_EQ(artifact.artifact_class, "email");
   TEST_EQ(artifact.buffer_offset, 0);
   TEST_EQ(artifact.artifact, "someone@somewhere.com");
@@ -85,6 +87,7 @@ void test_buffer16() {
 
 void test_adjacency() {
   std::string string16("a\0a\0a\0@\0b\0b\0.\0z\0w\0\0\0b\0b\0b\0@\0c\0c\0.\0z\0w\0", 38);
+  std::cout << "test_adjacency (" << string16.size() << ") string16: " << be_scan::escape(string16) << std::endl;
   const char* const bytes16 = string16.c_str();
 
   be_scan::be_scan_t scanner("email", bytes16, string16.size());
@@ -233,7 +236,7 @@ void test_email() {
 int main(int argc, char* argv[]) {
 
   // tests
-/*
+/*zz
   test_version();
   test_available_scanners();
   test_buffer8();
