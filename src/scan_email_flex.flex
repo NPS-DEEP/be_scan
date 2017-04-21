@@ -96,7 +96,7 @@ U_TLD4		(Q\0A\0|R\0E\0|R\0O\0|R\0S\0|R\0U\0|R\0W\0|S\0A\0|S\0B\0|S\0C\0|S\0D\0|S
 {DAYOFWEEK},[ \t\x0A\x0D]+[0-9]{1,2}[ \t\x0A\x0D]+{MONTH}[ \t\x0A\x0D]+{YEAR}[ \t\x0A\x0D]+[0-2][0-9]:[0-5][0-9]:[0-5][0-9][ \t\x0A\x0D]+([+-][0-2][0-9][0314][05]|{ABBREV}) {
     // move forward
     yyextra->flex_offset += yyleng;
-    if (yyextra->flex_offset > yyextra->region_stop) {
+    if (yyextra->flex_offset > yyextra->region_stop + 1) {
       return 0;
     }
 }
@@ -104,7 +104,7 @@ U_TLD4		(Q\0A\0|R\0E\0|R\0O\0|R\0S\0|R\0U\0|R\0W\0|S\0A\0|S\0B\0|S\0C\0|S\0D\0|S
 Message-ID:([ \t\x0A]|\x0D\x0A)?<{PC}{1,80}> {
     // move forward
     yyextra->flex_offset += yyleng;
-    if (yyextra->flex_offset > yyextra->region_stop) {
+    if (yyextra->flex_offset > yyextra->region_stop + 1) {
       return 0;
     }
 }
@@ -112,7 +112,7 @@ Message-ID:([ \t\x0A]|\x0D\x0A)?<{PC}{1,80}> {
 Subject:[ \t]?({PC}{1,80}) {
     // move forward
     yyextra->flex_offset += yyleng;
-    if (yyextra->flex_offset > yyextra->region_stop) {
+    if (yyextra->flex_offset > yyextra->region_stop + 1) {
       return 0;
     }
 }
@@ -120,7 +120,7 @@ Subject:[ \t]?({PC}{1,80}) {
 Cookie:[ \t]?({PC}{1,80}) {   
     // move forward
     yyextra->flex_offset += yyleng;
-    if (yyextra->flex_offset > yyextra->region_stop) {
+    if (yyextra->flex_offset > yyextra->region_stop + 1) {
       return 0;
     }
 }
@@ -128,7 +128,7 @@ Cookie:[ \t]?({PC}{1,80}) {
 Host:[ \t]?([a-zA-Z0-9._]{1,64}) {   
     // move forward
     yyextra->flex_offset += yyleng;
-    if (yyextra->flex_offset > yyextra->region_stop) {
+    if (yyextra->flex_offset > yyextra->region_stop + 1) {
       return 0;
     }
 }
@@ -142,7 +142,7 @@ std::cout << "flex8.a\n";
       // too soon so keep going
 std::cout << "flex8.b\n";
       yyextra->flex_offset += yyleng;
-    } else if (yyextra->flex_offset + yyleng - 1 > yyextra->region_stop) {
+    } else if (yyextra->flex_offset + yyleng > yyextra->region_stop + 1) {
 std::cout << "flex8.c flex_offset: " << yyextra->flex_offset << ", yyleng: " << yyleng << ", region_stop: " << yyextra->region_stop << "\n";
       // too far so stop
       return 0;
@@ -162,7 +162,7 @@ std::cout << "flex8.e\n";
 {INUM}?\.{INUM}\.{INUM}\.{INUM}\.{INUM}	{
     // move forward
     yyextra->flex_offset += yyleng;
-    if (yyextra->flex_offset > yyextra->region_stop) {
+    if (yyextra->flex_offset > yyextra->region_stop + 1) {
       return 0;
     }
 }
@@ -170,7 +170,7 @@ std::cout << "flex8.e\n";
 [0-9][0-9][0-9][0-9]\.{INUM}\.{INUM}\.{INUM}	{
     // move forward
     yyextra->flex_offset += yyleng;
-    if (yyextra->flex_offset > yyextra->region_stop) {
+    if (yyextra->flex_offset > yyextra->region_stop + 1) {
       return 0;
     }
 }
@@ -178,7 +178,7 @@ std::cout << "flex8.e\n";
 {INUM}\.{INUM}\.{INUM}\.{INUM}/[^0-9\-\.\+A-Z_] {
     // move forward
     yyextra->flex_offset += yyleng;
-    if (yyextra->flex_offset > yyextra->region_stop) {
+    if (yyextra->flex_offset > yyextra->region_stop + 1) {
       return 0;
     }
 }
@@ -186,7 +186,7 @@ std::cout << "flex8.e\n";
 [^0-9A-Z:]{HEX}{HEX}:{HEX}{HEX}:{HEX}{HEX}:{HEX}{HEX}:{HEX}{HEX}:{HEX}{HEX}/[^0-9A-Z:] {
     // move forward
     yyextra->flex_offset += yyleng;
-    if (yyextra->flex_offset > yyextra->region_stop) {
+    if (yyextra->flex_offset > yyextra->region_stop + 1) {
       return 0;
     }
 }
@@ -197,7 +197,7 @@ std::cout << "flex16.a\n";
       // too soon so keep going
 std::cout << "flex16.b\n";
       yyextra->flex_offset += yyleng;
-    } else if (yyextra->flex_offset + yyleng - 2 > yyextra->region_stop) {
+    } else if (yyextra->flex_offset + yyleng> yyextra->region_stop + 2) {
 std::cout << "flex16.c flex_offset: " << yyextra->flex_offset << ", yyleng: " << yyleng << ", region_stop: " << yyextra->region_stop << "\n";
       // too far so stop
       return 0;
@@ -216,7 +216,7 @@ std::cout << "flex16.e\n";
 h\0t\0t\0p\0(s\0)?:\0([a-zA-Z0-9_%/\-+@:=&\?#~.;]\0){1,128}/[^a-zA-Z0-9_%\/\-+@:=&\?#~.;]|([^][^\0])	{
     // move forward
     yyextra->flex_offset += yyleng;
-    if (yyextra->flex_offset > yyextra->region_stop) {
+    if (yyextra->flex_offset > yyextra->region_stop + 1) {
       return 0;
     }
 }
@@ -224,7 +224,7 @@ h\0t\0t\0p\0(s\0)?:\0([a-zA-Z0-9_%/\-+@:=&\?#~.;]\0){1,128}/[^a-zA-Z0-9_%\/\-+@:
 .|\n {
     // move forward
     ++yyextra->flex_offset;
-    if (yyextra->flex_offset > yyextra->region_stop) {
+    if (yyextra->flex_offset > yyextra->region_stop + 1) {
       return 0;
     }
 }
