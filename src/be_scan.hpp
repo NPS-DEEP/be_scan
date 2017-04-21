@@ -47,7 +47,6 @@ namespace be_scan {
    */
 // We intentionally have a pointer, so suppress the compiler warning.
 #ifdef HAVE_DIAGNOSTIC_EFFCPP
-#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 #endif
   class artifact_t {
@@ -93,9 +92,6 @@ namespace be_scan {
     void javaContext(std::string& java_context) const;
 
   };
-#ifdef HAVE_DIAGNOSTIC_EFFCPP
-#pragma GCC diagnostic pop
-#endif
 
   /**
    * Version of the be_scan library.

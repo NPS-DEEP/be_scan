@@ -28,7 +28,6 @@ namespace be_scan {
 
 // superclass requires *msg so suppress the warning
 #ifdef HAVE_DIAGNOSTIC_EFFCPP
-#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Weffc++"
 #endif
 
@@ -43,9 +42,6 @@ namespace be_scan {
       return msg;
     }
   };
-#ifdef HAVE_DIAGNOSTIC_EFFCPP
-#pragma GCC diagnostic pop
-#endif
 
 /*
   class flex_scan_exception: public std::exception {
