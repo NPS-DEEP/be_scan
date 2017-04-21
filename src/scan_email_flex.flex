@@ -137,20 +137,20 @@ Host:[ \t]?([a-zA-Z0-9._]{1,64}) {
 
 
 {EMAIL}/[^a-zA-Z]	{
-std::cout << "flex8.a\n";
+//std::cout << "flex8.a\n";
     if (yyextra->flex_offset < yyextra->region_start) {
       // too soon so keep going
-std::cout << "flex8.b\n";
+//std::cout << "flex8.b\n";
       yyextra->flex_offset += yyleng;
     } else if (yyextra->flex_offset + yyleng > yyextra->region_stop + 1) {
-std::cout << "flex8.c flex_offset: " << yyextra->flex_offset << ", yyleng: " << yyleng << ", region_stop: " << yyextra->region_stop << "\n";
+//std::cout << "flex8.c flex_offset: " << yyextra->flex_offset << ", yyleng: " << yyleng << ", region_stop: " << yyextra->region_stop << "\n";
       // too far so stop
       return 0;
     } else {
-std::cout << "flex8.d\n";
+//std::cout << "flex8.d\n";
       // in range so use it
       if (validate_email(yytext)) {
-std::cout << "flex8.e\n";
+//std::cout << "flex8.e\n";
         yyextra->flex_size = yyleng;
       }
       return 0;
@@ -192,20 +192,20 @@ std::cout << "flex8.e\n";
 }
 
 [a-zA-Z0-9]\0([a-zA-Z0-9._%\-+]\0){1,128}@\0([a-zA-Z0-9._%\-]\0){1,128}\.\0({U_TLD1}|{U_TLD2}|{U_TLD3}|{U_TLD4})/[^a-zA-Z]|([^][^\0])	{
-std::cout << "flex16.a\n";
+//std::cout << "flex16.a\n";
     if (yyextra->flex_offset < yyextra->region_start) {
       // too soon so keep going
-std::cout << "flex16.b\n";
+//std::cout << "flex16.b\n";
       yyextra->flex_offset += yyleng;
     } else if (yyextra->flex_offset + yyleng> yyextra->region_stop + 2) {
-std::cout << "flex16.c flex_offset: " << yyextra->flex_offset << ", yyleng: " << yyleng << ", region_stop: " << yyextra->region_stop << "\n";
+//std::cout << "flex16.c flex_offset: " << yyextra->flex_offset << ", yyleng: " << yyleng << ", region_stop: " << yyextra->region_stop << "\n";
       // too far so stop
       return 0;
     } else {
-std::cout << "flex16.d\n";
+//std::cout << "flex16.d\n";
       // in range so use it
       if (validate_email(yytext)) {
-std::cout << "flex16.e\n";
+//std::cout << "flex16.e\n";
         yyextra->flex_size = yyleng;
       }
       return 0;
