@@ -31,7 +31,7 @@ def recurse(artifact_in, path_in, depth):
         artifact = scanner.next()
         if artifact.artifact_class == "":
             break
-        path = "%s-%s-%d" % (path_in, artifact.artifact_class,
+        path = "%s-%s-%d" % (path_in, artifact_in.artifact_class,
                              artifact.buffer_offset)
 
         # show this artifact
@@ -124,6 +124,8 @@ if __name__=="__main__":
 
                     # release this buffer
                     artifact.delete_new_buffer()
+
+        offset += splitsize
 
     print("Done.")
 
