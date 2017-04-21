@@ -71,9 +71,9 @@ namespace be_scan {
     /**
      * Returns true if this artifact includes decompressed data that
      * can be scanned.  It is your responsibility to delete this new
-     * data else you will have a memory leak.
+     * buffer else you will have a memory leak.
      */
-    bool has_new_data() const;
+    bool has_new_buffer() const;
 
     /**
      * Artifacts from decompression scanners include a buffer containing
@@ -141,12 +141,25 @@ namespace be_scan {
      *
      * Parameters:
      *   requested_scanners - The scanners to use during the scan.
-     *   p_buffer - The buffer of bytes to scan.
+     *   p_buffer - The buffer of bytes to scan.  The buffer is copied.
      *   p_buffer_size - The number of bytes in the buffer to scan.
      */
     be_scan_t(const std::string& requested_scanners,
               const char* const p_buffer,
               size_t p_buffer_size);
+
+    /**
+     * Create a scan instance given scanners to use and an artifact
+     * containing a buffer to scan.
+     *
+     * Parameters:
+     *   requested_scanners - The scanners to use during the scan.
+     *   artifact - The artifact containing the buffer of bytes to scan.
+     *              The buffer is copied.
+     *   p_buffer_size - The number of bytes in the buffer to scan.
+     */
+    be_scan_t(const std::string& requested_scanners,
+              const artifact_t& artifact);
 
     /*
      * Scan to the next artifact.  If no artifact is available, return a

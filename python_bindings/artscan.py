@@ -14,6 +14,39 @@ def escape(data):
             escaped += c
     return escaped
 
+def show(artifact, path):
+    print("artifact at %s: %s: '%s', '%s'" %(
+                      path,
+                      artifact.artifact_class,
+                      escape(artifact.artifact),
+                      escape(artifact.context)))
+
+def recurse(artifact_in, path_in, depth):
+    if args.verbose:
+        print("%s\n%s\n" % (path_in, escape(data)))
+
+    # scan the recursed buffer
+    scanner = be_scan.be_scan_t(scanners, artifact_in)
+    while True:
+        artifact = scanner.next()
+        if artifact.artifact_class == "":
+            break
+        path = "%s-%s-%d" % (path_in, artifact.artifact_class,
+                             artifact.buffer_offset)
+
+        # show this artifact
+        show(artifact, path)
+
+        # manage recursion
+        if artifact.has_new_buffer():
+
+            # show any unpacked artifacts
+            if depth < MAX_RECURSION_DEPTH:
+                recurse(artifact, path, depth + 1)
+
+            # release this buffer
+            artifact.delete_new_buffer()
+
 # main
 if __name__=="__main__":
 
@@ -34,6 +67,9 @@ if __name__=="__main__":
     parser.add_argument("-e", "--enable",
                         help="enable specific scanners, default: '%s'" %
                         default_scanners, default = default_scanners, type=str)
+    parser.add_argument("-r", "--recursion_depth",
+                        help="recursively scan into decompressed regions",
+                        default=7, type=int, choices=[1, 2, 3, 4, 5, 6, 7])
     parser.add_argument("-v", "--verbose",
                         help="show the bytes being scanned",
                         action="store_true")
@@ -49,6 +85,7 @@ if __name__=="__main__":
         count = filesize - offset
     splitsize = args.break_size
     scanners = args.enable
+    MAX_RECURSION_DEPTH = args.recursion_depth
 
     while (count > 0):
 
@@ -73,13 +110,20 @@ if __name__=="__main__":
                 artifact = scanner.next()
                 if artifact.artifact_class == "":
                     break
-                print("artifact at %d: %s: '%s', '%s'" %(
-                         offset + artifact.buffer_offset,
-                         artifact.artifact_class,
-                         escape(artifact.artifact),
-                         escape(artifact.context)))
+                path = "%d" % (offset + artifact.buffer_offset)
 
-        offset += splitsize
+                # show this artifact
+                show(artifact, path)
+
+                # manage recursion
+                if artifact.has_new_buffer():
+
+                    # show any unpacked artifacts
+                    if MAX_RECURSION_DEPTH > 1:
+                        recurse(artifact, path, 1)
+
+                    # release this buffer
+                    artifact.delete_new_buffer()
 
     print("Done.")
 

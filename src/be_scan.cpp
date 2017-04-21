@@ -53,6 +53,12 @@ static std::set<std::string> split(const std::string &s, char delim) {
    * Copy the buffer, return NULL if malloc fails.
    */
 static char* copy_buffer(const char* const buffer, size_t buffer_size) {
+  // skip if nothing to do
+  if (buffer == NULL) {
+    return NULL;
+  }
+
+  // copy the buffer, else NULL on bad_alloc
   char* b = new (std::nothrow) char[buffer_size];
   if (b == NULL) {
     std::cerr << "be_scan error: unable to allocate memory for buffer copy\n";
@@ -140,6 +146,32 @@ namespace be_scan {
     // open the next scanner
     open_next();
   }
+
+  be_scan_t::be_scan_t(const std::string& p_requested_scanners,
+                       const artifact_t& artifact) :
+                buffer(copy_buffer(artifact.new_buffer,
+                                   artifact.new_buffer_size)),
+                buffer_size(artifact.new_buffer_size),
+                scanners(std::set<std::string>()),
+                scanner_it(),
+                opened_scanner(NULL),
+                bad_alloc(buffer == NULL) {
+
+    if (bad_alloc) {
+      // the buffer was not allocated so stay closed
+      return;
+    }
+
+    // identify the requested scanners
+    scanners = split(p_requested_scanners, ' ');
+
+    // start the scanner iterator
+    scanner_it = scanners.begin();
+
+    // open the next scanner
+    open_next();
+  }
+
 
   void be_scan_t::open_next() {
     while (scanner_it != scanners.end()) {

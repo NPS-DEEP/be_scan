@@ -50,7 +50,7 @@ namespace be_scan {
                       bad_alloc(false) {
     }
 
-    bool artifact_t::has_new_data() const {
+    bool artifact_t::has_new_buffer() const {
       return (new_buffer != NULL);
     }
 

@@ -51,6 +51,7 @@ namespace be_scan {
         artifact_t artifact = uncompress_zip(buffer, buffer_size, index);
         if (artifact.artifact_class != "") {
           // we have an artifact
+          index += 4;
           return artifact;
         }
       }
@@ -65,6 +66,7 @@ namespace be_scan {
         artifact_t artifact = uncompress_gzip(buffer, buffer_size, index);
         if (artifact.artifact_class != "") {
           // we have an artifact
+          index += 3;
           return artifact;
         }
       }
