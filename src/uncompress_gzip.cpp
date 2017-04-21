@@ -83,7 +83,9 @@ namespace be_scan {
       r = inflate(&zs,Z_SYNC_FLUSH);
       out_size = zs.total_out;
       r = inflateEnd(&zs);
-      return artifact_t("gzip", in_offset, "gzip", "",
+      std::stringstream ss;
+      ss << "size=" << out_size;
+      return artifact_t("gzip", in_offset, "zip", ss.str(),
                         reinterpret_cast<const char*>(out_buf),
                         out_size, false);
     } else {

@@ -131,7 +131,9 @@ namespace be_scan {
 
       // close zlib
       inflateEnd(&zs);
-      return artifact_t("zip", in_offset, "zip", "",
+      std::stringstream ss;
+      ss << "size=" << out_size;
+      return artifact_t("zip", in_offset, "zip", ss.str(),
                         reinterpret_cast<const char*>(out_buf),
                         out_size, false);
  
