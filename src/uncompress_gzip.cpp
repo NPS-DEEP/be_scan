@@ -42,26 +42,16 @@
 namespace be_scan {
 
   // return artifact, which may be blank
-  artifact_t uncompress_gzip(const unsigned char* const in_buf,
+  artifact_t uncompress_gzip(unsigned char* const scratch_buf,
+                             const size_t scratch_buf_size,
+                             const unsigned char* const in_buf,
                              const size_t in_size,
                              const size_t in_offset) {
-
-    unsigned char* out_buf = NULL;
-    size_t out_size = 0;
-
-    const size_t max_out_size = 256*1024*1024;
 
     // validate the buffer range
     if (in_size < in_offset + 18) {
       // nothing to do
       return artifact_t();
-    }
-
-    // create the destination uncompressed buffer
-    out_buf = new (std::nothrow) unsigned char[max_out_size]();
-    if (out_buf == NULL) {
-      // bad_alloc
-      return artifact_t("gzip", in_offset, "", "", NULL, 0, true);
     }
 
     // calculate maximum input size
@@ -74,23 +64,41 @@ namespace be_scan {
     zs.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(
                                                         in_buf + in_offset));
     zs.avail_in = max_in_size;
-    zs.next_out = out_buf;
-    zs.avail_out = max_out_size;
+    zs.next_out = scratch_buf;
+    zs.avail_out = scratch_buf_size;
 
     int r = inflateInit2(&zs,16+MAX_WBITS);
     if(r==0){
       // ignore any error code and accept total_out
       r = inflate(&zs,Z_SYNC_FLUSH);
-      out_size = zs.total_out;
+      const size_t out_size = zs.total_out;
       r = inflateEnd(&zs);
+
+      // compose the artifact field
       std::stringstream ss;
       ss << "size=" << out_size;
-      return artifact_t("gzip", in_offset, "zip", ss.str(),
-                        reinterpret_cast<const char*>(out_buf),
-                        out_size, false);
+
+      // no data
+      if (out_size == 0) {
+        return artifact_t("gzip", in_offset, ss.str(), "", NULL, 0, false);
+      }
+
+      // data
+      unsigned char* out_buf = new (std::nothrow) unsigned char[out_size]();
+      if (out_buf == NULL) {
+        // bad_alloc
+        return artifact_t("gzip", in_offset, ss.str(),
+                          "bad_alloc", NULL, 0, true);
+      } else {
+        ::memcpy(out_buf, scratch_buf, out_size);
+        return artifact_t("gzip", in_offset, ss.str(), "",
+                          reinterpret_cast<const char*>(out_buf),
+                          out_size, false);
+
+      }
     } else {
+
       // inflate failed
-      delete[] out_buf;
       return artifact_t();
     }
   }

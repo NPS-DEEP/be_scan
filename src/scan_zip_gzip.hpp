@@ -19,7 +19,9 @@
 
 /**
  * \file
- * Generate context for artifact within buffer
+ * Generate context for artifact within buffer.
+ * If uncompression will happen, create a scratch buffer for the life
+ * of scan_zip_gzip_t and malloc returned results.
  */
 
 #ifndef SCAN_ZIP_HPP
@@ -39,6 +41,9 @@ class scan_zip_gzip_t : public scanner_t {
   const unsigned char* const buffer;
   const size_t buffer_size;
   size_t index;
+  unsigned char* scratch_buffer;
+  const static size_t max_scratch_buffer_size;
+  bool allocate_scratch_buffer();
 
   // do not allow copy or assignment
   scan_zip_gzip_t(const scan_zip_gzip_t&) = delete;
@@ -53,11 +58,15 @@ class scan_zip_gzip_t : public scanner_t {
   artifact_t next();
 };
 
-artifact_t uncompress_zip(const unsigned char* const in_buf,
+artifact_t uncompress_zip(unsigned char* const scratch_buf,
+                          const size_t scratch_buf_size,
+                          const unsigned char* const in_buf,
                           const size_t in_size,
                           const size_t in_offset);
 
-artifact_t uncompress_gzip(const unsigned char* const in_buf,
+artifact_t uncompress_gzip(unsigned char* const scratch_buf,
+                           const size_t scratch_buf_size,
+                           const unsigned char* const in_buf,
                            const size_t in_size,
                            const size_t in_offset);
 }

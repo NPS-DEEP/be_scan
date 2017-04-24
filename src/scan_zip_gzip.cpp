@@ -27,15 +27,29 @@
 #include "scan_zip_gzip.hpp"
 
 namespace be_scan {
+  // gzip needs 256 GiB, zip needs 16GiB
+  const size_t scan_zip_gzip_t::max_scratch_buffer_size = 256*1024*1024;
 
   scan_zip_gzip_t::scan_zip_gzip_t(const char* const p_buffer,
                                    const size_t p_buffer_size) :
               buffer(reinterpret_cast<const unsigned char*>(p_buffer)),
               buffer_size(p_buffer_size),
-              index(0) {
+              index(0),
+              scratch_buffer(NULL) {
   }
 
   scan_zip_gzip_t::~scan_zip_gzip_t() {
+    if (scratch_buffer != NULL) {
+      delete[] scratch_buffer;
+    }
+  }
+
+  bool scan_zip_gzip_t::allocate_scratch_buffer() {
+    if (scratch_buffer == NULL) {
+      scratch_buffer = new (std::nothrow)
+                            unsigned char[max_scratch_buffer_size];
+    }
+    return (scratch_buffer != NULL);
   }
 
   artifact_t scan_zip_gzip_t::next() {
@@ -48,11 +62,18 @@ namespace be_scan {
           buffer[index+0]==0x50 && buffer[index+1]==0x4B &&
           buffer[index+2]==0x03 && buffer[index+3]==0x04) {
 
-        artifact_t artifact = uncompress_zip(buffer, buffer_size, index);
-        if (artifact.artifact_class != "") {
-          // we have an artifact
-          index += 4;
-          return artifact;
+        if (allocate_scratch_buffer()) {
+          artifact_t artifact = uncompress_zip(
+                                    scratch_buffer, max_scratch_buffer_size,
+                                    buffer, buffer_size, index);
+          if (artifact.artifact_class != "") {
+            // we have an artifact
+            index += 4;
+            return artifact;
+          }
+        } else {
+          // unable to allocate scratch buffer
+          return artifact_t("zip", index, "bad_alloc", "", NULL, 0, true);
         }
       }
 
@@ -63,11 +84,18 @@ namespace be_scan {
           buffer[index+8]==0x00 || buffer[index+8]==0x02 || 
           buffer[index+8]==0x04)) {
 
-        artifact_t artifact = uncompress_gzip(buffer, buffer_size, index);
-        if (artifact.artifact_class != "") {
-          // we have an artifact
-          index += 3;
-          return artifact;
+        if (allocate_scratch_buffer()) {
+          artifact_t artifact = uncompress_gzip(
+                                    scratch_buffer, max_scratch_buffer_size,
+                                    buffer, buffer_size, index);
+          if (artifact.artifact_class != "") {
+            // we have an artifact
+            index += 3;
+            return artifact;
+          }
+        } else {
+          // unable to allocate scratch buffer
+          return artifact_t("gzip", index, "bad_alloc", "", NULL, 0, true);
         }
       }
     }

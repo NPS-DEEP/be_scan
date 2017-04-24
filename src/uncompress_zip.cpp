@@ -40,7 +40,6 @@ namespace be_scan {
 
   static const uint32_t zip_name_len_max = 1024;
   static const size_t uncompressed_size_min = 6;
-  static const size_t uncompressed_size_max = 16777216; // 2^24 = 16MiB
 
   inline uint16_t u16(const unsigned char* const b) {
     return (uint16_t)(b[0]<<0) | (uint16_t)(b[1]<<8);
@@ -52,12 +51,11 @@ namespace be_scan {
   }
 
   // return artifact, which may be blank
-  artifact_t uncompress_zip(const unsigned char* const in_buf,
+  artifact_t uncompress_zip(unsigned char* const scratch_buf,
+                            const size_t scratch_buf_size,
+                            const unsigned char* const in_buf,
                             const size_t in_size,
                             const size_t in_offset) {
-
-    unsigned char* out_buf = NULL;
-    size_t out_size = 0;
 
     // validate the buffer range
     if (in_size < in_offset + 30) {
@@ -94,20 +92,13 @@ namespace be_scan {
 
     // size of uncompressed data
     const uint32_t potential_uncompressed_size =
-               (compr_size == 0 || compr_size > uncompressed_size_max)
-                                  ? uncompressed_size_max : uncompr_size;
+               (compr_size == 0 || compr_size > scratch_buf_size)
+                                  ? scratch_buf_size : uncompr_size;
     
     // skip if uncompressed size is too small
     if (potential_uncompressed_size < uncompressed_size_min) {
-      // zip uncompress size too small, nothing to do
+      // zip uncompress size too small, disregard it
       return artifact_t();
-    }
-
-    // create the uncompressed buffer
-    out_buf = new (std::nothrow) unsigned char[potential_uncompressed_size]();
-    if (out_buf == NULL) {
-      // bad_alloc
-      return artifact_t("zip", in_offset, "", "", NULL, 0, true);
     }
 
     // set up zlib data
@@ -116,7 +107,7 @@ namespace be_scan {
     zs.next_in = const_cast<Bytef *>(reinterpret_cast<const Bytef *>(
                                          in_buf + compressed_offset));
     zs.avail_in = compressed_size;
-    zs.next_out = out_buf;
+    zs.next_out = scratch_buf;
     zs.avail_out = potential_uncompressed_size;
 
     // initialize zlib for this decompression
@@ -127,20 +118,35 @@ namespace be_scan {
       inflate(&zs, Z_SYNC_FLUSH);
 
       // set out_size
-      out_size = zs.total_out;
+      const size_t out_size = zs.total_out;
 
       // close zlib
       inflateEnd(&zs);
+
+      // compose the artifact field
       std::stringstream ss;
       ss << "size=" << out_size;
-      return artifact_t("zip", in_offset, "zip", ss.str(),
-                        reinterpret_cast<const char*>(out_buf),
-                        out_size, false);
- 
+
+      // no data
+      if (out_size == 0) {
+        return artifact_t("zip", in_offset, ss.str(), "", NULL, 0, false);
+      }
+
+      // data
+      unsigned char* out_buf = new (std::nothrow) unsigned char[out_size]();
+      if (out_buf == NULL) {
+        // bad_alloc
+        return artifact_t("zip", in_offset, ss.str(),
+                          "bad_alloc", NULL, 0, true);
+      } else {
+        ::memcpy(out_buf, scratch_buf, out_size);
+        return artifact_t("zip", in_offset, ss.str(), "",
+                          reinterpret_cast<const char*>(out_buf),
+                          out_size, false);
+      }
     } else {
 
       // inflate failed
-      delete[] out_buf;
       return artifact_t();
     }
   }
