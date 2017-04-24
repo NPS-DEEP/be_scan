@@ -10,6 +10,9 @@
 //%rename (BEBuffer) be_buffer_t;
 %rename (artifactClass) artifact_class;
 %rename (bufferOffset) buffer_offset;
+%rename (newBufferSize) new_buffer_size;
+%rename (hasNewBuffer) has_new_buffer;
+%rename (deleteNewBuffer) delete_new_buffer;
 %rename (BEScan) be_scan_t;
 %rename (badAlloc) bad_alloc;
 %rename (testLoopback) test_loopback;

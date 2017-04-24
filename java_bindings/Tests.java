@@ -77,6 +77,18 @@ static byte[] buffer1 = "someone@somewhere.com\0someone2@somewhere2.com\n".getBy
     testEquals(artifact.javaContext(), "".getBytes());
   }
 
+  // check artifact accessor names
+  private static void testArtifactAccessors() {
+    edu.nps.deep.be_scan.Artifact artifact = new 
+                                   edu.nps.deep.be_scan.Artifact();
+    testEquals(artifact.getArtifactClass(), "");
+    testEquals(artifact.getBufferOffset(), 0);
+    testEquals(artifact.javaArtifact(), "".getBytes());
+    testEquals(artifact.javaContext(), "".getBytes());
+    testEquals(artifact.hasNewBuffer(), false);
+    artifact.deleteNewBuffer();
+  }
+
   // make sure byte patterns make it out and back through JNI
   public static void testLoopback() {
     // set up byte pattern
@@ -99,6 +111,7 @@ static byte[] buffer1 = "someone@somewhere.com\0someone2@somewhere2.com\n".getBy
     testVersion();
     testAvailableScanners();
     testBuffer1();
+    testArtifactAccessors();
     testLoopback();
   }
 }
