@@ -54,12 +54,12 @@ Tests.class: Tests.java be_scan_jni.jar
 	javac -cp be_scan_jni.jar Tests.java
 	rm Tests.java
 
-basic_tests$(EXEEXT): Tests.class be_scan_jni.jar
-	echo "java Tests" > basic_tests
-	chmod +x basic_tests
+java_tests$(EXEEXT): Tests.class be_scan_jni.jar
+	echo "java Tests" > java_tests
+	chmod +x java_tests
 
 # Tests
-check_PROGRAMS = basic_tests
+check_PROGRAMS = java_tests
 
 TESTS = $(check_PROGRAMS)
 

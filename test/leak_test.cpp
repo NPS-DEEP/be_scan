@@ -19,20 +19,24 @@
 
 #include <config.h>
 #include <iostream>
+#include <unistd.h>
+#include <fcntl.h>
+#include <fstream>
+#include <sstream>
 #include <cstdio>
+#include <string>
+#include <cstring>
 #include <locale>
-#include "unit_test.h"
+#include <sys/stat.h>
 #include "be_scan.hpp"
 
 static std::locale loc;
 
 void show(be_scan::artifact_t artifact, std::string path) {
-  std::stringstream ss;
-  ss << artifact.artifact_class << " "
-     << path << "\t"
-     << be_scan::escape(artifact.artifact) << "\t"
-     << path << "\t"
-     << be_scan::escape(artifact.context) << "\n";
+  std::cout << artifact.artifact_class << " "
+            << path << "\t"
+            << be_scan::escape(artifact.artifact) << "\t"
+            << be_scan::escape(artifact.context) << "\n";
 }
 
 void recurse(be_scan::artifact_t artifact_in, std::string path_in, int depth) {
@@ -43,13 +47,15 @@ void recurse(be_scan::artifact_t artifact_in, std::string path_in, int depth) {
       break;
     }
 
-    // path
+    // compose path
     std::stringstream ss;
     ss << path_in << "-";
+
     // artifact_class in upper case
-    std::string ac = artifact_class(artifact_in.artifact_class)
-    for (std::string::sizetype i=0; i<artifact_in.artifact_class.length(); ++i){
-      ss << std::toupper(artifact_in.artifact_class[i],loc);
+    std::string::iterator it;
+    for (it = artifact_in.artifact_class.begin();
+         it < artifact_in.artifact_class.end(); ++it) {
+      ss << std::toupper(*it, loc);
     }
     ss << "-" << artifact.buffer_offset;
     std::string path = ss.str();
@@ -58,10 +64,13 @@ void recurse(be_scan::artifact_t artifact_in, std::string path_in, int depth) {
     show(artifact, path);
 
     // manage recursion
-    if (artifact.has_new_buffer() {
+    if (artifact.has_new_buffer()) {
+
       // show any unpacked artifacts
       if (depth < 7) {
         recurse(artifact, path, depth + 1);
+      }
+
       // release this buffer
       artifact.delete_new_buffer();
     }
@@ -70,7 +79,7 @@ void recurse(be_scan::artifact_t artifact_in, std::string path_in, int depth) {
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
-    std::cerr << "Usage: valgrind --tool=memcheck --leak-check=full --show-reachable=yes --suppressions=vg.supp leak_test <testfile>\n";
+    std::cerr << "Usage: valgrind --tool=memcheck --leak-check=full --show-reachable=yes ./leak_test <testfile>\n";
     exit(0);
   }
 
@@ -80,13 +89,18 @@ int main(int argc, char* argv[]) {
     exit(1);
   }
 
+  // open file
+  const char* const filename = argv[1];
+  int fd = ::open(filename, O_RDONLY);
+
   // get file size
   /* We can use fstat if sizeof(st_size)==8 and st_size>0 */
   struct stat st;
   size_t file_size = 0;
   memset(&st, 0, sizeof(st));
-  if(sizeof(st.st_size)!=8 || fstat(fd,&st)!=0){
+  if(sizeof(st.st_size)!=8 || fstat(fd, &st)!=0){
     std::cerr << "Error detecting file size.  Aborting.\n";
+    exit(1);
   }
   file_size = st.st_size;
 
@@ -94,19 +108,30 @@ int main(int argc, char* argv[]) {
   char* buffer = new (std::nothrow) char[file_size];
   if (buffer == NULL) {
     std::cerr << "Error allocating buffer for file.  Aborting.\n";
+    exit(1);
   }
+
+  // read file into buffer
+  ssize_t count = ::pread64(fd, buffer, file_size, 0);
+  if (count < 0 || static_cast<size_t>(count) != file_size) {
+    std::cerr << "Error reading file into buffer.  Aborting.\n";
+    exit(1);
+  }
+  //std::cout << "file size: " << file_size
+  //          << ", buffer:\n" << be_scan::escape(buffer, file_size) << "\n";
 
   // scan
   be_scan::be_scan_t scanner(be_scan::available_scanners(), buffer, file_size);
   while (true) {
-    be_scan::artifact = scanner.next();
+    be_scan::artifact_t artifact = scanner.next();
     if (artifact.artifact_class == "") {
       break;
     }
 
-    // path
+    // compose path
     std::stringstream ss;
-    ss << 0 + artifact.buffer_offset);
+    ss << (0 + artifact.buffer_offset);
+    std::string path = ss.str();
 
     // show this artifact
     show(artifact, path);
@@ -115,63 +140,17 @@ int main(int argc, char* argv[]) {
     if (artifact.has_new_buffer()) {
 
       // show any unpacked artifacts
-      if MAX_RECURSION_DEPTH > 1 {
-        recurse(artifact, path, 1);
-      }
+      recurse(artifact, path, 1);
 
       // release this buffer
       artifact.delete_new_buffer();
     }
   }
 
+  // release primary buffer
+  delete[] buffer;
+
   std::cout << "Done.\n";
-}
-
-
-
-
-
-
-    if (artifact.has_new_buffer) {
-      delete_new_buffer();
-    }
-
-
-  memset(&st,0,sizeof(st));
-
-
-  // read file
-  const char* const filename = argv[1];
-  int fd = ::open(filename);
-  if (fd < 0) {
-    std::cerr << "cannot open " << fname << " to read file size.  "
-              << strerror(errno) << "\n";
-    exit(1);
-  }
-
-
-
-
-
-
-  ssize_t file_size = pread(fd,
-  char* buffer = new char[file_size];
-  pread(fd,
-
-
-  // tests
-/*zz
-  test_version();
-  test_available_scanners();
-  test_buffer8();
-  test_buffer16();
-*/
-  test_adjacency();
-  test_boundaries();
-  test_email();
-
-  // done
-  std::cout << "api_test Done.\n";
   return 0;
 }
 

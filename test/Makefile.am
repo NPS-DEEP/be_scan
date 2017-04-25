@@ -21,9 +21,9 @@
 
 EXTRA_DIST = vg.supp
 
-check_PROGRAMS = basic_tests
+check_PROGRAMS = basic_tests leak_test
 
-TESTS = $(check_PROGRAMS)
+TESTS = basic_tests
 
 AM_CFLAGS = $(BE_SCAN_CFLAGS)
 AM_CXXFLAGS = $(BE_SCAN_CXXFLAGS)
@@ -37,16 +37,14 @@ BASIC_TESTS_INCS = \
 	be_scan.hpp \
 	unit_test.h
 
-run_tests_valgrind:
-	for test in $(check_PROGRAMS); do \
-	  echo Begin $$test ... ; \
-	  valgrind --tool=memcheck --leak-check=full --show-reachable=yes --suppressions=vg.supp ./$$test; \
-	done
+LEAK_TEST_INCS = \
+	leak_test.cpp
 
 # ############################################################
 # tests
 # ############################################################
 basic_tests_SOURCES = $(BASIC_TESTS_INCS)
+leak_test_SOURCES = $(LEAK_TEST_INCS)
 
 .PHONY: run_tests_valgrind
 
