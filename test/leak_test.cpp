@@ -77,6 +77,8 @@ void recurse(be_scan::artifact_t artifact_in, std::string path_in, int depth) {
   }
 }
 
+static const size_t BUFFER_SIZE = 134217728; // 2^27 = 128MiB
+
 int main(int argc, char* argv[]) {
   if (argc != 2) {
     std::cerr << "Usage: valgrind --tool=memcheck --leak-check=full --show-reachable=yes ./leak_test <testfile>\n";
@@ -96,7 +98,7 @@ int main(int argc, char* argv[]) {
   // get file size
   /* We can use fstat if sizeof(st_size)==8 and st_size>0 */
   struct stat st;
-  size_t file_size = 0;
+  size_t file_size;
   memset(&st, 0, sizeof(st));
   if(sizeof(st.st_size)!=8 || fstat(fd, &st)!=0){
     std::cerr << "Error detecting file size.  Aborting.\n";
@@ -105,46 +107,53 @@ int main(int argc, char* argv[]) {
   file_size = st.st_size;
 
   // malloc
-  char* buffer = new (std::nothrow) char[file_size];
+  char* buffer = new (std::nothrow) char[BUFFER_SIZE];
   if (buffer == NULL) {
     std::cerr << "Error allocating buffer for file.  Aborting.\n";
     exit(1);
   }
 
-  // read file into buffer
-  ssize_t count = ::pread64(fd, buffer, file_size, 0);
-  if (count < 0 || static_cast<size_t>(count) != file_size) {
-    std::cerr << "Error reading file into buffer.  Aborting.\n";
-    exit(1);
-  }
-  //std::cout << "file size: " << file_size
-  //          << ", buffer:\n" << be_scan::escape(buffer, file_size) << "\n";
+  // iterate through slices of the file
+  size_t offset = 0;
+  while (offset < file_size) {
 
-  // scan
-  be_scan::be_scan_t scanner(be_scan::available_scanners(), buffer, file_size);
-  while (true) {
-    be_scan::artifact_t artifact = scanner.next();
-    if (artifact.artifact_class == "") {
-      break;
+    // read into buffer
+    ssize_t count = ::pread64(fd, buffer, BUFFER_SIZE, offset);
+
+    if (count < 0) {
+      std::cerr << "Error reading file: " << count << ".  Aborting.\n";
+      exit(1);
     }
 
-    // compose path
-    std::stringstream ss;
-    ss << (0 + artifact.buffer_offset);
-    std::string path = ss.str();
+    // open scanner
+    be_scan::be_scan_t scanner(be_scan::available_scanners(), buffer, count);
+    while (true) {
+      be_scan::artifact_t artifact = scanner.next();
+      if (artifact.artifact_class == "") {
+        break;
+      }
 
-    // show this artifact
-    show(artifact, path);
+      // compose path
+      std::stringstream ss;
+      ss << (offset + artifact.buffer_offset);
+      std::string path = ss.str();
 
-    // manage recursion
-    if (artifact.has_new_buffer()) {
+      // show this artifact
+      show(artifact, path);
 
-      // show any unpacked artifacts
-      recurse(artifact, path, 1);
+      // manage recursion
+      if (artifact.has_new_buffer()) {
 
-      // release this buffer
-      artifact.delete_new_buffer();
+        // show any unpacked artifacts
+        recurse(artifact, path, 1);
+
+        // release this buffer
+        artifact.delete_new_buffer();
+      }
     }
+
+    // move to next offset
+    offset += count;
   }
 
   // release primary buffer
