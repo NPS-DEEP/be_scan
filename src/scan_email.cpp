@@ -233,7 +233,7 @@ namespace be_scan {
 
           // define start and stop points with respect to the buffer
           size_t buffer_start = start < 150 ? 0 : start - 150;
-          size_t buffer_stop = stop + 394 >= buffer_size ? buffer_size :
+          size_t buffer_stop = stop + 394 >= buffer_size ? buffer_size - 1 :
                                        stop + 394 - 1;
 //std::cout << "next8.c buffer_start: " << buffer_start << "\n";
 //std::cout << "next8.d buffer_stop: " << buffer_stop << "\n";
@@ -291,7 +291,7 @@ namespace be_scan {
 
           // define start and stop points with respect to the buffer
           size_t buffer_start = start < 150 ? 0 : start - 150;
-          size_t buffer_stop = stop + 394 >= buffer_size ? buffer_size :
+          size_t buffer_stop = stop + 394 >= buffer_size ? buffer_size - 1 :
                                        stop + 394 - 1;
 
 //std::cout << "next16.c buffer_start: " << buffer_start << "\n";
