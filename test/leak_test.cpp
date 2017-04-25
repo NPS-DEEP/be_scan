@@ -125,6 +125,10 @@ int main(int argc, char* argv[]) {
       exit(1);
     }
 
+    // runtime status
+    std::cout << "File " << filename << " start " << offset
+              << " count " << count << "\n";
+
     // open scanner
     be_scan::be_scan_t scanner(be_scan::available_scanners(), buffer, count);
     while (true) {
