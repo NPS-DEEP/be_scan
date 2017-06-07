@@ -49,26 +49,6 @@ static std::set<std::string> split(const std::string &s, char delim) {
   return elems;
 }
 
-  /**
-   * Copy the buffer, return NULL if malloc fails.
-   */
-static char* copy_buffer(const char* const buffer, size_t buffer_size) {
-  // skip if nothing to do
-  if (buffer == NULL) {
-    return NULL;
-  }
-
-  // copy the buffer, else NULL on bad_alloc
-  char* b = new (std::nothrow) char[buffer_size];
-  if (b == NULL) {
-    std::cerr << "be_scan error: unable to allocate memory for buffer copy\n";
-    // malloc failed
-    return NULL;
-  }
-  ::memcpy(b, buffer, buffer_size);
-  return b;
-}
-
 namespace be_scan {
 
 // ************************************************************
@@ -123,29 +103,37 @@ namespace be_scan {
 
   // constructor
   be_scan_t::be_scan_t(const std::string& p_requested_scanners,
-                       const char* const p_buffer,
-                       size_t p_buffer_size) :
-                buffer(copy_buffer(p_buffer, p_buffer_size)),
-                buffer_size(p_buffer_size),
-                scanners(std::set<std::string>()),
-                scanner_it(),
-                opened_scanner(NULL),
-                bad_alloc(buffer == NULL) {
-
-    if (bad_alloc) {
-      // the buffer was not allocated so stay closed
-      return;
-    }
-
-    // identify the requested scanners
-    scanners = split(p_requested_scanners, ' ');
-
-    // start the scanner iterator
-    scanner_it = scanners.begin();
-
-    // open the next scanner
-    open_next();
+                       const std::string& p_avro_filename) :
+                scanners(split(p_requested_scanners, ' '),
+                avro_filename(p_avro_filename) {
   }
+
+  std::string be_scan_t::scan(const char* const buffer,
+                              size_t buffer_size) {
+
+    // run each requested scanner
+    for (auto it = scanners.begin(); it != scanners.end(); ++it) {
+
+      if (scanner == "email") {
+        opened_scanner = scan_email(buffer, buffer_size);
+        break;
+#ifdef HAVE_DEVEL
+      } else if (scanner == "names") {
+        opened_scanner = scan_names(buffer, buffer_size);
+        break;
+#endif
+      } else if (scanner == "zip_gzip") {
+        opened_scanner = scan_zip_gzip(buffer, buffer_size);
+        break;
+      } else {
+        std::cerr << "be_scan_error: unrecognized scanner type '"
+                  << scanner << "'\n";
+      }
+
+
+
+
+
 
   be_scan_t::be_scan_t(const std::string& p_requested_scanners,
                        const artifact_t& artifact) :

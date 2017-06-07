@@ -17,27 +17,44 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-#ifndef FLEX_EXTRA_PARAMETERS_HPP
-#define FLEX_EXTRA_PARAMETERS_HPP
+#ifndef ARTIFACT_HPP
+#define ARTIFACT_HPP
 
-#include <stdint.h>
 #include <string>
-#include <iostream>
-
-typedef void* yyscan_t; // flex
+#include <stdint.h>
 
 namespace be_scan {
 
-  class flex_extra_parameters_t {
-
+  /**
+   * Artifacts are returned using this structure.
+   */
+// We intentionally have a pointer, so suppress the compiler warning.
+#ifdef HAVE_DIAGNOSTIC_EFFCPP
+#pragma GCC diagnostic ignored "-Weffc++"
+#endif
+  class artifact_t {
     public:
-    yyscan_t scanner;
-    size_t flex_offset;
-    size_t flex_size;
-    size_t region_start;
-    size_t region_stop;
+    std::string media_filename;
+    uint64_t slice_offset;
+    std::string recursion_prefix;
+    std::string artifact_class;
+    size_t buffer_offset;
+    std::string artifact;
+    std::string context;
+    
+    artifact_t();
+    artifact_t(const std::string& p_media_filename,
+               const uint64_t p_slice_offset,
+               const std::string& p_recursion_prefix,
+               const std::string& p_artifact_class,
+               const size_t p_buffer_offset,
+               const std::string& p_artifact,
+               const std::string& p_context);
+
+    void artifact_t::to_avro();
+    void artifact_t::to_stdout();
   };
-} // end namespace
+}
 
 #endif
 

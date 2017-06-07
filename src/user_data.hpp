@@ -19,22 +19,27 @@
 
 /**
  * \file
- * Enables scanning through multiple scanners as though there were one
- * scanner.
+ * Header file for the be_scan library.
  */
 
-#ifndef SCANNER_HPP
-#define SCANNER_HPP
+#ifndef USER_DATA_HPP
+#define USER_DATA_HPP
+
+#include <string>
+#include <stdint.h>
 
 namespace be_scan {
 
-  // The generic interface for any scanner.
-  class scanner_t {
+  class user_data_t {
     public:
-    virtual artifact_t next() = 0;
-    virtual ~scanner_t() {};
-  };
-}
+    const std::string media_filename;
+    const std::string recursion_prefix;
+    const std::string avro_output_filename;
+    const uint64_t slice_offset;
+    char* const buffer;
+    size_t buffer_size;
+  }:
 
+} // namespace
 #endif
 

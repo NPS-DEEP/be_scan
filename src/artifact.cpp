@@ -23,53 +23,48 @@
 #include "be_scan.hpp"
 
 namespace be_scan {
-    artifact_t::artifact_t(const std::string& p_artifact_class,
+    artifact_t::artifact_t(const std::string& p_media_filename,
+                           const uint64_t p_slice_offset,
+                           const std::string& p_recursion_prefix,
+                           const std::string& p_artifact_class,
                            const size_t p_buffer_offset,
                            const std::string& p_artifact,
-                           const std::string& p_context,
-                           const char* const p_new_buffer,
-                           const size_t p_new_buffer_size,
-                           const bool p_bad_alloc) :
+                           const std::string& p_context) :
+                      media_filename(p_media_filename),
+                      slice_offset(p_slice_offset),
+                      recursion_prefix(p_recursion_prefix),
                       artifact_class(p_artifact_class),
                       buffer_offset(p_buffer_offset),
                       artifact(p_artifact),
-                      context(p_context),
-                      new_buffer(p_new_buffer),
-                      new_buffer_size(p_new_buffer_size),
-                      bad_alloc(p_bad_alloc) {
+                      context(p_context) {
     }
 
     // blank
     artifact_t::artifact_t() :
+                      media_filename(""),
+                      slice_offset(0),
+                      recursion_prefix(""),
                       artifact_class(""),
                       buffer_offset(0),
                       artifact(""),
-                      context(""),
-                      new_buffer(NULL),
-                      new_buffer_size(0),
-                      bad_alloc(false) {
+                      context("") {
     }
 
-    bool artifact_t::has_new_buffer() const {
-      return (new_buffer != NULL);
+    // forward artifact to Avro
+    void artifact_t::to_avro() {
+      // TBD
+      std::cout << "to_avro TBD\n";
     }
 
-    void artifact_t::delete_new_buffer() {
-      if(new_buffer != NULL) {
-        delete[] new_buffer;
-        new_buffer = NULL;
-        new_buffer_size = 0;
-      }
-    }
-
-    // get around Java \0 limitation, see be_scan.i
-    void artifact_t::javaArtifact(std::string& a) const {
-      a = artifact;
-    }
-
-    // get around Java \0 limitation, see be_scan.i
-    void artifact_t::javaContext(std::string& c) const {
-      c = context;
+    // forward artifact to stdout
+    void artifact_t::to_stdout() {
+      std::stringstream;
+      ss << media_filename << " "
+         << artifact_class << " "
+         << slice_offset + buffer_offset << "\t"
+         << escape(artifact) << "\t"
+         << escape(context) << "\n";
+      std::cout << ss.str();
     }
 }
 

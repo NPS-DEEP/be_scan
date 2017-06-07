@@ -17,25 +17,37 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-/**
- * \file
- * Generate context for artifact within buffer
- */
-
-#ifndef EXTRACT_CONTEXT_HPP
-#define EXTRACT_CONTEXT_HPP
-
+#include <config.h>
 #include <string>
 #include <stdint.h>
+#include <iostream>
+#include <cassert>
+#include "read.hpp"
 
 namespace be_scan {
 
-  std::string extract_context(const char* const buffer,
-                              const size_t buffer_size,
-                              const size_t artifact_offset,
-                              const size_t artifact_length,
-                              const size_t artifact_padding);
-}
+  /*
+   * Read bytes from buffer as string including optional padding.
+   */
+  std::string read(const char* const buffer,
+                   const size_t buffer_size,
+                   const size_t offset,
+                   const size_t length,
+                   const size_t padding) {
 
-#endif
+    // fail on invalid input
+    if (buffer_size == 0 || offset >= buffer_size) {
+      std::cerr << "internal error in extract_content\n";
+      assert(0);
+    }
+
+    // find valid bounds for the context
+    const size_t start = offset < padding ? 0 : offset - padding;
+    const size_t stop = offset + length + padding >= buffer_size ?
+                        buffer_size - 1 : offset + length + padding - 1;
+
+    // return the bytes as string
+    return std::string(&buffer[start], stop - start + 1);
+  }
+}
 

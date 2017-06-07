@@ -17,48 +17,25 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-#ifndef FLEX_SCAN_EXCEPTION_HPP
-#define FLEX_SCAN_EXCEPTION_HPP
+/**
+ * \file
+ * Read bytes from buffer as string including optional padding.
+ */
 
-#include <stdint.h>
+#ifndef READ_HPP
+#define READ_HPP
+
 #include <string>
-#include <exception>
+#include <stdint.h>
 
 namespace be_scan {
 
-// superclass requires *msg so suppress the warning
-#ifdef HAVE_DIAGNOSTIC_EFFCPP
-#pragma GCC diagnostic ignored "-Weffc++"
-#endif
-
-  class flex_scan_exception: public std::exception {
-    public:
-    const char *msg;
-
-    flex_scan_exception(const char *m) : msg(m) {
-    }
-
-    virtual const char *what() const throw() {
-      return msg;
-    }
-  };
-
-/*
-  class flex_scan_exception: public std::exception {
-    private:
-    const std::string msg;
-
-    public:
-    flex_scan_exception(const char *m) : msg(std::string(m)) {
-    }
-
-    virtual const char *what() const throw() {
-      return msg.c_str();
-    }
-  };
-*/
-
-} // end namespace
+  std::string read(const char* const buffer,
+                   const size_t buffer_size,
+                   const size_t offset,
+                   const size_t length,
+                   const size_t padding);
+}
 
 #endif
 
