@@ -17,37 +17,42 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-#include <config.h>
+/**
+ * \file
+ * Header file for the be_scan library.
+ */
+
+#ifndef ESCAPE_HPP
+#define ESCAPE_HPP
+
 #include <string>
 #include <stdint.h>
-#include <iostream>
-#include <cassert>
-#include "read.hpp"
 
 namespace be_scan {
 
-  /*
-   * Read bytes from buffer as string including optional padding.
+  /**
+   * A helper function for formatting binary data into a printable string
+   * by escaping non-printable bytes.
+   *
+   * Parameters:
+   *   input - The binary input string.
+   * Returns:
+   *   Escaped output.
    */
-  std::string read(const char* const buffer,
-                   const size_t buffer_size,
-                   const size_t offset,
-                   const size_t length,
-                   const size_t padding) {
+  std::string escape(const std::string& input);
 
-    // fail on invalid input
-    if (buffer_size == 0 || offset >= buffer_size) {
-      std::cerr << "internal error in extract_content\n";
-      assert(0);
-    }
-
-    // find valid bounds for the context
-    const size_t start = offset < padding ? 0 : offset - padding;
-    const size_t stop = offset + length + padding >= buffer_size ?
-                        buffer_size - 1 : offset + length + padding - 1;
-
-    // return the bytes as string
-    return std::string(&buffer[start], stop - start + 1);
-  }
+  /**
+   * A helper function for formatting binary data into a printable string
+   * by escaping non-printable bytes.
+   *
+   * Parameters:
+   *   p_buffer - The buffer of bytes to format.
+   *   p_buffer_size - The number of bytes in the buffer to format.
+   * Returns:
+   *   Escaped output.
+   */
+  std::string escape(const char* const p_buffer, size_t p_buffer_size);
 }
+
+#endif
 

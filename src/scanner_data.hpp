@@ -19,32 +19,27 @@
 
 /**
  * \file
- * Generate context for artifact within buffer
+ * Header file for the be_scan library.
  */
 
-#ifndef SCAN_EMAIL_HPP
-#define SCAN_EMAIL_HPP
+#ifndef SCANNER_DATA_T
+#define SCANNER_DATA_T
 
-#include <config.h>
 #include <string>
 #include <stdint.h>
-#include "artifact.hpp"
-#include "lightgrep_wrapper.hpp"
-#include "user_data.hpp"
-#include "read.hpp"
-//#include "be_scan.hpp"
-//#include "scanner.hpp"
-//#include "extract_context.hpp"
 
 namespace be_scan {
 
-void email_callback_function(const uint64_t start,
-                             const uint64_t size,
-                             void* p_user_data);
-
-void add_email_regex(lw::lw_t& lw);
+  class scanner_data_t {
+    public:
+    const std::string stream_filename;
+    const uint64_t stream_offset;
+    const std::string recursion_prefix;
+    char* const buffer;
+    size_t buffer_size;
+    const std::string avro_output_filename;
+  }:
 
 } // namespace
-
 #endif
 

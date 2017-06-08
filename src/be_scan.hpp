@@ -36,7 +36,9 @@ const char* be_scan_version();
 
 namespace be_scan {
 
-  class scanner_t;
+  class lw::lw_t;
+  class lw::lw_scanner_t;
+  class scanner_data_t;
 
   /**
    * Version of the be_scan library.
@@ -52,79 +54,94 @@ namespace be_scan {
   std::string available_scanners();
 
   /**
-   * The scanner class.
+   * The scan engine class.
    */
-  class be_scan_t {
+  class scan_engine_t {
+
+    // scanner_t accesses lw_t in scan_engine_t
+    friend class scanner_t;
 
     private:
-    std::set<std::string> scanners;
-    std::string avro_filename;
+    lw::lw_t* lightgrep_wrapper;
 
 #ifndef SWIG
     // do not allow copy or assignment
-    be_scan_t(const be_scan_t&) = delete;
-    be_scan_t& operator=(const be_scan_t&) = delete;
+    scan_engine_t(const scan_engine_t&) = delete;
+    scan_engine_t& operator=(const scan_engine_t&) = delete;
 #endif
 
     public:
+
     /**
-     * Create a scan instance given scanners to use and a buffer to scan.
+     * Status is "" if valid, else error message.
+     */
+    const std::string status;
+
+    /**
+     * Get a regex scan engine.
      *
      * Parameters:
-     *   requested_scanners - The scanners to use during the scan.
-     *   p_buffer - The buffer of bytes to scan.  The buffer is copied.
-     *   p_buffer_size - The number of bytes in the buffer to scan.
+     *   requested_scanners - The scanners to enable.
      */
-    be_scan_t(const std::string& requested_scanners,
-              const std::string& p_avro_filename);
+    scan_engine_t(const std::string& requested_scanners);
+
+    /**
+     * Destructor.
+     */
+    ~scan_engine_t();
+  };
+
+  /**
+   * The scanner class.
+   */
+  class scanner_t {
+    private:
+    scanner_data_t* scanner_data;
+    lw::lw_scanner_t* lw_scanner;
+    const std::string status;
+
+#ifndef SWIG
+    // do not allow copy or assignment
+    scanner_t(const scanner_t&) = delete;
+    scanner_t& operator=(const scanner_t&) = delete;
+#endif
+
+    public:
+
+    /**
+     * Get a regex scanner.
+     *
+     * Parameters:
+     *   scan_engine - The scan engine to use for the scanning
+     *   avro_filename - The filename to write found artifacts to.
+     */
+    scanner_t(scan_engine_t& scan_engine,
+              const std::string& avro_filename);
 
     /**
      * Scan.
      *
      * Parameters:
-     *   requested_scanners - The scanners to use during the scan.
-     *   p_buffer - The buffer of bytes to scan.  The buffer is copied.
-     *   p_buffer_size - The number of bytes in the buffer to scan.
+     *   stream_name - The name where the buffer stream came from,
+     *                 typically a media image filename.
+     *   stream_offset - The stream start offset of this buffer.
+     *   recursion_prefix - The recursion prefix, or "" for no recursion.
+     *   buffer - The stream's buffer to scan.
+     *   buffer_size - The number of bytes in the buffer to scan.
      * Returns:
      *   "" else failure message.
      */
-    std::string scan(const char* const buffer,
+    std::string scan(const std::string& stream_name,
+                     const uint64_t stream_offset,
+                     const std::string& recursion_prefix,
+                     const char* const buffer,
                      size_t buffer_size);
 
     /**
      * Destructor.
      */
-    ~be_scan_t();
-
-//    /**
-//     * For diagnostics only, test loopback of input buffer.
-//     */
-//    void test_loopback(std::string& loopback_buffer) const;
+    ~scanner_t();
   };
-
-  /**
-   * A helper function for formatting binary data into a printable string
-   * by escaping non-printable bytes.
-   *
-   * Parameters:
-   *   input - The binary input string.
-   * Returns:
-   *   Escaped output.
-   */
-  std::string escape(const std::string& input);
-
-  /**
-   * A helper function for formatting binary data into a printable string
-   * by escaping non-printable bytes.
-   *
-   * Parameters:
-   *   p_buffer - The buffer of bytes to format.
-   *   p_buffer_size - The number of bytes in the buffer to format.
-   * Returns:
-   *   Escaped output.
-   */
-  std::string escape(const char* const p_buffer, size_t p_buffer_size);
-
 }
 
 #endif

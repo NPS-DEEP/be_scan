@@ -17,29 +17,29 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-/**
- * \file
- * Header file for the be_scan library.
- */
-
-#ifndef USER_DATA_HPP
-#define USER_DATA_HPP
+#ifndef WRITE_AVRO_HPP
+#define WRITE_AVRO_HPP
 
 #include <string>
 #include <stdint.h>
+#include "scanner_data.hpp"
 
 namespace be_scan {
 
-  class user_data_t {
-    public:
-    const std::string media_filename;
-    const std::string recursion_prefix;
-    const std::string avro_output_filename;
-    const uint64_t slice_offset;
-    char* const buffer;
-    size_t buffer_size;
-  }:
+// write artifact to Avro
+void write_avro(const scanner_data_t& scanner_data,
+                const std::string& artifact_class,
+                const size_t buffer_offset,
+                const std::string& artifact,
+                const std::string& context);
 
-} // namespace
+// write artifact to stdout, for diagnostics only
+void write_stdout(const scanner_data_t& scanner_data,
+                  const std::string& artifact_class,
+                  const size_t buffer_offset,
+                  const std::string& artifact,
+                  const std::string& context);
+}
+
 #endif
 

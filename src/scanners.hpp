@@ -19,22 +19,38 @@
 
 /**
  * \file
- * Read bytes from buffer as string including optional padding.
+ * Header file for all scanners.  Update this when adding scanners.
  */
 
-#ifndef READ_HPP
-#define READ_HPP
+#ifndef SCANNERS_HPP
+#define SCANNERS_HPP
 
+#include <config.h>
 #include <string>
 #include <stdint.h>
+#include "lightgrep_wrapper.hpp"
 
+// scanner support
 namespace be_scan {
 
-  std::string read(const char* const buffer,
-                   const size_t buffer_size,
-                   const size_t offset,
-                   const size_t length,
-                   const size_t padding);
+  // available scanners
+  std::string available_scanners();
+
+  // add regex for all scanners, return "" else error
+  std::string add_regex(lw::lw_t& lw, const std::string& requested_scanners);
+}
+
+class be_scan::p_scanner_data;
+
+// email
+namespace email {
+  // callback functions
+  void emailHitHandler(const uint64_t start, const uint64_t size,
+                       void* p_scanner_data);
+  void emailUTF16LEHitHandler(const uint64_t start, const uint64_t size,
+                              void* p_scanner_data);
+  // regex
+  std::string add_email_regex(lw::lw_t& lw);
 }
 
 #endif

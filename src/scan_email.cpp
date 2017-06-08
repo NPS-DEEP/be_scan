@@ -22,25 +22,27 @@
 #include <iostream>
 #include <sstream>
 #include <set>
-#include "be_scan.hpp"
-#include "scanner.hpp"
-#include "scan_email.hpp"
-#include "extract_context.hpp"
+#include "scanners.hpp"
+#include "scanner_data.hpp"
+#include "lightgrep_wrapper.hpp"
+#include "write_avro.hpp"
 
 namespace email {
-  const char* const DefaultEncodingsCStrings[] = {"UTF-8", "UTF-16LE"};
 
-  const vector<string> DefaultEncodings(
-    DefaultEncodingsCStrings,
-    DefaultEncodingsCStrings +
-      sizeof(DefaultEncodingsCStrings)/sizeof(DefaultEncodingsCStrings[0])
-  );
-
-  const vector<string> OnlyUTF8Encoding(1, "UTF-8");
-
-  const vector<string> OnlyUTF16LEEncoding(1, "UTF-16LE");
-
-  const LG_KeyOptions DefaultOptions = { 0, 1 }; // patterns, case-insensitive
+  // ************************************************************
+  // general support
+  // ************************************************************
+  void write_artifact(const std::string& artifact_class,
+                      const uint64_t start, const uint64_t size,
+                      const scanner_data_t& scanner_data) {
+    be_scan::write_avro(scanner_data, artifact_class, start,
+                        lw::read_random(scanner_data.buffer,
+                                        scanner_data.buffer_offset,
+                                        start, size, 0),
+                        lw::read_random(scanner_data.buffer,
+                                        scanner_data.buffer_offset,
+                                        start, size, 16));
+  }
 
   //
   // subpatterns
@@ -63,16 +65,13 @@ namespace email {
   // helper functions
   //
 
-  // NB: It is very important *not* to use functions expecting C strings
-  // or std::strings on hit data, as hit data could contain internal null
-  // bytes.
-
-  /** return the offset of the domain in an email address.
-   * returns buflen + 1 if the domain is not found.
-   * the domain extends to the end of the email address
-   */
-  inline size_t find_domain_in_email(const uint8_t* buf, size_t buflen) {
-    return find(buf, buf + buflen, '@') - buf + 1;
+  std::string find_domain_in_email(const std::string& email) {
+    size_t i = email.find("@");
+    if (i==std::string::npos) {
+      return "";
+    } else {
+      return email.substr(i+1);
+    }
   }
 
   template <typename T>
@@ -172,404 +171,39 @@ namespace email {
     return true;
   }
 
-  //
-  // the scanner
-  //
+  // ************************************************************
+  // callback functions
+  // ************************************************************
 
-  class Scanner: public PatternScanner {
-  public:
-    Scanner(): PatternScanner("email_lg"), RFC822_Recorder(0), Email_Recorder(0), Domain_Recorder(0), Ether_Recorder(0), URL_Recorder(0) {}
-    virtual ~Scanner() {}
+  void emailHitHandler(const uint64_t start, const uint64_t size,
+                       void* p_scanner_data) {
 
-    virtual Scanner* clone() const { return new Scanner(*this); }
+    // typecast void* into scanner_data
+    user_data_t* scanner_data(static_cast<user_data_t*>(p_user_data));
 
-    virtual void startup(const scanner_params& sp);
-    virtual void init(const scanner_params& sp);
-    virtual void initScan(const scanner_params& sp);
-
-    feature_recorder* RFC822_Recorder;
-    feature_recorder* Email_Recorder;
-    feature_recorder* Domain_Recorder;
-    feature_recorder* Ether_Recorder;
-    feature_recorder* URL_Recorder;
-
-    void rfc822HitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb);
-
-    void emailHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb);
-
-    void emailUTF16LEHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb);
-
-    void ipaddrHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb);
-
-    void ipaddrUTF16LEHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb);
-
-    void etherHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb);
-
-    void etherUTF16LEHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb);
-
-    void protoHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb);
-
-    void protoUTF16LEHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb);
-
-  private:
-    Scanner(const Scanner& s):
-      PatternScanner(s),
-      RFC822_Recorder(s.RFC822_Recorder),
-      Email_Recorder(s.Email_Recorder),
-      Domain_Recorder(s.Domain_Recorder),
-      Ether_Recorder(s.Ether_Recorder),
-      URL_Recorder(s.URL_Recorder)
-    {}
-
-    Scanner& operator=(const Scanner&);
-  };
-
-  void Scanner::startup(const scanner_params& sp) {
-    assert(sp.sp_version == scanner_params::CURRENT_SP_VERSION);
-    assert(sp.info->si_version == scanner_info::CURRENT_SI_VERSION);
-
-    sp.info->name            = "email_lg";
-    sp.info->author          = "Simson L. Garfinkel";
-    sp.info->description     = "Scans for email addresses, domains, URLs, RFC822 headers, etc.";
-    sp.info->scanner_version = "1.0";
-
-    // define the feature files this scanner creates
-    sp.info->feature_names.insert("email");
-    sp.info->feature_names.insert("domain");
-    sp.info->feature_names.insert("url");
-    sp.info->feature_names.insert("rfc822");
-    sp.info->feature_names.insert("ether");
-
-    // define the histograms to make
-    sp.info->histogram_defs.insert(histogram_def("email", "", "histogram", HistogramMaker::FLAG_LOWERCASE));
-    sp.info->histogram_defs.insert(histogram_def("domain", "", "histogram"));
-    sp.info->histogram_defs.insert(histogram_def("url", "", "histogram"));
-    sp.info->histogram_defs.insert(histogram_def("url", "://([^/]+)", "services"));
-    sp.info->histogram_defs.insert(histogram_def("url", "://((cid-[0-9a-f])+[a-z.].live.com/)", "microsoft-live"));
-    sp.info->histogram_defs.insert(histogram_def("url", "://[-_a-z0-9.]+facebook.com/.*[&?]{1}id=([0-9]+)", "facebook-id"));
-    sp.info->histogram_defs.insert(histogram_def("url", "://[-_a-z0-9.]+facebook.com/([a-zA-Z0-9.]*[^/?&]$)", "facebook-address",  HistogramMaker::FLAG_LOWERCASE));
-    sp.info->histogram_defs.insert(histogram_def("url", "search.*[?&/;fF][pq]=([^&/]+)", "searches"));
+    be_scan::write_artifact("email", scanner_data, start, size);
   }
 
-  void Scanner::init(const scanner_params& sp) {
-    //
-    // patterns
-    //
+  void emailUTF16LEHitHandler(const uint64_t start, const uint64_t size,
+                              void* p_scanner_data) {
 
-    const string DATE(DAYOFWEEK + ",[ \\t\\n\\r]+[0-9]{1,2}[ \\t\\n\\r]+" + MONTH + "[ \\t\\n\\r]+" + YEAR + "[ \\t\\n\\r]+[0-2][0-9]:[0-5][0-9]:[0-5][0-9][ \\t\\n\\r]+([+-][0-2][0-9][0314][05]|" + ABBREV + ")");
+    // typecast void* into scanner_data
+    user_data_t* scanner_data(static_cast<user_data_t*>(p_user_data));
 
-    new Handler(
-      *this,
-      DATE,
-      DefaultEncodings,
-      DefaultOptions,
-      &Scanner::rfc822HitHandler
-    );
-
-    const string MESSAGE_ID("Message-ID:([ \\t\\n]|\\r\\n)?<" + PC + "+>");
-
-    new Handler(
-      *this,
-      MESSAGE_ID,
-      DefaultEncodings,
-      DefaultOptions,
-      &Scanner::rfc822HitHandler
-    );
-
-    const string SUBJECT("Subject:[ \\t]?" + PC + "+");
-
-    new Handler(
-      *this,
-      SUBJECT,
-      DefaultEncodings,
-      DefaultOptions,
-      &Scanner::rfc822HitHandler
-    );
-
-    const string COOKIE("Cookie:[ \\t]?" + PC + "+");
-
-    new Handler(
-      *this,
-      COOKIE,
-      DefaultEncodings,
-      DefaultOptions,
-      &Scanner::rfc822HitHandler
-    );
-
-    const string HOST("Host:[ \\t]?[a-zA-Z0-9._]+");
-
-    new Handler(
-      *this,
-      HOST,
-      DefaultEncodings,
-      DefaultOptions,
-      &Scanner::rfc822HitHandler
-    );
-
-    // FIXME: trailing context
-//    const string EMAIL(ALNUM + "[a-zA-Z0-9._%\\-+]+" + ALNUM + "@" + ALNUM + "[a-zA-Z0-9._%\\-]+\\." + TLD + "[^\\z41-\\z5A\\z61-\\z7A]");
-    const string EMAIL(ALNUM + "(\\.?[a-zA-Z0-9_%\\-+])+\\.?" + ALNUM + "@" + ALNUM + "(\\.?[a-zA-Z0-9_%\\-])+\\." + TLD + "[^\\z41-\\z5A\\z61-\\z7A]");
-
-    new Handler(
-      *this,
-      EMAIL,
-      OnlyUTF8Encoding,
-      DefaultOptions,
-      &Scanner::emailHitHandler
-    );
-
-    new Handler(
-      *this,
-      EMAIL,
-      OnlyUTF16LEEncoding,
-      DefaultOptions,
-      &Scanner::emailUTF16LEHitHandler
-    );
-
-    // FIXME: leading context
-    // FIXME: trailing context
-    // Numeric IP addresses. Get the context before and throw away some things
-    const string IP("[^\\z30-\\z39\\z2E]" + INUM + "(\\." + INUM + "){3}[^\\z30-\\z39\\z2B\\z2D\\z2E\\z41-\\z5A\\z5F\\z61-\\z7A]");
-
-    new Handler(
-      *this,
-      IP,
-      OnlyUTF8Encoding,
-      DefaultOptions,
-      &Scanner::ipaddrHitHandler
-    );
-
-    const string IP_UTF16LE("([^\\z30-\\z39\\z2E]\\z00|[^\\z00])" + INUM + "(\\." + INUM + "){3}[^\\z30-\\z39\\z2B\\z2D\\z2E\\z41-\\z5A\\z5F\\z61-\\z7A]");
-
-    new Handler(
-      *this,
-      IP_UTF16LE,
-      OnlyUTF16LEEncoding,
-      DefaultOptions,
-      &Scanner::ipaddrUTF16LEHitHandler
-    );
-
-    // FIXME: leading context
-    // FIXME: trailing context
-    // found a possible MAC address!
-    const string MAC("[^\\z30-\\z39\\z3A\\z41-\\z5A\\z61-\\z7A]" + HEX + "{2}(:" + HEX + "{2}){5}[^\\z30-\\z39\\z3A\\z41-\\z5A\\z61-\\z7A]");
-
-    new Handler(
-      *this,
-      MAC,
-      OnlyUTF8Encoding,
-      DefaultOptions,
-      &Scanner::etherHitHandler
-    );
-
-    const string MAC_UTF16LE("([^\\z30-\\z39\\z3A\\z41-\\z5A\\z61-\\z7A]\\z00|[^\\z00])" + HEX + "{2}(:" + HEX + "{2}){5}[^\\z30-\\z39\\z3A\\z41-\\z5A\\z61-\\z7A]");
-
-    new Handler(
-      *this,
-      MAC,
-      OnlyUTF16LEEncoding,
-      DefaultOptions,
-      &Scanner::etherUTF16LEHitHandler
-    );
-
-    const string PROTO("(https?|afp|smb)://[a-zA-Z0-9_%/\\-+@:=&?#~.;]+");
-
-    new Handler(
-      *this,
-      PROTO,
-      OnlyUTF8Encoding,
-      DefaultOptions,
-      &Scanner::protoHitHandler
-    );
-
-    new Handler(
-      *this,
-      PROTO,
-      OnlyUTF16LEEncoding,
-      DefaultOptions,
-      &Scanner::protoUTF16LEHitHandler
-    );
+    be_scan::write_artifact("email", scanner_data, start, size);
   }
 
-  void Scanner::initScan(const scanner_params& sp) {
-    RFC822_Recorder = sp.fs.get_name("rfc822");
-    Email_Recorder = sp.fs.get_name("email");
-    Domain_Recorder = sp.fs.get_name("domain");
-    Ether_Recorder = sp.fs.get_name("ether");
-    URL_Recorder = sp.fs.get_name("url");
+  // ************************************************************
+  // regex
+  // ************************************************************
+
+  std::string add_email_regex(lw::lw_t& lw) {
+    std::string status;
+    status = lw.add_regex(EMAIL, "UTF-8", true, false, &emailHitHandler);
+    if (status != "") return status;
+    status = lw.add_regex(EMAIL, "UTF-16LE", true, false, &emailHitHandler);
+    if (status != "") return status;
+    return "";
   }
-
-  void Scanner::rfc822HitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb) {
-    RFC822_Recorder->write_buf(sp.sbuf, hit.Start, hit.End - hit.Start);
-  }
-
-  void Scanner::emailHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb) {
-    const size_t len = (hit.End - 1) - hit.Start;
-    const uint8_t* matchStart = sp.sbuf.buf + hit.Start;
-
-    Email_Recorder->write_buf(sp.sbuf, hit.Start, len);
-    const size_t domain_off = find_domain_in_email(matchStart, len);
-    if (domain_off < len) {
-      Domain_Recorder->write_buf(sp.sbuf, hit.Start + domain_off, len - domain_off);
-    }
-  }
-
-  void Scanner::emailUTF16LEHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb) {
-    const size_t len = (hit.End - 1) - hit.Start;
-    const uint8_t* matchStart = sp.sbuf.buf + hit.Start;
-
-    Email_Recorder->write_buf(sp.sbuf, hit.Start, len);
-    const size_t domain_off = find_domain_in_email(matchStart, len) + 1;
-    if (domain_off < len) {
-      Domain_Recorder->write_buf(sp.sbuf, hit.Start + domain_off, len - domain_off);
-    }
-  }
-
-  void Scanner::ipaddrHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb) {
-    if (valid_ipaddr(sp.sbuf.buf, sp.sbuf.buf + hit.Start + 1)) {
-      Domain_Recorder->write_buf(sp.sbuf, hit.Start+1, hit.End - hit.Start - 2);
-    }
-  }
-
-  void Scanner::ipaddrUTF16LEHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb) {
-    const size_t pos = hit.Start + (*(sp.sbuf.buf+hit.Start+1) == '\0' ? 2 : 1);
-    const size_t len = (hit.End - 1) - pos;
-    // this assumes sp.sbuf.pos will never be an odd memory address...
-    // if pos is odd, add 1 to sbuf.buf and use it as a leftmost guard
-    const uint16_t* leftguard(reinterpret_cast<const uint16_t*>(sp.sbuf.buf + ((pos & 0x01) == 1 ? 1: 0)));
-    if (valid_ipaddr(leftguard, reinterpret_cast<const uint16_t*>(sp.sbuf.buf + pos))) {
-      Domain_Recorder->write_buf(sp.sbuf, pos, len);
-    }
-  }
-
-  void Scanner::etherHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb) {
-    const size_t pos = hit.Start + 1;
-    const size_t len = (hit.End - 1) - pos;
-    if (valid_ether_addr(sp.sbuf.buf+pos)){
-      Ether_Recorder->write_buf(sp.sbuf, pos, len);
-    }
-  }
-
-  void Scanner::etherUTF16LEHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb) {
-    const size_t pos = hit.Start + (*(sp.sbuf.buf+hit.Start+1) == '\0' ? 2 : 1);
-    const size_t len = (hit.End -1) - pos;
-
-    const string ascii(low_utf16le_to_ascii(sp.sbuf.buf+pos, len));
-    if (valid_ether_addr(reinterpret_cast<const uint8_t*>(ascii.c_str()))){
-      Ether_Recorder->write_buf(sp.sbuf, pos, len);
-    }
-  }
-
-  void Scanner::protoHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb) {
-    // for reasons that aren't clear, there are a lot of net protocols that
-    // have an http://domain in them followed by numbers. So this counts the
-    // number of slashes and if it is only 2 the size is pruned until the
-    // last character is a letter
-    const int slash_count = count(
-      sp.sbuf.buf + hit.Start,
-      sp.sbuf.buf + hit.End, '/'
-    );
-
-    size_t len = hit.End - hit.Start;
-
-    if (slash_count == 2) {
-      while (len > 0 && !isalpha(sp.sbuf[hit.Start+len-1])) {
-        --len;
-      }
-    }
-
-    URL_Recorder->write_buf(sp.sbuf, hit.Start, len);
-
-    size_t domain_len = 0;
-    size_t domain_off = find_domain_in_url(sp.sbuf.buf + hit.Start, len, domain_len);  // find the start of domain?
-    if (domain_off < len && domain_len > 0) {
-      Domain_Recorder->write_buf(sp.sbuf, hit.Start + domain_off, domain_len);
-    }
-  }
-
-  void Scanner::protoUTF16LEHitHandler(const LG_SearchHit& hit, const scanner_params& sp, const recursion_control_block& rcb) {
-    const int slash_count = count(
-      sp.sbuf.buf + hit.Start,
-      sp.sbuf.buf + hit.End, '/'
-    );
-
-    size_t len = hit.End - hit.Start;
-
-    if (slash_count == 2) {
-      while (len > 1 && !isalpha(sp.sbuf[hit.Start+len-2])) {
-        len -= 2;
-      }
-    }
-
-    URL_Recorder->write_buf(sp.sbuf, hit.Start, len);
-
-    size_t domain_len = 0;
-    size_t domain_off = find_domain_in_url(reinterpret_cast<const uint16_t*>(sp.sbuf.buf + hit.Start), len/2, domain_len);  // find the start of domain?
-    domain_off *= 2;
-    domain_len *= 2;
-    if (domain_off < len && domain_len > 0) {
-      Domain_Recorder->write_buf(sp.sbuf, hit.Start + domain_off, domain_len);
-    }
-  }
-
-  Scanner TheScanner;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ************************************************************
-// NEW
-// ************************************************************
-
-void email_callback_function(const uint64_t start,
-                             const uint64_t size,
-                             void* p_user_data) {
-  // typecast void* p_user_data into user_dat_t* user_data
-  user_data_t* user_data(static_cast<user_data_t*>(p_user_data));
-
-  // match
-  const std::string match(read(user_data->buffer,
-                               user_data->buffer_size,
-                               start, size, 0));
-
-  // context
-  const std::string context(read(user_data->buffer,
-                                 user_data->buffer_size,
-                                 start, size, 16));
-
-  // artifact
-  artifact_t artifact(user_data->media_filename,
-                      user_data->slice_offset,
-                      "",           // no recursion_prefix yet
-                      "email",      // artifact class
-                      start,
-                      match,
-                      context);
-
-  // consume the artifact
-  // zz replace this with to_avro()
-  artifact.to_stdout();
-}
-
-void add_email_regex(lw::lw_t& lw) {
 

@@ -22,25 +22,18 @@
 CLEANFILES = scan_email_flex.cpp
 
 BE_SCAN_INCS = \
-	artifact.cpp \
 	be_scan.cpp \
 	be_scan.hpp \
-	extract_context.cpp \
-	extract_context.hpp \
-	flex_scan_exception.hpp \
-	flex_extra_parameters.hpp \
+	escape.cpp \
+	escape.hpp \
+	read_random.cpp \
+	read_random.hpp \
 	scan_email.cpp \
-	scan_email_flex.flex \
-	scan_email.hpp \
-	scanner.hpp \
-	scan_zip_gzip.cpp \
-	scan_zip_gzip.hpp \
-	uncompress_gzip.cpp \
-	uncompress_zip.cpp
-
-DEV_INCS = \
-	scan_names.cpp \
-	scan_names.hpp
+	scanner_data.hpp \
+	scaners.cpp \
+	scaners.hpp \
+	write_avro.cpp \
+	write_avro.hpp
 
 lib_LTLIBRARIES = libbe_scan.la
 
@@ -51,7 +44,7 @@ AM_CXXFLAGS = $(BE_SCAN_CXXFLAGS)
 libbe_scan_la_LDFLAGS = -PIC -avoid-version \
                         -export-dynamic -no-undefined
 
-libbe_scan_la_SOURCES = $(BE_SCAN_INCS) $(DEV_INCS)
+libbe_scan_la_SOURCES = $(BE_SCAN_INCS)
 
 include_HEADERS = be_scan.hpp
 

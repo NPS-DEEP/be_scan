@@ -17,44 +17,37 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-#ifndef ARTIFACT_HPP
-#define ARTIFACT_HPP
-
+#include <config.h>
 #include <string>
 #include <stdint.h>
+#include <iostream>
+#include <cassert>
+#include "read.hpp"
 
 namespace be_scan {
 
-  /**
-   * Artifacts are returned using this structure.
+  /*
+   * Read bytes from buffer, including optional padding, into a string.
    */
-// We intentionally have a pointer, so suppress the compiler warning.
-#ifdef HAVE_DIAGNOSTIC_EFFCPP
-#pragma GCC diagnostic ignored "-Weffc++"
-#endif
-  class artifact_t {
-    public:
-    std::string media_filename;
-    uint64_t slice_offset;
-    std::string recursion_prefix;
-    std::string artifact_class;
-    size_t buffer_offset;
-    std::string artifact;
-    std::string context;
-    
-    artifact_t();
-    artifact_t(const std::string& p_media_filename,
-               const uint64_t p_slice_offset,
-               const std::string& p_recursion_prefix,
-               const std::string& p_artifact_class,
-               const size_t p_buffer_offset,
-               const std::string& p_artifact,
-               const std::string& p_context);
+  std::string read_random(const char* const buffer,
+                          const size_t buffer_size,
+                          const size_t offset,
+                          const size_t length,
+                          const size_t padding) {
 
-    void artifact_t::to_avro();
-    void artifact_t::to_stdout();
-  };
+    // fail on invalid input
+    if (buffer_size == 0 || offset >= buffer_size) {
+      std::cerr << "internal error in extract_content\n";
+      assert(0);
+    }
+
+    // find valid bounds for the context
+    const size_t start = offset < padding ? 0 : offset - padding;
+    const size_t stop = offset + length + padding >= buffer_size ?
+                        buffer_size - 1 : offset + length + padding - 1;
+
+    // return the bytes as string
+    return std::string(&buffer[start], stop - start + 1);
+  }
 }
-
-#endif
 
