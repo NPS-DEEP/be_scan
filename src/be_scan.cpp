@@ -24,8 +24,8 @@
 #include <set>
 #include <iostream>
 #include "be_scan.hpp"
-#include "scan_email.hpp"
-#include "scan_zip_gzip.hpp"
+#include "scanner_data.hpp"
+#include "scanners.hpp"
 
 const char* be_scan_version() {
   return PACKAGE_VERSION;
@@ -49,7 +49,7 @@ namespace be_scan {
                 lightgrep_wrapper(new lw::lw_t),
                 status(add_regex(*lightgrep_wrapper, requested_scanners)) {
     if (status == "") {
-      lightgrep_wrapper->finalize_regex();
+      lightgrep_wrapper->finalize_regex(false);
     }
   }
 
@@ -64,7 +64,7 @@ namespace be_scan {
   static const size_t max_backtrack_size = 1000;
 
   static std::string open_avro(const std::string& scan_engine_status,
-                               const std::string& avro_filename) {
+                               const std::string& avro_output_filename) {
     if (scan_engine_status != "") {
       return "Scan engine not initialized: " + scan_engine_status;
     }
@@ -74,18 +74,18 @@ namespace be_scan {
   }
 
   scanner_t::scanner_t(scan_engine_t& scan_engine,
-                       const std::string& avro_filename) :
-             scanner_data(new scanner_data_t),
-             lw_scanner_t(scan_engine.lightgrep_wrapper->new_lw_scanner(
+                       const std::string& avro_output_filename) :
+             scanner_data(new scanner_data_t(avro_output_filename)),
+             lw_scanner(scan_engine.lightgrep_wrapper->new_lw_scanner(
                           scanner_data, max_backtrack_size)),
-             status(open_avro(scan_engine->status, avro_filename)) {
+             status(open_avro(scan_engine.status, avro_output_filename)) {
   }
 
-  scanner_t::scan(const std::string& stream_name,
-                  const uint64_t stream_offset,
-                  const std::string& recursion_prefix,
-                  const char* const buffer,
-                  size_t buffer_size) {
+  std::string scanner_t::scan(const std::string& stream_name,
+                              const uint64_t stream_offset,
+                              const std::string& recursion_prefix,
+                              const char* const buffer,
+                              size_t buffer_size) {
 
     // set up scanner_data fields for this scan
     scanner_data->stream_name = stream_name;
@@ -93,8 +93,13 @@ namespace be_scan {
     scanner_data->recursion_prefix = recursion_prefix;
 
     // perform the scan
-    scan_engine->scan(buffer, buffer_size);
-    scan_engine->scan_finalize();
+    if (scanner_data->scan_error == "") {
+      lw_scanner->scan(buffer, buffer_size);
+      lw_scanner->scan_finalize();
+    }
+
+    // scan_error can get set during scanning because of a failed output device
+    return scanner_data->scan_error;
   }
 
   scanner_t::~scanner_t() {

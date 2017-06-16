@@ -33,14 +33,9 @@
 // scanner support
 namespace be_scan {
 
-  // available scanners
-  std::string available_scanners();
-
   // add regex for all scanners, return "" else error
   std::string add_regex(lw::lw_t& lw, const std::string& requested_scanners);
 }
-
-class be_scan::p_scanner_data;
 
 // email
 namespace email {

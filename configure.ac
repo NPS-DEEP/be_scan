@@ -55,22 +55,11 @@ if test "$PYTHON" == : ; then
 fi
 
 ################################################################
-## FLEX
-if test x"$LEX" == x ; then
-  AC_MSG_ERROR([flex required.])
-fi  
-
-if test `basename "$LEX"` != flex; then
-  AC_MSG_ERROR([gnu flex is required.])
-fi
-
-## Determine if we can use flex -R
-if eval "echo %% | $LEX -R -t > /dev/null 2>&1"
-then 
-  AC_MSG_NOTICE([$LEX supports -R])
-else
-  AC_MSG_ERROR([$LEX does not support -R.  Please get a modern version of gnu flex])
-fi
+## lightgrep_wrapper
+AC_LANG_PUSH(C++)
+AC_CHECK_HEADERS([lightgrep_wrapper.hpp], [], [AC_MSG_ERROR([Could not find lightgrep_wrapper.hpp])])
+AC_CHECK_LIB([lightgrep_wrapper], [lightgrep_wrapper_version],[], [AC_MSG_ERROR([Could not find lightgrep_wrapper library])])
+AC_LANG_POP()
 
 ################################################################
 ## Linux

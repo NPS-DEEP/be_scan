@@ -25,23 +25,26 @@
 #include "scanners.hpp"
 #include "scanner_data.hpp"
 #include "lightgrep_wrapper.hpp"
-#include "write_avro.hpp"
+#include "write_artifact.hpp"
 
 namespace email {
 
   // ************************************************************
   // general support
   // ************************************************************
+  /**
+   * Write artifact unless scan_error.
+   */
   void write_artifact(const std::string& artifact_class,
                       const uint64_t start, const uint64_t size,
-                      const scanner_data_t& scanner_data) {
-    be_scan::write_avro(scanner_data, artifact_class, start,
-                        lw::read_random(scanner_data.buffer,
-                                        scanner_data.buffer_offset,
-                                        start, size, 0),
-                        lw::read_random(scanner_data.buffer,
-                                        scanner_data.buffer_offset,
-                                        start, size, 16));
+                      scanner_data_t& scanner_data) {
+    be_scan::write_artifact(scanner_data, artifact_class, start,
+                            lw::read_random(scanner_data.buffer,
+                                            scanner_data.buffer_offset,
+                                            start, size, 0),
+                            lw::read_random(scanner_data.buffer,
+                                            scanner_data.buffer_offset,
+                                            start, size, 16));
   }
 
   //
@@ -181,7 +184,7 @@ namespace email {
     // typecast void* into scanner_data
     user_data_t* scanner_data(static_cast<user_data_t*>(p_user_data));
 
-    be_scan::write_artifact("email", scanner_data, start, size);
+    write_artifact("email", scanner_data, start, size);
   }
 
   void emailUTF16LEHitHandler(const uint64_t start, const uint64_t size,
@@ -190,7 +193,7 @@ namespace email {
     // typecast void* into scanner_data
     user_data_t* scanner_data(static_cast<user_data_t*>(p_user_data));
 
-    be_scan::write_artifact("email", scanner_data, start, size);
+    write_artifact("email", scanner_data, start, size);
   }
 
   // ************************************************************

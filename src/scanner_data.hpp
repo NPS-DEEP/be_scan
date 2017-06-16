@@ -31,14 +31,35 @@
 namespace be_scan {
 
   class scanner_data_t {
+    private:
+    // do not allow copy or assignment
+    scanner_data_t(const scanner_data_t&) = delete;
+    scanner_data_t& operator=(const scanner_data_t&) = delete;
+
+    // Because write_artifact is a callback function, we put it in charge
+    // of setting scan_error in the event of device write failure.
+    // scanner_t::scan() returns this value.
+    friend void be_scan::write_artifact(scanner_data_t& scanner_data,
+                      const std::string& artifact_class,
+                      const size_t buffer_offset,
+                      const std::string& artifact,
+                      const std::string& context);
+    std::string scan_error;
+
     public:
-    const std::string stream_filename;
-    const uint64_t stream_offset;
-    const std::string recursion_prefix;
+    std::string stream_name;
+    uint64_t stream_offset;
+    std::string recursion_prefix;
     char* const buffer;
     size_t buffer_size;
     const std::string avro_output_filename;
-  }:
+    scanner_data_t(const std::string& p_avro_output_filename) :
+               scan_error(""),
+               stream_name(""), stream_offset(0), recursion_prefix(""),
+               buffer(nullptr), buffer_size(0),
+               avro_output_filename(p_avro_output_filename) {
+    }
+  };
 
 } // namespace
 #endif

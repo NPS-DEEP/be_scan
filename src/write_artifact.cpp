@@ -43,20 +43,21 @@ namespace be_scan {
 
 
   // write artifact to Avro
-  void write_avro(const scanner_data_t& scanner_data,
-                  const std::string& artifact_class,
-                  const size_t buffer_offset,
-                  const std::string& artifact,
-                  const std::string& context) {
+  static std::string write_avro(const scanner_data_t& scanner_data,
+                                const std::string& artifact_class,
+                                const size_t buffer_offset,
+                                const std::string& artifact,
+                                const std::string& context) {
   // zz TBD
+    return "TBD";
   }
 
   // write artifact to stdout, for diagnostics only
-  void write_stdout(const scanner_data_t& scanner_data,
-                    const std::string& artifact_class,
-                    const size_t buffer_offset,
-                    const std::string& artifact,
-                    const std::string& context) {
+  static std::string write_stdout(const scanner_data_t& scanner_data,
+                                  const std::string& artifact_class,
+                                  const size_t buffer_offset,
+                                  const std::string& artifact,
+                                  const std::string& context) {
 
     // prepare artifact similar to bulk_extractor feature,
     // but with steam filename and artifact class in front.
@@ -67,6 +68,25 @@ namespace be_scan {
        << escape(artifact) << "\t"
        << escape(context) << "\n";
     std::cout << ss.str();
+    return "";
+  }
+
+  /**
+   * Write artifact to output, configure as desired.
+   *
+   * Does nothing if scanner_data.scan_error is not "".
+   *
+   * Sets scanner_data.scan_error on error.
+   */
+  void write_artifact(scanner_data_t& scanner_data,
+                      const std::string& artifact_class,
+                      const size_t buffer_offset,
+                      const std::string& artifact,
+                      const std::string& context) {
+    if (scanner_data.scan_error == "") {
+      scanner_data.scan_error = write_stdout(
+                    scanner_data, artifact_class, buffer_offset,
+                    artifact, context);
   }
 }
 

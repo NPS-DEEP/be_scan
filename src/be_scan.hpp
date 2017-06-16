@@ -34,10 +34,13 @@
  */
 const char* be_scan_version();
 
+namespace lw {
+  class lw_t;
+  class lw_scanner_t;
+}
+
 namespace be_scan {
 
-  class lw::lw_t;
-  class lw::lw_scanner_t;
   class scanner_data_t;
 
   /**
@@ -113,10 +116,10 @@ namespace be_scan {
      *
      * Parameters:
      *   scan_engine - The scan engine to use for the scanning
-     *   avro_filename - The filename to write found artifacts to.
+     *   avro_output_filename - The filename to write found artifacts to.
      */
     scanner_t(scan_engine_t& scan_engine,
-              const std::string& avro_filename);
+              const std::string& avro_output_filename);
 
     /**
      * Scan.

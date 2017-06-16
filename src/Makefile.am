@@ -32,8 +32,8 @@ BE_SCAN_INCS = \
 	scanner_data.hpp \
 	scaners.cpp \
 	scaners.hpp \
-	write_avro.cpp \
-	write_avro.hpp
+	write_artifact.cpp \
+	write_artifact.hpp
 
 lib_LTLIBRARIES = libbe_scan.la
 
