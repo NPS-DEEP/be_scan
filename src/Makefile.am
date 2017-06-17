@@ -30,8 +30,8 @@ BE_SCAN_INCS = \
 	read_random.hpp \
 	scan_email.cpp \
 	scanner_data.hpp \
-	scaners.cpp \
-	scaners.hpp \
+	scanners.cpp \
+	scanners.hpp \
 	write_artifact.cpp \
 	write_artifact.hpp
 
@@ -42,7 +42,9 @@ AM_CXXFLAGS = $(BE_SCAN_CXXFLAGS)
 
 #libbe_scan_la_LDFLAGS = -PIC -avoid-version -module 
 libbe_scan_la_LDFLAGS = -PIC -avoid-version \
-                        -export-dynamic -no-undefined
+                        -static -no-undefined
+
+#                        -export-dynamic -no-undefined
 
 libbe_scan_la_SOURCES = $(BE_SCAN_INCS)
 

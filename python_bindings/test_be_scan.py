@@ -43,20 +43,24 @@ def test_environment():
 def test_version():
     str_equals(be_scan.version()[:2], "0.")
 
-def test_loopback():
-    scanner = be_scan.be_scan_t("email", "\0a\0a\0", 5)
-    str_equals(scanner.test_loopback(), "\0a\0a\0")
-    print("len: %d" % len(scanner.test_loopback()))
+def test_buffer8():
+    buf = "someone@somewhere.com\tsomeone2@somewhere2.com\n"
+    scan_engine = be_scan.scan_engine_t("email");
+    scanner = be_scan.scanner_t(scan_engine, "unused output filename")
+    str_equals(scanner.scan("test_buffer8", 0, "", buf, len(buf)), "")
 
-def test_escape():
-    str_equals(be_scan.escape("\0"), "\\x00")
+def test_buffer16():
+    buf = " \0a\0a\0a\0@\0b\0b\0.\0z\0w\0 \0"
+    scan_engine = be_scan.scan_engine_t("email");
+    scanner = be_scan.scanner_t(scan_engine, "unused output filename")
+    str_equals(scanner.scan("test_buffer16", 0, "", buf, len(buf)), "")
 
 # main
 if __name__=="__main__":
     test_environment()
     test_version()
-    test_loopback()
-    test_escape()
+    test_buffer8()
+    test_buffer16()
 
     print("Done.")
 

@@ -22,7 +22,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <cassert>
-#include "read.hpp"
+#include "read_random.hpp"
 
 namespace be_scan {
 
@@ -37,7 +37,8 @@ namespace be_scan {
 
     // fail on invalid input
     if (buffer_size == 0 || offset >= buffer_size) {
-      std::cerr << "internal error in extract_content\n";
+      std::cerr << "internal error in extract_content, buffer_size: "
+                << buffer_size << ", offset: " << offset << "\n";
       assert(0);
     }
 

@@ -6,7 +6,7 @@
 
 AC_PREREQ(2.57)
 
-AC_INIT(be_scan, 0.1.0, github.com/NPS-DEEP/be_scan/issues)
+AC_INIT(be_scan, 0.2.0, github.com/NPS-DEEP/be_scan/issues)
 AC_CONFIG_MACRO_DIR(m4)
 
 AC_CONFIG_FILES([Makefile

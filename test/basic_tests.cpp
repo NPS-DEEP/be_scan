@@ -19,6 +19,7 @@
 
 #include <config.h>
 #include <iostream>
+#include <sstream>
 #include <cstdio>
 #include "unit_test.h"
 #include "be_scan.hpp"
@@ -38,6 +39,16 @@ void test_available_scanners() {
 void test_buffer8() {
   std::string string8 = "someone@somewhere.com\tsomeone2@somewhere2.com\n";
   const char* const bytes8 = string8.c_str();
+
+  be_scan::scan_engine_t scan_engine("email");
+
+  be_scan::scanner_t scanner(scan_engine, "unused output filename");
+
+  TEST_EQ(scanner.scan("stream_name_test_buffer8", 0, "",
+                       bytes8, string8.size()), "");
+
+/*
+
 
   be_scan::be_scan_t scanner("email", bytes8, string8.size());
 
@@ -63,12 +74,20 @@ void test_buffer8() {
   TEST_EQ(artifact.buffer_offset, 0);
   TEST_EQ(artifact.artifact, "");
   TEST_EQ(artifact.context, "");
+*/
 }
 
 void test_buffer16() {
   std::string string16(" \0a\0a\0a\0@\0b\0b\0.\0z\0w\0 \0", 22);
   const char* const bytes16 = string16.c_str();
 
+  be_scan::scan_engine_t scan_engine("email");
+
+  be_scan::scanner_t scanner(scan_engine, "unused output filename");
+
+  scanner.scan("stream_name_test_buffer16", 0, "", bytes16, string16.size());
+
+/*
   be_scan::be_scan_t scanner("email", bytes16, string16.size());
 
   be_scan::artifact_t artifact;
@@ -83,8 +102,10 @@ void test_buffer16() {
   TEST_EQ(artifact.buffer_offset, 0);
   TEST_EQ(artifact.artifact, "");
   TEST_EQ(artifact.context, "");
+*/
 }
 
+/*
 void test_adjacency() {
   std::string string16("a\0a\0a\0@\0b\0b\0.\0z\0w\0\0\0b\0b\0b\0@\0c\0c\0.\0z\0w\0", 38);
   std::cout << "test_adjacency (" << string16.size() << ") string16: " << be_scan::escape(string16) << std::endl;
@@ -145,11 +166,9 @@ void test_boundaries() {
   artifact = scanner7.next();
 }
 
-
 void test_email() {
-/*
-009714344575\x01\x00\x00\x00\xFF\xFF\xFF\xFF\x05\x00\x17\x00Emailnorbert@emirates.net.ae\x04\x00\x00\x00\xFF\xFF\xFF\xFF\x08\x00\x04\x00Modified\x01\x00\x00\x00\x04\x00\x00\x00\xFF\xFF\xFF\xFF\x0B\x00\x04\x00Preferences\x00\x00\x00\x00)\x00\x00\x00\xD3\x00\x05\x00)\x00\x00\x00\x15\x00\x00\x00\x00\xFF\xFF\xFF\xFF\x08\x00\x9E\x00Contact5rubyeapen@hotmail.com\x00r\x00u\x00b\x00y\x00e\x00a\x00p\x00e\x00n\x00@\x00h\x00o\x00t\x00m\x00a\x00i\x00l\x00.\x00c\x00o\x00m\x00\x00\x00M\x00S\x00N\x00 \x00M\x00e\x00s\x00s\x00e\x00n\x00g\x00e\x00r\x00 \x00S\x00e\x00r\x00v\x00i\x00c\x00e\x00\x00\x004\x002\x00\x00\x00P\x00H\x00H\x00=\x00\x00\x00P\x00H\x00W\x00=\x00\x00\x00P\x00H\x00M\x00=\x00\x00\x00M\x00O\x00B\x00=\x00N\x00\x00\x00\x03\x00\x00\x00\xFF\xFF\xFF\xFF\x06\x00\x9E\x00Allow5rubyeape8LI/EI/DH0DH2DI5HH3FH1DI0DK0DH6HH4HH3HH1EH,CH.CH0DI/DI0BK0BI1BH4EL0BI0CI1DI0CG-DI.EG/FF1BE1>E6EJ5FK5GL6HM3GK4FJ5FI5GG7DI5DH3DH5II7GI8HI9JJ6HL8DL2@H0AH.BH0DH3HH2EF2CE3AG/AC.AD.AE1DG5HJ5HJ5HJ5FI5BF5CE6D\x18?\x1B F\x1A#I\x19'L\x1D3T#9Z';]+=a*:c)=d(?c(Bb)>d%9b-8c.9b/:b.;b*9a,8c/8e1@k5Fo4Fn4Gm.Bi$:k!9j\x1E9j\x187i!2n$5m(9l+=o,?r,?t+?v+?y-F~2L\x894O\x8E7R\x94;V\x96?U\x99@V\x9BBW\x9EC\x5C\xA2?W\x9F@W\x9DAW\x9B?U\x98?S\x98CS\x93FU\x94IX\x95L_\x98Mc\x99I_\x97F[\x96DV\x95FW\x95HZ\x97K]\x9AMb\x9DTe\xA1Pd\x9FLd\x9E
-*/
+// 009714344575\x01\x00\x00\x00\xFF\xFF\xFF\xFF\x05\x00\x17\x00Emailnorbert@emirates.net.ae\x04\x00\x00\x00\xFF\xFF\xFF\xFF\x08\x00\x04\x00Modified\x01\x00\x00\x00\x04\x00\x00\x00\xFF\xFF\xFF\xFF\x0B\x00\x04\x00Preferences\x00\x00\x00\x00)\x00\x00\x00\xD3\x00\x05\x00)\x00\x00\x00\x15\x00\x00\x00\x00\xFF\xFF\xFF\xFF\x08\x00\x9E\x00Contact5rubyeapen@hotmail.com\x00r\x00u\x00b\x00y\x00e\x00a\x00p\x00e\x00n\x00@\x00h\x00o\x00t\x00m\x00a\x00i\x00l\x00.\x00c\x00o\x00m\x00\x00\x00M\x00S\x00N\x00 \x00M\x00e\x00s\x00s\x00e\x00n\x00g\x00e\x00r\x00 \x00S\x00e\x00r\x00v\x00i\x00c\x00e\x00\x00\x004\x002\x00\x00\x00P\x00H\x00H\x00=\x00\x00\x00P\x00H\x00W\x00=\x00\x00\x00P\x00H\x00M\x00=\x00\x00\x00M\x00O\x00B\x00=\x00N\x00\x00\x00\x03\x00\x00\x00\xFF\xFF\xFF\xFF\x06\x00\x9E\x00Allow5rubyeape8LI/EI/DH0DH2DI5HH3FH1DI0DK0DH6HH4HH3HH1EH,CH.CH0DI/DI0BK0BI1BH4EL0BI0CI1DI0CG-DI.EG/FF1BE1>E6EJ5FK5GL6HM3GK4FJ5FI5GG7DI5DH3DH5II7GI8HI9JJ6HL8DL2@H0AH.BH0DH3HH2EF2CE3AG/AC.AD.AE1DG5HJ5HJ5HJ5FI5BF5CE6D\x18?\x1B F\x1A#I\x19'L\x1D3T#9Z';]+=a*:c)=d(?c(Bb)>d%9b-8c.9b/:b.;b*9a,8c/8e1@k5Fo4Fn4Gm.Bi$:k!9j\x1E9j\x187i!2n$5m(9l+=o,?r,?t+?v+?y-F~2L\x894O\x8E7R\x94;V\x96?U\x99@V\x9BBW\x9EC\x5C\xA2?W\x9F@W\x9DAW\x9B?U\x98?S\x98CS\x93FU\x94IX\x95L_\x98Mc\x99I_\x97F[\x96DV\x95FW\x95HZ\x97K]\x9AMb\x9DTe\xA1Pd\x9FLd\x9E
+
   const std::string buffer(
 "\x30\x30\x39\x37\x31\x34\x33\x34\x34\x35\x37\x35\x01\x00\x00\x00"
 "\xff\xff\xff\xff\x05\x00\x17\x00\x45\x6d\x61\x69\x6c\x6e\x6f\x72"
@@ -229,6 +248,7 @@ void test_email() {
   artifact = scanner.next();
   TEST_EQ(artifact.artifact, "");
 }
+*/
 
 // ************************************************************
 // main
@@ -236,15 +256,14 @@ void test_email() {
 int main(int argc, char* argv[]) {
 
   // tests
-/*zz
+  // NOTE: tests are made to work with write_stdout.
   test_version();
   test_available_scanners();
   test_buffer8();
   test_buffer16();
-*/
-  test_adjacency();
-  test_boundaries();
-  test_email();
+//  test_adjacency();
+//  test_boundaries();
+//  test_email();
 
   // done
   std::cout << "api_test Done.\n";

@@ -20,7 +20,7 @@
 #include <config.h>
 #include <string>
 #include <cstring>
-#endif
+#include <sstream>
 
 namespace be_scan {
 

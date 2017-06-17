@@ -21,10 +21,12 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <cstring>
 #include <set>
 #include "scanners.hpp"
 #include "scanner_data.hpp"
 #include "lightgrep_wrapper.hpp"
+#include "read_random.hpp"
 #include "write_artifact.hpp"
 
 namespace email {
@@ -36,33 +38,40 @@ namespace email {
    * Write artifact unless scan_error.
    */
   void write_artifact(const std::string& artifact_class,
-                      const uint64_t start, const uint64_t size,
-                      scanner_data_t& scanner_data) {
-    be_scan::write_artifact(scanner_data, artifact_class, start,
-                            lw::read_random(scanner_data.buffer,
-                                            scanner_data.buffer_offset,
-                                            start, size, 0),
-                            lw::read_random(scanner_data.buffer,
-                                            scanner_data.buffer_offset,
-                                            start, size, 16));
+                      be_scan::scanner_data_t& scanner_data,
+                      const uint64_t start, const uint64_t size) {
+    be_scan::write_artifact(artifact_class, scanner_data, start,
+                            be_scan::read_random(scanner_data.buffer,
+                                                 scanner_data.buffer_size,
+                                                 start, size, 0),
+                            be_scan::read_random(scanner_data.buffer,
+                                                 scanner_data.buffer_size,
+                                                 start, size, 16));
   }
 
   //
   // subpatterns
   //
 
-  const string INUM("(1?[0-9]{1,2}|2([0-4][0-9]|5[0-5]))");
-  const string HEX("[0-9a-f]");
-  const string ALNUM("[a-zA-Z0-9]");
+  const std::string INUM("(1?[0-9]{1,2}|2([0-4][0-9]|5[0-5]))");
+  const std::string HEX("[0-9a-f]");
+  const std::string ALNUM("[a-zA-Z0-9]");
 
-  const string PC("[\\x20-\\x7E]");
+  const std::string PC("[\\x20-\\x7E]");
 
-  const string TLD("(AC|AD|AE|AERO|AF|AG|AI|AL|AM|AN|AO|AQ|AR|ARPA|AS|ASIA|AT|AU|AW|AX|AZ|BA|BB|BD|BE|BF|BG|BH|BI|BIZ|BJ|BL|BM|BN|BO|BR|BS|BT|BV|BW|BY|BZ|CA|CAT|CC|CD|CF|CG|CH|CI|CK|CL|CM|CN|CO|COM|COOP|CR|CU|CV|CX|CY|CZ|DE|DJ|DK|DM|DO|DZ|EC|EDU|EE|EG|EH|ER|ES|ET|EU|FI|FJ|FK|FM|FO|FR|GA|GB|GD|GE|GF|GG|GH|GI|GL|GM|GN|GOV|GP|GQ|GR|GS|GT|GU|GW|GY|HK|HM|HN|HR|HT|HU|ID|IE|IL|IM|IN|INFO|INT|IO|IQ|IR|IS|IT|JE|JM|JO|JOBS|JP|KE|KG|KH|KI|KM|KN|KP|KR|KW|KY|KZ|LA|LB|LC|LI|LK|LR|LS|LT|LU|LV|LY|MA|MC|MD|ME|MF|MG|MH|MIL|MK|ML|MM|MN|MO|MOBI|MP|MQ|MR|MS|MT|MU|MUSEUM|MV|MW|MX|MY|MZ|NA|NAME|NC|NE|NET|NF|NG|NI|NL|NO|NP|NR|NU|NZ|OM|ORG|PA|PE|PF|PG|PH|PK|PL|PM|PN|PR|PRO|PS|PT|PW|PY|QA|RE|RO|RS|RU|RW|SA|SB|SC|SD|SE|SG|SH|SI|SJ|SK|SL|SM|SN|SO|SR|ST|SU|SV|SY|SZ|TC|TD|TEL|TF|TG|TH|TJ|TK|TL|TM|TN|TO|TP|TR|TRAVEL|TT|TV|TW|TZ|UA|UG|UK|UM|US|UY|UZ|VA|VC|VE|VG|VI|VN|VU|WF|WS|YE|YT|YU|ZA|ZM|ZW)");
+  const std::string TLD("(AC|AD|AE|AERO|AF|AG|AI|AL|AM|AN|AO|AQ|AR|ARPA|AS|ASIA|AT|AU|AW|AX|AZ|BA|BB|BD|BE|BF|BG|BH|BI|BIZ|BJ|BL|BM|BN|BO|BR|BS|BT|BV|BW|BY|BZ|CA|CAT|CC|CD|CF|CG|CH|CI|CK|CL|CM|CN|CO|COM|COOP|CR|CU|CV|CX|CY|CZ|DE|DJ|DK|DM|DO|DZ|EC|EDU|EE|EG|EH|ER|ES|ET|EU|FI|FJ|FK|FM|FO|FR|GA|GB|GD|GE|GF|GG|GH|GI|GL|GM|GN|GOV|GP|GQ|GR|GS|GT|GU|GW|GY|HK|HM|HN|HR|HT|HU|ID|IE|IL|IM|IN|INFO|INT|IO|IQ|IR|IS|IT|JE|JM|JO|JOBS|JP|KE|KG|KH|KI|KM|KN|KP|KR|KW|KY|KZ|LA|LB|LC|LI|LK|LR|LS|LT|LU|LV|LY|MA|MC|MD|ME|MF|MG|MH|MIL|MK|ML|MM|MN|MO|MOBI|MP|MQ|MR|MS|MT|MU|MUSEUM|MV|MW|MX|MY|MZ|NA|NAME|NC|NE|NET|NF|NG|NI|NL|NO|NP|NR|NU|NZ|OM|ORG|PA|PE|PF|PG|PH|PK|PL|PM|PN|PR|PRO|PS|PT|PW|PY|QA|RE|RO|RS|RU|RW|SA|SB|SC|SD|SE|SG|SH|SI|SJ|SK|SL|SM|SN|SO|SR|ST|SU|SV|SY|SZ|TC|TD|TEL|TF|TG|TH|TJ|TK|TL|TM|TN|TO|TP|TR|TRAVEL|TT|TV|TW|TZ|UA|UG|UK|UM|US|UY|UZ|VA|VC|VE|VG|VI|VN|VU|WF|WS|YE|YT|YU|ZA|ZM|ZW)");
 
-  const string YEAR("(19[6-9][0-9]|20[0-1][0-9])");
-  const string DAYOFWEEK("(Mon|Tue|Wed|Thu|Fri|Sat|Sun)");
-  const string MONTH("(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)");
-  const string ABBREV("(UTC?|GMT|EST|EDT|CST|CDT|MST|MDT|PST|PDT|[ZAMNY])");
+  const std::string YEAR("(19[6-9][0-9]|20[0-1][0-9])");
+  const std::string DAYOFWEEK("(Mon|Tue|Wed|Thu|Fri|Sat|Sun)");
+  const std::string MONTH("(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)");
+  const std::string ABBREV("(UTC?|GMT|EST|EDT|CST|CDT|MST|MDT|PST|PDT|[ZAMNY])");
+
+  //
+  // patterns
+  //
+
+  const std::string EMAIL(ALNUM + "(\\.?[a-zA-Z0-9_%\\-+])+\\.?" + ALNUM + "@" + ALNUM + "(\\.?[a-zA-Z0-9_%\\-])+\\." + TLD + "[^\\z41-\\z5A\\z61-\\z7A]");
+
 
   //
   // helper functions
@@ -91,11 +100,11 @@ namespace email {
   }
 
   bool valid_ether_addr(const uint8_t* buf) {
-    if (memcmp((const uint8_t *)"00:00:00:00:00:00", buf, 17) == 0) {
+    if (std::memcmp((const uint8_t *)"00:00:00:00:00:00", buf, 17) == 0) {
       return false;
     }
 
-    if (memcmp((const uint8_t *)"00:11:22:33:44:55", buf, 17) == 0) {
+    if (std::memcmp((const uint8_t *)"00:11:22:33:44:55", buf, 17) == 0) {
       return false;
     }
 
@@ -108,7 +117,7 @@ namespace email {
      * If we have 4 or more distinct values, then treat it good.
      * Otherwise its is some pattern we don't want.
      */
-    set<uint16_t> ctr;
+    std::set<uint16_t> ctr;
     for (uint32_t i = 0; i < 6; ++i) {  // loop over each group
       // create a unique value of the two characters
       ctr.insert((buf[i*3] << 8) + buf[i*3+1]);
@@ -182,18 +191,20 @@ namespace email {
                        void* p_scanner_data) {
 
     // typecast void* into scanner_data
-    user_data_t* scanner_data(static_cast<user_data_t*>(p_user_data));
+    be_scan::scanner_data_t* scanner_data(
+                   static_cast<be_scan::scanner_data_t*>(p_scanner_data));
 
-    write_artifact("email", scanner_data, start, size);
+    write_artifact("email", *scanner_data, start, size);
   }
 
   void emailUTF16LEHitHandler(const uint64_t start, const uint64_t size,
                               void* p_scanner_data) {
 
     // typecast void* into scanner_data
-    user_data_t* scanner_data(static_cast<user_data_t*>(p_user_data));
+    be_scan::scanner_data_t* scanner_data(
+                   static_cast<be_scan::scanner_data_t*>(p_scanner_data));
 
-    write_artifact("email", scanner_data, start, size);
+    write_artifact("email", *scanner_data, start, size);
   }
 
   // ************************************************************

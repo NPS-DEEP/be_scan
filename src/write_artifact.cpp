@@ -20,8 +20,10 @@
 #include <config.h>
 #include <stdint.h>
 #include <string>
+#include <sstream>
+#include <iostream>
 #include "scanner_data.hpp"
-#include "be_scan.hpp"       // for escape()
+#include "escape.hpp"
 
 namespace be_scan {
 
@@ -30,7 +32,7 @@ namespace be_scan {
   static std::string path(const scanner_data_t& scanner_data,
                           const size_t buffer_offset) {
 
-    stringstream ss;
+    std::stringstream ss;
     if (scanner_data.recursion_prefix == "") {
       // simple offset
       ss << scanner_data.stream_offset + buffer_offset;
@@ -42,51 +44,47 @@ namespace be_scan {
   }
 
 
-  // write artifact to Avro
-  static std::string write_avro(const scanner_data_t& scanner_data,
-                                const std::string& artifact_class,
-                                const size_t buffer_offset,
-                                const std::string& artifact,
-                                const std::string& context) {
-  // zz TBD
-    return "TBD";
+/*
+  // write artifact to Avro, implementation may throw std::runtime_error
+  static void write_avro(const std::string& artifact_class,
+                         const scanner_data_t& scanner_data,
+                         const size_t buffer_offset,
+                         const std::string& artifact,
+                         const std::string& context) {
+    // zz TBD
+    throw std::runtime_error("TBD: not implemented");
   }
+*/
 
   // write artifact to stdout, for diagnostics only
-  static std::string write_stdout(const scanner_data_t& scanner_data,
-                                  const std::string& artifact_class,
-                                  const size_t buffer_offset,
-                                  const std::string& artifact,
-                                  const std::string& context) {
+  static void write_stdout(const std::string& artifact_class,
+                           const scanner_data_t& scanner_data,
+                           const size_t buffer_offset,
+                           const std::string& artifact,
+                           const std::string& context) {
 
     // prepare artifact similar to bulk_extractor feature,
-    // but with steam filename and artifact class in front.
-    std::stringstream;
-    ss << scanner_data.stream_filename << " "
+    // but with stream filename and artifact class in front.
+    std::stringstream ss;
+    ss << scanner_data.stream_name << " "
        << artifact_class << " "
-       << path(scanner_data, buffer_offset)
+       << path(scanner_data, buffer_offset) << "\t"
        << escape(artifact) << "\t"
        << escape(context) << "\n";
     std::cout << ss.str();
-    return "";
   }
 
   /**
-   * Write artifact to output, configure as desired.
-   *
-   * Does nothing if scanner_data.scan_error is not "".
-   *
-   * Sets scanner_data.scan_error on error.
+   * Write artifact to output, configure as desired.  Implementation
+   * may throw std::runtime_error if write fails.
    */
-  void write_artifact(scanner_data_t& scanner_data,
-                      const std::string& artifact_class,
+  void write_artifact(const std::string& artifact_class,
+                      const scanner_data_t& scanner_data,
                       const size_t buffer_offset,
                       const std::string& artifact,
                       const std::string& context) {
-    if (scanner_data.scan_error == "") {
-      scanner_data.scan_error = write_stdout(
-                    scanner_data, artifact_class, buffer_offset,
-                    artifact, context);
+//    write_avro(artifact_class, scanner_data, buffer_offset, artifact, context);
+    write_stdout(artifact_class, scanner_data, buffer_offset, artifact, context);
   }
 }
 

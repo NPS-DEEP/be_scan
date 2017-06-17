@@ -28,28 +28,28 @@ namespace be_scan {
 
 /*
 // write artifact to Avro
-std::string write_avro(const scanner_data_t& scanner_data,
-                       const std::string& artifact_class,
+std::string write_avro(const std::string& artifact_class,
+                       const scanner_data_t& scanner_data,
                        const size_t buffer_offset,
                        const std::string& artifact,
                        const std::string& context);
 
 // write artifact to stdout, for diagnostics only
-std::string write_stdout(const scanner_data_t& scanner_data,
-                         const std::string& artifact_class,
+std::string write_stdout(const std::string& artifact_class,
+                         const scanner_data_t& scanner_data,
                          const size_t buffer_offset,
                          const std::string& artifact,
                          const std::string& context);
 }
 */
 
-// write artifact, see write_artifact.cpp for implementation
 /**
- * Writes artifact unless scanner_data.scan_error is not "".
- * Sets scanner_data.scan_error on error.
+ * Write artifact, see write_artifact.cpp for implementation.
+ * Throws std::runtime_error if implementation's write fails, which is
+ * caught by scanner_t::scan.
  */
-void write_artifact(const scanner_data_t& scanner_data,
-                    const std::string& artifact_class,
+void write_artifact(const std::string& artifact_class,
+                    const scanner_data_t& scanner_data,
                     const size_t buffer_offset,
                     const std::string& artifact,
                     const std::string& context);

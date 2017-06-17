@@ -47,7 +47,7 @@ namespace be_scan {
 
   // available scanners
   std::string available_scanners() {
-    return "email"
+    return "email";
   }
 
   // add regex for all requested scanners
@@ -69,6 +69,7 @@ namespace be_scan {
         return "Scanner '" + *it + "' not identified.";
       }
     }
+    return "";
   }
 }
 

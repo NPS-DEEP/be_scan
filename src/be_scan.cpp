@@ -71,6 +71,7 @@ namespace be_scan {
 
     // set up avro
     // zz TBD
+    return "";
   }
 
   scanner_t::scanner_t(scan_engine_t& scan_engine,
@@ -91,15 +92,17 @@ namespace be_scan {
     scanner_data->stream_name = stream_name;
     scanner_data->stream_offset = stream_offset;
     scanner_data->recursion_prefix = recursion_prefix;
+    scanner_data->buffer = buffer;
+    scanner_data->buffer_size = buffer_size;
 
     // perform the scan
-    if (scanner_data->scan_error == "") {
+    try {
       lw_scanner->scan(buffer, buffer_size);
       lw_scanner->scan_finalize();
+    } catch (std::runtime_error& e) {
+      return e.what();
     }
-
-    // scan_error can get set during scanning because of a failed output device
-    return scanner_data->scan_error;
+    return "";
   }
 
   scanner_t::~scanner_t() {
