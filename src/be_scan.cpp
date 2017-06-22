@@ -23,6 +23,7 @@
 #include <cstring>
 #include <set>
 #include <iostream>
+#include <stdexcept>
 #include "be_scan.hpp"
 #include "scanner_data.hpp"
 #include "scanners.hpp"
