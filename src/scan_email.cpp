@@ -194,7 +194,7 @@ namespace email {
     be_scan::scanner_data_t* scanner_data(
                    static_cast<be_scan::scanner_data_t*>(p_scanner_data));
 
-    write_artifact("email", *scanner_data, start, size);
+    write_artifact("email", *scanner_data, start, size - 1);
   }
 
   void emailUTF16LEHitHandler(const uint64_t start, const uint64_t size,
@@ -204,7 +204,7 @@ namespace email {
     be_scan::scanner_data_t* scanner_data(
                    static_cast<be_scan::scanner_data_t*>(p_scanner_data));
 
-    write_artifact("email", *scanner_data, start, size);
+    write_artifact("email", *scanner_data, start, size - 1);
   }
 
   // ************************************************************
