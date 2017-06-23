@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
               << " count " << count << "\n";
 
     // scan
-    scanner.scan("scan", offset, "", buffer, offset);
+    scanner.scan("scan", offset, "", buffer, count);
 
     // move to next offset
     offset += count;
