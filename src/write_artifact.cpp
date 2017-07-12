@@ -65,13 +65,11 @@ namespace be_scan {
 
     // prepare artifact similar to bulk_extractor feature,
     // but with stream filename and artifact class in front.
-    std::stringstream ss;
-    ss << scanner_data.stream_name << " "
-       << artifact_class << " "
-       << path(scanner_data, buffer_offset) << "\t"
-       << escape(artifact) << "\t"
-       << escape(context) << "\n";
-    std::cout << ss.str();
+    std::cout << scanner_data.stream_name << " "
+              << artifact_class << " "
+              << path(scanner_data, buffer_offset) << "\t"
+              << escape(artifact) << "\t"
+              << escape(context) << std::endl;
   }
 
   /**
