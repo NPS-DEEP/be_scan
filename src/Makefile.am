@@ -40,11 +40,7 @@ lib_LTLIBRARIES = libbe_scan.la
 AM_CFLAGS = $(BE_SCAN_CFLAGS)
 AM_CXXFLAGS = $(BE_SCAN_CXXFLAGS)
 
-#libbe_scan_la_LDFLAGS = -PIC -avoid-version -module 
-libbe_scan_la_LDFLAGS = -PIC -avoid-version \
-                        -static -no-undefined
-
-#                        -export-dynamic -no-undefined
+libbe_scan_la_LDFLAGS = -PIC
 
 libbe_scan_la_SOURCES = $(BE_SCAN_INCS)
 
