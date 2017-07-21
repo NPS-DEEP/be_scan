@@ -19,15 +19,12 @@
 
 # This file assists in building libbe_scan.so
 
-CLEANFILES = scan_email_flex.cpp
-
 BE_SCAN_INCS = \
 	be_scan.cpp \
 	be_scan.hpp \
 	escape.cpp \
-	escape.hpp \
-	read_random.cpp \
-	read_random.hpp \
+	read_buffer.cpp \
+	read_buffer.hpp \
 	scan_email.cpp \
 	scanner_data.hpp \
 	scanners.cpp \
@@ -45,7 +42,4 @@ libbe_scan_la_LDFLAGS = -PIC
 libbe_scan_la_SOURCES = $(BE_SCAN_INCS)
 
 include_HEADERS = be_scan.hpp
-
-.flex.cpp:
-	$(LEX) -R -t $< > $@
 

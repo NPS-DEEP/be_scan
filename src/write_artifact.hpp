@@ -44,9 +44,8 @@ std::string write_stdout(const std::string& artifact_class,
 */
 
 /**
- * Write artifact, see write_artifact.cpp for implementation.
- * Throws std::runtime_error if implementation's write fails, which is
- * caught by scanner_t::scan.
+ * Write artifact, see selected implementation.  Implementation can throw
+ * std::runtime_error if write fails, which is caught by scanner_t::scan.
  */
 void write_artifact(const std::string& artifact_class,
                     const scanner_data_t& scanner_data,

@@ -27,7 +27,7 @@
 
 #include <string>
 #include <stdint.h>
-#include <set>
+#include <vector>
 
 /**
  * Version of the be_scan library.
@@ -52,7 +52,7 @@ namespace be_scan {
    * The complete list of available scanners.
    *
    * Returns:
-   *   List of available scanners separated by space charcters.
+   *   List of available scanners separated by space characters.
    */
   std::string available_scanners();
 
@@ -95,13 +95,45 @@ namespace be_scan {
   };
 
   /**
+   * Artifacts are returned using this structure.
+   */
+  class artifact_t {
+
+    public:
+    const std::string artifact_class;
+    const std::string stream_name;
+    const std::string recursion_prefix;
+    const uint64_t offset;
+    const std::string artifact;
+    const std::string context;
+    
+    artifact_t();
+    artifact_t(const std::string& p_artifact_class,
+               const std::string& p_stream_name,
+               const std::string& p_recursion_prefix,
+               const size_t p_offset,
+               const std::string& p_artifact,
+               const std::string& p_context);
+
+    /**
+     * For Java, return as byte[] which can include \0.
+     */
+    void javaArtifact(std::string& java_artifact) const;
+
+    /**
+     * For Java, return as byte[] which can include \0.
+     */
+    void javaContext(std::string& java_context) const;
+  };
+
+  /**
    * The scanner class.
    */
   class scanner_t {
     private:
     scanner_data_t* scanner_data;
     lw::lw_scanner_t* lw_scanner;
-    const std::string status;
+    std::vector<artifact_t> artifacts;
 
 #ifndef SWIG
     // do not allow copy or assignment
@@ -116,35 +148,106 @@ namespace be_scan {
      *
      * Parameters:
      *   scan_engine - The scan engine to use for the scanning
-     *   avro_output_filename - The filename to write found artifacts to.
      */
-    scanner_t(scan_engine_t& scan_engine,
-              const std::string& avro_output_filename);
+    scanner_t(scan_engine_t& scan_engine);
 
     /**
-     * Scan.
+     * Scan buffer, caching found artifacts, see empty() and get().
      *
      * Parameters:
-     *   stream_name - The name where the buffer stream came from,
-     *                 typically a media image filename.
-     *   stream_offset - The stream start offset of this buffer.
+     *   stream_name - The name where the buffer came from, typically a media
+     *          image filename.
+     *   stream_offset - The byte offset of where this buffer starts.
      *   recursion_prefix - The recursion prefix, or "" for no recursion.
-     *   buffer - The stream's buffer to scan.
+     *   previous_buffer - The previously scanned buffer, useful for
+     *          composing artifacts that start before this buffer.
+     *   previous_buffer_size - The number of bytes in the previous
+     *          buffer, or 0 for no previous buffer.
+     *   buffer - The buffer to scan.
      *   buffer_size - The number of bytes in the buffer to scan.
+     *
      * Returns:
      *   "" else failure message.
      */
     std::string scan(const std::string& stream_name,
                      const uint64_t stream_offset,
                      const std::string& recursion_prefix,
+                     const char* const previous_buffer,
+                     size_t previous_buffer_size,
                      const char* const buffer,
                      size_t buffer_size);
+
+    /**
+     * Finalize the scan, caching found artifacts, see empty() and get().
+     *
+     * Parameters:
+     *   stream_name - The name where the buffer came from, typically a media
+     *          image filename.
+     *   stream_offset - The byte offset of where this buffer starts.
+     *   recursion_prefix - The recursion prefix, or "" for no recursion.
+     *   previous_buffer - The previously scanned buffer, useful for
+     *          composing artifacts that start before this buffer.
+     *   previous_buffer_size - The number of bytes in the previous
+     *          buffer, or 0 for no previous buffer.
+     *   buffer - The buffer to finalize scanning in.
+     *   buffer_size - The number of bytes in the buffer to finalize
+     *          scanning in.
+     *
+     * Returns:
+     *   "" else failure message.
+     */
+    std::string scan_finalize(const std::string& stream_name,
+                              const uint64_t stream_offset,
+                              const std::string& recursion_prefix,
+                              const char* const previous_buffer,
+                              size_t previous_buffer_size,
+                              const char* const buffer,
+                              size_t buffer_size);
+
+    /**
+     * Identify whether there are cached artifacts.
+     *
+     * Returns:
+     *   True if there are no cached artifacts to retrieve.
+     */
+    bool empty() const;
+
+    /**
+     * Obtain a cached artifact.
+     *
+     * Returns:
+     *   artifact, or a blank artifact if the cache is empty.
+     */
+    artifact_t get();
 
     /**
      * Destructor.
      */
     ~scanner_t();
   };
+
+  /**
+   * A helper function for formatting binary data into a printable string
+   * by escaping non-printable bytes.
+   *
+   * Parameters:
+   *   input - The binary input string.
+   * Returns:
+   *   Escaped output.
+   */
+  std::string escape(const std::string& input);
+
+  /**
+   * A helper function for formatting binary data into a printable string
+   * by escaping non-printable bytes.
+   *
+   * Parameters:
+   *   buffer - The buffer of bytes to format.
+   *   buffer_size - The number of bytes in the buffer to format.
+   * Returns:
+   *   Escaped output.
+   */
+  std::string escape(const char* const buffer, size_t buffer_size);
 }
 
 #endif

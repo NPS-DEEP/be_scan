@@ -19,39 +19,27 @@
 
 /**
  * \file
- * Header file for the be_scan library.
+ * Read bytes from buffer, possibly reading from previous_buffer.
+ * All requested bytes are included unless reading would cross outside
+ * the bounds of the two buffers provided.
  */
 
-#ifndef ESCAPE_HPP
-#define ESCAPE_HPP
+#ifndef READ_BUFFER_HPP
+#define READ_BUFFER_HPP
 
 #include <string>
 #include <stdint.h>
 
 namespace be_scan {
 
-  /**
-   * A helper function for formatting binary data into a printable string
-   * by escaping non-printable bytes.
-   *
-   * Parameters:
-   *   input - The binary input string.
-   * Returns:
-   *   Escaped output.
-   */
-  std::string escape(const std::string& input);
-
-  /**
-   * A helper function for formatting binary data into a printable string
-   * by escaping non-printable bytes.
-   *
-   * Parameters:
-   *   p_buffer - The buffer of bytes to format.
-   *   p_buffer_size - The number of bytes in the buffer to format.
-   * Returns:
-   *   Escaped output.
-   */
-  std::string escape(const char* const p_buffer, size_t p_buffer_size);
+  std::string read_buffer(const size_t buffer_offset,
+                          const char* const previous_buffer,
+                          const size_t previous_buffer_size,
+                          const char* const buffer,
+                          const size_t buffer_size,
+                          const size_t offset,
+                          const size_t length,
+                          const size_t padding);
 }
 
 #endif
