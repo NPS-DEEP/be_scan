@@ -27,7 +27,6 @@
 
 #include <string>
 #include <stdint.h>
-#include <vector>
 
 /**
  * Version of the be_scan library.
@@ -95,7 +94,7 @@ namespace be_scan {
   };
 
   /**
-   * Artifacts are returned using this structure.
+   * The artifact class.  Artifacts are returned using this structure.
    */
   class artifact_t {
 
@@ -133,7 +132,7 @@ namespace be_scan {
     private:
     scanner_data_t* scanner_data;
     lw::lw_scanner_t* lw_scanner;
-    std::vector<artifact_t> artifacts;
+    bool in_scan_mode;
 
 #ifndef SWIG
     // do not allow copy or assignment
@@ -152,14 +151,26 @@ namespace be_scan {
     scanner_t(scan_engine_t& scan_engine);
 
     /**
-     * Scan buffer, caching found artifacts, see empty() and get().
+     * Set up the scanner for scanning.
      *
      * Parameters:
      *   stream_name - The name where the buffer came from, typically a media
      *          image filename.
      *   stream_offset - The byte offset of where this buffer starts.
      *   recursion_prefix - The recursion prefix, or "" for no recursion.
-     *   previous_buffer - The previously scanned buffer, useful for
+     *
+     * Returns:
+     *   "" else failure message.
+     */
+    std::string scan_setup(const std::string& stream_name,
+                           const uint64_t stream_offset,
+                           const std::string& recursion_prefix);
+
+    /**
+     * Scan buffer, caching found artifacts, see empty() and get().
+     *
+     * Parameters:
+     *   previous_buffer - The previously scanned buffer, used for
      *          composing artifacts that start before this buffer.
      *   previous_buffer_size - The number of bytes in the previous
      *          buffer, or 0 for no previous buffer.
@@ -169,40 +180,20 @@ namespace be_scan {
      * Returns:
      *   "" else failure message.
      */
-    std::string scan(const std::string& stream_name,
-                     const uint64_t stream_offset,
-                     const std::string& recursion_prefix,
-                     const char* const previous_buffer,
+    std::string scan(const char* const previous_buffer,
                      size_t previous_buffer_size,
                      const char* const buffer,
                      size_t buffer_size);
 
     /**
      * Finalize the scan, caching found artifacts, see empty() and get().
-     *
-     * Parameters:
-     *   stream_name - The name where the buffer came from, typically a media
-     *          image filename.
-     *   stream_offset - The byte offset of where this buffer starts.
-     *   recursion_prefix - The recursion prefix, or "" for no recursion.
-     *   previous_buffer - The previously scanned buffer, useful for
-     *          composing artifacts that start before this buffer.
-     *   previous_buffer_size - The number of bytes in the previous
-     *          buffer, or 0 for no previous buffer.
-     *   buffer - The buffer to finalize scanning in.
-     *   buffer_size - The number of bytes in the buffer to finalize
-     *          scanning in.
+     * Always call this at the end of your stream to capture artifacts
+     * that might have been longer if there were more data.
      *
      * Returns:
      *   "" else failure message.
      */
-    std::string scan_finalize(const std::string& stream_name,
-                              const uint64_t stream_offset,
-                              const std::string& recursion_prefix,
-                              const char* const previous_buffer,
-                              size_t previous_buffer_size,
-                              const char* const buffer,
-                              size_t buffer_size);
+    std::string scan_finalize();
 
     /**
      * Identify whether there are cached artifacts.

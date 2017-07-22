@@ -23,14 +23,10 @@ BE_SCAN_INCS = \
 	be_scan.cpp \
 	be_scan.hpp \
 	escape.cpp \
-	read_buffer.cpp \
-	read_buffer.hpp \
 	scan_email.cpp \
 	scanner_data.hpp \
 	scanners.cpp \
-	scanners.hpp \
-	write_artifact.cpp \
-	write_artifact.hpp
+	scanners.hpp
 
 lib_LTLIBRARIES = libbe_scan.la
 

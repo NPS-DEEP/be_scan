@@ -62,48 +62,90 @@ namespace be_scan {
 // scanner
 // ************************************************************
 
-  static const size_t max_backtrack_size = 1000;
-
-  static std::string open_avro(const std::string& scan_engine_status,
-                               const std::string& avro_output_filename) {
-    if (scan_engine_status != "") {
-      return "Scan engine not initialized: " + scan_engine_status;
-    }
-
-    // set up avro
-    // zz TBD
-    return "";
-  }
-
-  scanner_t::scanner_t(scan_engine_t& scan_engine,
-                       const std::string& avro_output_filename) :
-             scanner_data(new scanner_data_t(avro_output_filename)),
+  scanner_t::scanner_t(scan_engine_t& scan_engine) :
+             scanner_data(new scanner_data_t()),
              lw_scanner(scan_engine.lightgrep_wrapper->new_lw_scanner(
-                          scanner_data, max_backtrack_size)),
-             status(open_avro(scan_engine.status, avro_output_filename)) {
+                          scanner_data)),
+             in_scan_mode(false) {
   }
 
-  std::string scanner_t::scan(const std::string& stream_name,
-                              const uint64_t stream_offset,
-                              const std::string& recursion_prefix,
-                              const char* const buffer,
-                              size_t buffer_size) {
+  // scan_setup
+  std::string scanner_t::scan_setup(const std::string& stream_name,
+                                    const uint64_t stream_offset,
+                                    const std::string& recursion_prefix) {
 
+    // enforce proper usage
+    if (in_scan_mode) {
+      return "scan_setup called but another scan is active.  Call scan_finalize.";
+    }
     // set up scanner_data fields for this scan
     scanner_data->stream_name = stream_name;
     scanner_data->stream_offset = stream_offset;
     scanner_data->recursion_prefix = recursion_prefix;
+
+    in_scan_mode = true;
+    return "";
+  }
+
+  // scan
+  std::string scanner_t::scan(const char* const previous_buffer,
+                              size_t previous_buffer_size,
+                              const char* const buffer,
+                              size_t buffer_size) {
+
+    // enforce stateful usage
+    if (!in_scan_mode) {
+      return "scan called but scan is not set up.  Call scan_setup.";
+    }
+
+    // set up scanner_data fields for this scan
+    scanner_data->previous_buffer = previous_buffer;
+    scanner_data->previous_buffer_size = previous_buffer_size;
     scanner_data->buffer = buffer;
     scanner_data->buffer_size = buffer_size;
 
     // perform the scan
     try {
       lw_scanner->scan(buffer, buffer_size);
-      lw_scanner->scan_finalize();
     } catch (std::runtime_error& e) {
       return e.what();
     }
     return "";
+  }
+
+  // scan_finalize
+  std::string scanner_t::scan_finalize() {
+
+    // enforce stateful usage
+    if (!in_scan_mode) {
+      return "scan_finalize called but scan is not active.";
+    }
+
+    // finalize
+    try {
+      lw_scanner->scan_finalize();
+    } catch (std::runtime_error& e) {
+      return e.what();
+    }
+
+    in_scan_mode = false;
+    return "";
+  }
+
+  // empty
+  bool scanner_t::empty() const {
+    return scanner_data->artifacts.empty();
+  }
+
+  // get
+  artifact_t scanner_t::get() {
+    if (scanner_data->artifacts.empty()) {
+      return artifact_t();
+    } else {
+      artifact_t artifact = scanner_data->artifacts.front();
+      scanner_data->artifacts.pop();
+      return artifact;
+    }
   }
 
   scanner_t::~scanner_t() {

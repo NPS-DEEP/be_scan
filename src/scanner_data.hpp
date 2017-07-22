@@ -27,6 +27,8 @@
 
 #include <string>
 #include <stdint.h>
+#include <queue>
+#include "be_scan.hpp" // for artifact_t
 
 namespace be_scan {
 
@@ -37,16 +39,22 @@ namespace be_scan {
     scanner_data_t& operator=(const scanner_data_t&) = delete;
 
     public:
+    std::queue<artifact_t> artifacts;
     std::string stream_name;
     uint64_t stream_offset;
     std::string recursion_prefix;
     const char* buffer;
     size_t buffer_size;
-    const std::string avro_output_filename;
-    scanner_data_t(const std::string& p_avro_output_filename) :
+
+    // fields just for reading
+    const char* previous_buffer;
+    size_t previous_buffer_size;
+
+    scanner_data_t() :
+               artifacts(),
                stream_name(""), stream_offset(0), recursion_prefix(""),
                buffer(nullptr), buffer_size(0),
-               avro_output_filename(p_avro_output_filename) {
+               previous_buffer(nullptr), previous_buffer_size(0) {
     }
   };
 
