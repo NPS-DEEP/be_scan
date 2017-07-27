@@ -32,7 +32,16 @@
 
 static std::locale loc;
 
-static const size_t BUFFER_SIZE = 134217728; // 2^27 = 128MiB
+static const size_t BUFFER_SIZE = 65536;
+
+// consume available artifacts
+static void consume(be_scan::scanner_t& scanner) {
+  // consume artifacts
+  while (!scanner.empty()) {
+    be_scan::artifact_t artifact = scanner.get();
+    std::cout << artifact.to_string() << std::endl;
+  }
+}
 
 int main(int argc, char* argv[]) {
   std::cout << "leak_test TBD\n";
@@ -64,40 +73,60 @@ int main(int argc, char* argv[]) {
   file_size = st.st_size;
 
   // malloc
-  char* buffer = new (std::nothrow) char[BUFFER_SIZE];
-  if (buffer == NULL) {
-    std::cerr << "Error allocating buffer for file.  Aborting.\n";
+  char* previous_buffer = new (std::nothrow) char[BUFFER_SIZE];
+  if (previous_buffer == NULL) {
+    std::cerr << "Error allocating previous_buffer.  Aborting.\n";
     exit(1);
   }
+  size_t previous_buffer_count = 0;
+  char* buffer = new (std::nothrow) char[BUFFER_SIZE];
+  if (buffer == NULL) {
+    std::cerr << "Error allocating buffer.  Aborting.\n";
+    exit(1);
+  }
+  size_t buffer_count = 0;
 
   // open scanner
   be_scan::scan_engine_t scan_engine(be_scan::available_scanners());
-  be_scan::scanner_t scanner(scan_engine, "unused output filename");
+  be_scan::scanner_t scanner(scan_engine);
+  scanner.scan_setup(filename, 0, "");
 
   // iterate through slices of the file
   size_t offset = 0;
   while (offset < file_size) {
 
     // read into buffer
-    ssize_t count = ::pread64(fd, buffer, BUFFER_SIZE, offset);
+    buffer_count = ::pread64(fd, buffer, BUFFER_SIZE, offset);
 
-    if (count < 0) {
-      std::cerr << "Error reading file: " << count << ".  Aborting.\n";
+    if (buffer_count < 0) {
+      std::cerr << "Error reading file: " << buffer_count << ".  Aborting.\n";
       exit(1);
     }
 
     // runtime status
     std::cout << "File " << filename << " start " << offset
-              << " count " << count << "\n";
+              << " buffer_count " << buffer_count << "\n";
 
     // scan
-    scanner.scan("scan", offset, "", buffer, count);
+    scanner.scan(previous_buffer, previous_buffer_count, buffer, buffer_count);
+
+    // consume artifacts
+    consume(scanner);
 
     // move to next offset
-    offset += count;
+    offset += buffer_count;
+    char* temp = previous_buffer;
+    previous_buffer = buffer;
+    previous_buffer_count = buffer_count;
+    buffer = temp;
   }
 
+  // conclude
+  scanner.scan_finalize();
+  consume(scanner);
+
   // release buffer
+  delete[] previous_buffer;
   delete[] buffer;
 
   std::cout << "Done.\n";

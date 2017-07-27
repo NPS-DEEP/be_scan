@@ -41,67 +41,77 @@ public final class Tests {
     System.out.println("Available scanners: '" + availableScanners + "'");
   }
 
-static byte[] buffer1 = "someone@somewhere.com\0someone2@somewhere2.com\n".getBytes();
-  // NOTE: Beware using getBytes() because it adds additional bytes for
-  // negative characters.  Use with positive characters only.
-  private static void testBuffer1() {
+  private static void testBuffer() {
 
-    System.out.println("test buffer 1 size: " + buffer1.length);
+    // NOTE: Beware using getBytes() because it adds additional bytes for
+    // negative characters.  Use with positive characters only.
+    final byte[] buffer = "someone@somewhere.com\0someone2@somewhere2.com\n".getBytes();
+
+    System.out.println("test buffer size: " + buffer.length);
     edu.nps.deep.be_scan.ScanEngine scanEngine =
                              new edu.nps.deep.be_scan.ScanEngine("email");
+    testEquals(scanEngine.getStatus(), "");
 
     edu.nps.deep.be_scan.Scanner scanner =
-        new edu.nps.deep.be_scan.Scanner(scanEngine, "unused output filename");
+        new edu.nps.deep.be_scan.Scanner(scanEngine);
 
-    testEquals(scanner.scan("test_buffer1", java.math.BigInteger.valueOf(0), "", buffer1, buffer1.length),
-               "");
-/*
+    String status = scanner.scanSetup("stream name", 0, "recursion prefx");
+    testEquals(status, "");
+    status = scanner.scan(null, 0, buffer, buffer.length);
+    testEquals(status, "");
+    status = scanner.scanFinalize();
+    testEquals(status, "");
 
-
-
-    testEquals(scanner.getBadAlloc(), false);
+    // check artifact interfaces
+    testEquals(scanner.empty(), false);
 
     edu.nps.deep.be_scan.Artifact artifact;
-    artifact = scanner.next();
+    artifact = scanner.get();
     testEquals(artifact.getArtifactClass(), "email");
-    testEquals(artifact.getBufferOffset(), 0);
+    testEquals(artifact.getStreamName(), "stream name");
+    testEquals(artifact.getRecursionPrefix(), "recursion prefix");
+    testEquals(artifact.getOffset(), 0);
     testEquals(artifact.javaArtifact(), "someone@somewhere.com".getBytes());
     testEquals(artifact.javaContext(), "someone@somewhere.com\0someone2@somewh".getBytes());
 
-    artifact = scanner.next();
+    testEquals(scanner.empty(), false);
+
+    artifact = scanner.get();
     testEquals(artifact.getArtifactClass(), "email");
-    testEquals(artifact.getBufferOffset(), 22);
+    testEquals(artifact.getStreamName(), "stream name");
+    testEquals(artifact.getRecursionPrefix(), "recursion prefix");
+    testEquals(artifact.getOffset(), 22);
     testEquals(artifact.javaArtifact(), "someone2@somewhere2.com".getBytes());
     testEquals(artifact.javaContext(), "e@somewhere.com\0someone2@somewhere2.com\n".getBytes());
 
-    artifact = scanner.next();
+    testEquals(scanner.empty(), true);
+
+    artifact = scanner.get();
     testEquals(artifact.getArtifactClass(), "");
-    testEquals(artifact.getBufferOffset(), 0);
+    testEquals(artifact.getStreamName(), "");
+    testEquals(artifact.getRecursionPrefix(), "");
+    testEquals(artifact.getOffset(), 0);
     testEquals(artifact.javaArtifact(), "".getBytes());
     testEquals(artifact.javaContext(), "".getBytes());
+
+    testEquals(artifact.toString(), "  \t\t\t");
+
+
+
+/*
+    testEquals(scanner.scan("test_buffer1", java.math.BigInteger.valueOf(0), "", buffer, buffer.length),
+               "");
+
+
 */
   }
 
-/*
-  // check artifact accessor names
-  private static void testArtifactAccessors() {
-    edu.nps.deep.be_scan.Artifact artifact = new 
-                                   edu.nps.deep.be_scan.Artifact();
-    testEquals(artifact.getArtifactClass(), "");
-    testEquals(artifact.getBufferOffset(), 0);
-    testEquals(artifact.javaArtifact(), "".getBytes());
-    testEquals(artifact.javaContext(), "".getBytes());
-    testEquals(artifact.hasNewBuffer(), false);
-    artifact.deleteNewBuffer();
-  }
-*/
 
   public static void main(String[] args) {
 
     testVersion();
     testAvailableScanners();
-    testBuffer1();
-//    testArtifactAccessors();
+    testBuffer();
   }
 }
 

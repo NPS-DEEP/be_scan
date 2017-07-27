@@ -20,6 +20,7 @@
 # This file assists in building libbe_scan.so
 
 BE_SCAN_INCS = \
+	artifact.cpp \
 	be_scan.cpp \
 	be_scan.hpp \
 	escape.cpp \

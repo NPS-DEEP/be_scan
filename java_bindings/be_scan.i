@@ -8,6 +8,39 @@
 %rename (availableScanners) available_scanners;
 %rename (ScanEngine) scan_engine_t;
 %rename (Scanner) scanner_t;
+%rename (scanSetup) scan_setup;
+%rename (scanFinalize) scan_finalize;
+
+%rename (Artifact) artifact_t;
+%rename (artifactClass) artifact_class;
+%rename (streamName) stream_name;
+%rename (recursionPrefix) recursion_prefix;
+%rename (toString) toString;
+
+// C Strings need to return byte[] with \0 bytes intact.
+// void javaArtifact(std::string&)
+%typemap(jtype) void javaArtifact "byte[]"
+%typemap(jstype) void javaArtifact "byte[]"
+%typemap(jni) void javaArtifact "jbyteArray"
+%typemap(javaout) void javaArtifact { return $jnicall; }
+%typemap(in, numinputs=0) std::string& java_artifact (std::string temp) "$1=&temp;"
+%typemap(argout) std::string& java_artifact {
+  $result = JCALL1(NewByteArray, jenv, $1->size());
+  JCALL4(SetByteArrayRegion, jenv, $result, 0, $1->size(),
+         (const jbyte*)$1->c_str());
+}
+
+// void javaContext(std::string&)
+%typemap(jtype) void javaContext "byte[]"
+%typemap(jstype) void javaContext "byte[]"
+%typemap(jni) void javaContext "jbyteArray"
+%typemap(javaout) void javaContext { return $jnicall; }
+%typemap(in, numinputs=0) std::string& java_context (std::string temp) "$1=&temp;"
+%typemap(argout) std::string& java_context {
+  $result = JCALL1(NewByteArray, jenv, $1->size());
+  JCALL4(SetByteArrayRegion, jenv, $result, 0, $1->size(),
+         (const jbyte*)$1->c_str());
+}
 
 // http://stackoverflow.com/questions/33504659/passing-byte-from-java-to-c
 %apply char *BYTE { char *buffer };

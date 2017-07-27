@@ -99,12 +99,12 @@ namespace be_scan {
   class artifact_t {
 
     public:
-    const std::string artifact_class;
-    const std::string stream_name;
-    const std::string recursion_prefix;
-    const uint64_t offset;
-    const std::string artifact;
-    const std::string context;
+    std::string artifact_class;
+    std::string stream_name;
+    std::string recursion_prefix;
+    size_t offset;
+    std::string artifact;
+    std::string context;
     
     artifact_t();
     artifact_t(const std::string& p_artifact_class,
@@ -113,6 +113,13 @@ namespace be_scan {
                const size_t p_offset,
                const std::string& p_artifact,
                const std::string& p_context);
+
+    /**
+     * Return the artifact as formatted escaped text, see artifact.cpp:
+     * <stream filename><space><artifact class><space><path><tab>
+     * <escaped artifact><tab><escaped context>
+     */
+    std::string to_string() const;
 
     /**
      * For Java, return as byte[] which can include \0.
@@ -163,7 +170,7 @@ namespace be_scan {
      *   "" else failure message.
      */
     std::string scan_setup(const std::string& stream_name,
-                           const uint64_t stream_offset,
+                           const size_t stream_offset,
                            const std::string& recursion_prefix);
 
     /**

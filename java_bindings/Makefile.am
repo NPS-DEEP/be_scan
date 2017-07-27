@@ -37,14 +37,15 @@ libbe_scan_jni_la_CPPFLAGS = -fno-strict-aliasing $(JNI_CPPFLAGS)
 libbe_scan_jni_la_LDFLAGS = -fPIC -module
 
 # recipe for be_scan_wrap.cpp created by inputs to SWIG
-be_scan_wrap.cpp: be_scan.hpp be_scan.i Tests.java
+be_scan_wrap.cpp: be_scan.hpp be_scan.i
+	rm -f $(JAVA_PATH)/*
 	mkdir -p $(JAVA_PATH)
 	$(SWIG) -java -package $(JAVA_PACKAGE) -Wall -Werror -outdir $(JAVA_PATH) -o $@ ${top_srcdir}/java_bindings/be_scan.i
 
 be_scan.hpp:
 	ln -s ${top_srcdir}/src/be_scan.hpp .
 
-be_scan_jni.jar: $(JAVA_PATH)/*.java
+be_scan_jni.jar: $(JAVA_PATH)/*.java be_scan.i
 	javac $(JAVA_PATH)/*.java
 	jar cf be_scan_jni.jar edu/nps/deep/be_scan/*.class
 

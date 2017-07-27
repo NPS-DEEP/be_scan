@@ -20,9 +20,11 @@
 #include <config.h>
 #include <stdint.h>
 #include <string>
+#include <sstream>
 #include "be_scan.hpp"
 
 namespace be_scan {
+
     artifact_t::artifact_t(const std::string& p_artifact_class,
                            const std::string& p_stream_name,
                            const std::string& p_recursion_prefix,
@@ -32,6 +34,7 @@ namespace be_scan {
                       artifact_class(p_artifact_class),
                       stream_name(p_stream_name),
                       recursion_prefix(p_recursion_prefix),
+                      offset(p_offset),
                       artifact(p_artifact),
                       context(p_context) {
     }
@@ -44,6 +47,20 @@ namespace be_scan {
                       offset(0),
                       artifact(""),
                       context("") {
+    }
+
+    // return as formatted escaped text
+    std::string artifact_t::to_string() const {
+      std::stringstream ss;
+      ss << stream_name << " "
+         << artifact_class << " ";
+      if (recursion_prefix == "") {
+        ss << offset;
+      } else {
+        ss << recursion_prefix << "-" << offset;
+      }
+      ss << "\t" << escape(artifact) << "\t" << escape(context);
+      return ss.str();
     }
 
     // get around Java \0 limitation, see be_scan.i
