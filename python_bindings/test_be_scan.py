@@ -43,24 +43,53 @@ def test_environment():
 def test_version():
     str_equals(be_scan.version()[:2], "0.")
 
-def test_buffer8():
-    buf = "someone@somewhere.com\tsomeone2@somewhere2.com\n"
-    scan_engine = be_scan.scan_engine_t("email");
-    scanner = be_scan.scanner_t(scan_engine, "unused output filename")
-    str_equals(scanner.scan("test_buffer8", 0, "", buf, len(buf)), "")
+def test_buffer():
+    # set up and scan
+    buf = "someone@somewhere.com\0someone2@somewhere2.com\0"
+    scan_engine = be_scan.scan_engine_t("email")
+    str_equals(scan_engine.status, "")
+    scanner = be_scan.scanner_t(scan_engine)
+    status = scanner.scan_setup("stream name", 0, "recursion prefix")
+    str_equals(status, "")
+    status = scanner.scan("", buf)
+    str_equals(status, "")
+    status = scanner.scan_finalize()
+    str_equals(status, "")
 
-def test_buffer16():
-    buf = " \0a\0a\0a\0@\0b\0b\0.\0z\0w\0 \0"
-    scan_engine = be_scan.scan_engine_t("email");
-    scanner = be_scan.scanner_t(scan_engine, "unused output filename")
-    str_equals(scanner.scan("test_buffer16", 0, "", buf, len(buf)), "")
+    # validate artifacts
+    bool_equals(scanner.empty(), False)
+    artifact = scanner.get()
+    str_equals(artifact.artifact_class, "email")
+    str_equals(artifact.stream_name, "stream name")
+    str_equals(artifact.recursion_prefix, "recursion prefix")
+    str_equals(artifact.offset, 0)
+    str_equals(artifact.artifact, "someone@somewhere.com")
+    str_equals(artifact.context, "someone@somewhere.com\0someone2@somewh")
+    artifact = scanner.get()
+    str_equals(artifact.artifact_class, "email")
+    str_equals(artifact.stream_name, "stream name")
+    str_equals(artifact.recursion_prefix, "recursion prefix")
+    str_equals(artifact.offset, 22)
+    str_equals(artifact.artifact, "someone2@somewhere2.com")
+    str_equals(artifact.context, "e@somewhere.com\0someone2@somewhere2.com\0")
+    bool_equals(scanner.empty(), True)
+    artifact = scanner.get()
+    str_equals(artifact.artifact_class, "")
+    str_equals(artifact.stream_name, "")
+    str_equals(artifact.recursion_prefix, "")
+    str_equals(artifact.offset, 0)
+    str_equals(artifact.artifact, "")
+    str_equals(artifact.context, "")
+
+def test_escape():
+    str_equals(be_scan.escape("a\0b"), "a\\x00b")
 
 # main
 if __name__=="__main__":
     test_environment()
     test_version()
-    test_buffer8()
-    test_buffer16()
+    test_buffer()
+    test_escape()
 
     print("Done.")
 

@@ -15,7 +15,7 @@
 %rename (artifactClass) artifact_class;
 %rename (streamName) stream_name;
 %rename (recursionPrefix) recursion_prefix;
-%rename (toString) toString;
+%rename (toString) to_string;
 
 // C Strings need to return byte[] with \0 bytes intact.
 // void javaArtifact(std::string&)
@@ -42,12 +42,13 @@
          (const jbyte*)$1->c_str());
 }
 
-// http://stackoverflow.com/questions/33504659/passing-byte-from-java-to-c
-%apply char *BYTE { char *buffer };
+//// http://stackoverflow.com/questions/33504659/passing-byte-from-java-to-c
+//%apply char *BYTE { char *buffer };
 
 // not compatible with SWIG 1.3.40
-////http://stackoverflow.com/questions/12497175/correct-way-to-interact-with-arrays-using-swig
-//%apply(char *STRING, size_t LENGTH) { (const char * const p_buffer, size_t p_buffer_size) };
+//http://stackoverflow.com/questions/12497175/correct-way-to-interact-with-arrays-using-swig
+%apply(char *STRING, size_t LENGTH) { (const char * const previous_buffer, size_t previous_buffer_size) };
+%apply(char *STRING, size_t LENGTH) { (const char * const buffer, size_t buffer_size) };
 
 %{
 #include "be_scan.hpp"

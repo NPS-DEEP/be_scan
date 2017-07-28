@@ -45,6 +45,7 @@ public final class Tests {
 
     // NOTE: Beware using getBytes() because it adds additional bytes for
     // negative characters.  Use with positive characters only.
+    final byte[] previousBuffer = "".getBytes();
     final byte[] buffer = "someone@somewhere.com\0someone2@somewhere2.com\n".getBytes();
 
     System.out.println("test buffer size: " + buffer.length);
@@ -55,9 +56,9 @@ public final class Tests {
     edu.nps.deep.be_scan.Scanner scanner =
         new edu.nps.deep.be_scan.Scanner(scanEngine);
 
-    String status = scanner.scanSetup("stream name", 0, "recursion prefx");
+    String status = scanner.scanSetup("stream name", 0, "recursion prefix");
     testEquals(status, "");
-    status = scanner.scan(null, 0, buffer, buffer.length);
+    status = scanner.scan(previousBuffer, buffer);
     testEquals(status, "");
     status = scanner.scanFinalize();
     testEquals(status, "");
@@ -93,25 +94,20 @@ public final class Tests {
     testEquals(artifact.getOffset(), 0);
     testEquals(artifact.javaArtifact(), "".getBytes());
     testEquals(artifact.javaContext(), "".getBytes());
-
-    testEquals(artifact.toString(), "  \t\t\t");
-
-
-
-/*
-    testEquals(scanner.scan("test_buffer1", java.math.BigInteger.valueOf(0), "", buffer, buffer.length),
-               "");
-
-
-*/
+    testEquals(artifact.toString(), "  0		");
   }
 
+  private static void testEscape() {
+    testEquals(edu.nps.deep.be_scan.be_scan_jni.escape("a\0b"), "a\\xC0\\x80b");
+    testEquals(edu.nps.deep.be_scan.be_scan_jni.javaEscape(
+                                            "a\0b".getBytes()), "a\\x00b");
+  }
 
   public static void main(String[] args) {
-
     testVersion();
     testAvailableScanners();
     testBuffer();
+    testEscape();
   }
 }
 

@@ -102,7 +102,11 @@ namespace be_scan {
     std::string artifact_class;
     std::string stream_name;
     std::string recursion_prefix;
+#ifdef SWIG // make SWIG provide long instead of BigInteger for Java
     size_t offset;
+#else
+    uint64_t offset;
+#endif
     std::string artifact;
     std::string context;
     
@@ -170,7 +174,11 @@ namespace be_scan {
      *   "" else failure message.
      */
     std::string scan_setup(const std::string& stream_name,
+#ifdef SWIG // make SWIG provide long instead of BigInteger for Java
                            const size_t stream_offset,
+#else
+                           const uint64_t stream_offset,
+#endif
                            const std::string& recursion_prefix);
 
     /**
@@ -240,12 +248,12 @@ namespace be_scan {
    * by escaping non-printable bytes.
    *
    * Parameters:
-   *   buffer - The buffer of bytes to format.
-   *   buffer_size - The number of bytes in the buffer to format.
+   *   in_buffer - The buffer of bytes to format.
+   *   in_buffer_size - The number of bytes in the buffer to format.
    * Returns:
    *   Escaped output.
    */
-  std::string escape(const char* const buffer, size_t buffer_size);
+  std::string javaEscape(const char* const buffer, size_t buffer_size);
 }
 
 #endif
