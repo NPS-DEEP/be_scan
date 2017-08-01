@@ -209,15 +209,6 @@ namespace email {
                    scanner_data->buffer_size,
                    start, size-1, 16);
 
-be_scan::artifact_t a(
-                   "email",
-                   scanner_data->stream_name,
-                   scanner_data->recursion_prefix,
-                   start,
-                   artifact,
-                   context);
-std::cout << "emailHitHandler push " << a.to_string() << std::endl;
-
     scanner_data->artifacts.push(be_scan::artifact_t(
                    "email",
                    scanner_data->stream_name,
