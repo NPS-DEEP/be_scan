@@ -56,11 +56,13 @@ public final class Tests {
     edu.nps.deep.be_scan.Scanner scanner =
         new edu.nps.deep.be_scan.Scanner(scanEngine);
 
-    String status = scanner.scanSetup("stream name", 0, "recursion prefix");
+    String status = scanner.scanSetup("stream name", "recursion prefix");
     testEquals(status, "");
-    status = scanner.scan(previousBuffer, buffer);
+    status = scanner.scan(0, previousBuffer, buffer);
     testEquals(status, "");
-    status = scanner.scanFinalize();
+    status = scanner.scanFinalize(0, previousBuffer, buffer);
+    testEquals(status, "");
+    status = scanner.scanFenceFinalize(0, previousBuffer, buffer);
     testEquals(status, "");
 
     // check artifact interfaces

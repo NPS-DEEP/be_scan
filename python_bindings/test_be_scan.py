@@ -49,11 +49,13 @@ def test_buffer():
     scan_engine = be_scan.scan_engine_t("email")
     str_equals(scan_engine.status, "")
     scanner = be_scan.scanner_t(scan_engine)
-    status = scanner.scan_setup("stream name", 0, "recursion prefix")
+    status = scanner.scan_setup("stream name", "recursion prefix")
     str_equals(status, "")
-    status = scanner.scan("", buf)
+    status = scanner.scan(0, "", buf)
     str_equals(status, "")
-    status = scanner.scan_finalize()
+    status = scanner.scan_finalize(0, "", buf)
+    str_equals(status, "")
+    status = scanner.scan_fence_finalize(0, "", buf)
     str_equals(status, "")
 
     # validate artifacts

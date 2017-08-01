@@ -48,9 +48,9 @@ void test_buffer8() {
   be_scan::scanner_t scanner(scan_engine);
   
 
-  TEST_EQ(scanner.scan_setup("stream name", 0, "recursion prefix"), "");
-  TEST_EQ(scanner.scan(nullptr, 0, bytes8, string8.size()), "");
-  TEST_EQ(scanner.scan_finalize(), "");
+  TEST_EQ(scanner.scan_setup("stream name", "recursion prefix"), "");
+  TEST_EQ(scanner.scan(0, nullptr, 0, bytes8, string8.size()), "");
+  TEST_EQ(scanner.scan_finalize(0, nullptr, 0, bytes8, string8.size()), "");
   TEST_EQ(scanner.empty(), false);
   be_scan::artifact_t artifact;
   artifact = scanner.get();
@@ -85,9 +85,9 @@ void test_buffer16() {
   be_scan::scan_engine_t scan_engine("email");
   TEST_EQ(scan_engine.status, "");
   be_scan::scanner_t scanner(scan_engine);
-  TEST_EQ(scanner.scan_setup("", 0, ""), "");
-  TEST_EQ(scanner.scan(nullptr, 0, bytes16, string16.size()), "");
-  TEST_EQ(scanner.scan_finalize(), "");
+  TEST_EQ(scanner.scan_setup("", ""), "");
+  TEST_EQ(scanner.scan(0, nullptr, 0, bytes16, string16.size()), "");
+  TEST_EQ(scanner.scan_finalize(0, nullptr, 0, bytes16, string16.size()), "");
 
   be_scan::artifact_t artifact;
   artifact = scanner.get();
@@ -98,20 +98,6 @@ void test_buffer16() {
   TEST_EQ(scanner.empty(), true);
 }
 
-void test_scan_mode() {
-
-  be_scan::scan_engine_t scan_engine("email");
-  TEST_EQ(scan_engine.status, "");
-  be_scan::scanner_t scanner(scan_engine);
-  TEST_EQ(scanner.scan(nullptr, 0, nullptr, 0), "scan called but scan is not set up.  Call scan_setup.");
-  TEST_EQ(scanner.scan_setup("", 0, ""), "");
-  TEST_EQ(scanner.scan_setup("", 0, ""), "scan_setup called but another scan is active.  Call scan_finalize.");
-  TEST_EQ(scanner.scan(nullptr, 0, nullptr, 0), "");
-  TEST_EQ(scanner.scan(nullptr, 0, nullptr, 0), "");
-  TEST_EQ(scanner.scan_finalize(), "");
-  TEST_EQ(scanner.scan_finalize(), "scan_finalize called but scan is not active.");
-}
-
 void test_adjacency() {
   std::string string16("a\0a\0a\0@\0b\0b\0.\0z\0w\0\0\0b\0b\0b\0@\0c\0c\0.\0z\0w\0\0", 39);
   std::cout << "test_adjacency (" << string16.size() << ") string16: " << be_scan::escape(string16) << std::endl;
@@ -120,9 +106,9 @@ void test_adjacency() {
   be_scan::scan_engine_t scan_engine("email");
   TEST_EQ(scan_engine.status, "");
   be_scan::scanner_t scanner(scan_engine);
-  TEST_EQ(scanner.scan_setup("", 0, ""), "");
-  TEST_EQ(scanner.scan(nullptr, 0, bytes16, string16.size()), "");
-  TEST_EQ(scanner.scan_finalize(), "");
+  TEST_EQ(scanner.scan_setup("", ""), "");
+  TEST_EQ(scanner.scan(0, nullptr, 0, bytes16, string16.size()), "");
+  TEST_EQ(scanner.scan_finalize(0, nullptr, 0, bytes16, string16.size()), "");
 
   be_scan::artifact_t artifact;
   artifact = scanner.get();
@@ -142,6 +128,82 @@ void test_adjacency() {
 //  TEST_EQ(artifact.context, std::string("a\0@\0b\0b\0.\0z\0w\0\0\0b\0b\0b\0@\0c\0c\0.\0z\0w\0", 34));
   TEST_EQ(be_scan::escape(artifact.context), be_scan::escape(std::string("a\0@\0b\0b\0.\0z\0w\0\0\0b\0b\0b\0@\0c\0c\0.\0z\0w\0\0", 35)));
 
+  TEST_EQ(scanner.empty(), true);
+}
+
+void test_streaming() {
+  std::string string12 = "someone1@somewhere1.com\tsomeone2@somewhere2.com\n";
+  const char* const bytes12 = string12.c_str();
+  std::string string34 = "someone3@somewhere3.com\tsomeone4@somewhere4.com\n";
+  const char* const bytes34 = string34.c_str();
+  std::string string56 = "someone5@somewhere5.com\tsomeone6@somewhere6.com\n";
+  const char* const bytes56 = string56.c_str();
+
+  be_scan::scan_engine_t scan_engine("email");
+  TEST_EQ(scan_engine.status, "");
+
+  be_scan::scanner_t scanner(scan_engine);
+
+  TEST_EQ(scanner.scan_setup("", ""), "");
+  TEST_EQ(scanner.scan(0, nullptr, 0, bytes12, string12.size()), "");
+  TEST_EQ(scanner.scan(string12.size(),
+                       bytes12, string12.size(),
+                       bytes34, string34.size()), "");
+  TEST_EQ(scanner.scan(string12.size() + string34.size(),
+                       bytes34, string34.size(),
+                       bytes56, string56.size()), "");
+  TEST_EQ(scanner.scan_finalize(string12.size() + string34.size(),
+                                bytes34, string34.size(),
+                                bytes56, string56.size()), "");
+
+  TEST_EQ(scanner.empty(), false);
+  be_scan::artifact_t artifact;
+  artifact = scanner.get();
+  TEST_EQ(artifact.offset, 0);
+  TEST_EQ(artifact.artifact, "someone1@somewhere1.com");
+  artifact = scanner.get();
+  TEST_EQ(artifact.offset, 24);
+  TEST_EQ(artifact.artifact, "someone2@somewhere2.com");
+  artifact = scanner.get();
+  TEST_EQ(artifact.offset, 48);
+  TEST_EQ(artifact.artifact, "someone3@somewhere3.com");
+  artifact = scanner.get();
+  TEST_EQ(artifact.offset, 72);
+  TEST_EQ(artifact.artifact, "someone4@somewhere4.com");
+  artifact = scanner.get();
+  TEST_EQ(artifact.offset, 96);
+  TEST_EQ(artifact.artifact, "someone5@somewhere5.com");
+  artifact = scanner.get();
+  TEST_EQ(artifact.offset, 120);
+  TEST_EQ(artifact.artifact, "someone6@somewhere6.com");
+  TEST_EQ(scanner.empty(), true);
+}
+
+void test_fence() {
+  std::string string1 = "someone1@somewhere1.com\tsome";
+  std::string string2 = "one2@somewhere2.com\nsomeone3@somewhere3.com\n";
+  const char* const bytes1 = string1.c_str();
+  const char* const bytes2 = string2.c_str();
+
+  be_scan::scan_engine_t scan_engine("email");
+  TEST_EQ(scan_engine.status, "");
+
+  be_scan::scanner_t scanner(scan_engine);
+
+  TEST_EQ(scanner.scan_setup("", ""), "");
+  TEST_EQ(scanner.scan(0, nullptr, 0, bytes1, string1.size()), "");
+  TEST_EQ(scanner.scan_fence_finalize(
+                       string1.size(),
+                       bytes1, string1.size(),
+                       bytes2, string2.size()), "");
+
+  be_scan::artifact_t artifact;
+  artifact = scanner.get();
+  TEST_EQ(artifact.offset, 0);
+  TEST_EQ(artifact.artifact, "someone1@somewhere1.com");
+  artifact = scanner.get();
+  TEST_EQ(artifact.offset, 24);
+  TEST_EQ(artifact.artifact, "someone2@somewhere2.com");
   TEST_EQ(scanner.empty(), true);
 }
 
@@ -198,9 +260,9 @@ void test_email() {
   be_scan::scan_engine_t scan_engine("email");
   TEST_EQ(scan_engine.status, "");
   be_scan::scanner_t scanner(scan_engine);
-  TEST_EQ(scanner.scan_setup("", 0, ""), "");
-  TEST_EQ(scanner.scan(nullptr, 0, buffer.c_str(), buffer.size()), "");
-  TEST_EQ(scanner.scan_finalize(), "");
+  TEST_EQ(scanner.scan_setup("", ""), "");
+  TEST_EQ(scanner.scan(0, nullptr, 0, buffer.c_str(), buffer.size()), "");
+  TEST_EQ(scanner.scan_finalize(0, nullptr, 0, buffer.c_str(), buffer.size()), "");
 
   be_scan::artifact_t artifact;
   artifact = scanner.get();
@@ -241,14 +303,13 @@ int main(int argc, char* argv[]) {
 
   // tests
   // NOTE: tests are made to work with write_stdout.
-/*
   test_version();
   test_available_scanners();
   test_buffer8();
   test_buffer16();
-  test_scan_mode();
-*/
   test_adjacency();
+  test_streaming();
+  test_fence();
   test_email();
 
   // done

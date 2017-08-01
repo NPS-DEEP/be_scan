@@ -10,6 +10,7 @@
 %rename (Scanner) scanner_t;
 %rename (scanSetup) scan_setup;
 %rename (scanFinalize) scan_finalize;
+%rename (scanFenceFinalize) scan_fence_finalize;
 
 %rename (Artifact) artifact_t;
 %rename (artifactClass) artifact_class;

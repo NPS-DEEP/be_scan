@@ -44,7 +44,6 @@ static void consume(be_scan::scanner_t& scanner) {
 }
 
 int main(int argc, char* argv[]) {
-  std::cout << "leak_test TBD\n";
 
   if (argc != 2) {
     std::cerr << "Usage: valgrind --tool=memcheck --leak-check=full --show-reachable=yes ./leak_test <testfile>\n";
@@ -89,11 +88,11 @@ int main(int argc, char* argv[]) {
   // open scanner
   be_scan::scan_engine_t scan_engine(be_scan::available_scanners());
   be_scan::scanner_t scanner(scan_engine);
-  scanner.scan_setup(filename, 0, "");
+  scanner.scan_setup(filename, "");
 
   // iterate through slices of the file
   size_t offset = 0;
-  while (offset < file_size) {
+  while (true) {
 
     // read into buffer
     buffer_count = ::pread64(fd, buffer, BUFFER_SIZE, offset);
@@ -103,15 +102,27 @@ int main(int argc, char* argv[]) {
       exit(1);
     }
 
-    // runtime status
+    // provide runtime status
     std::cout << "File " << filename << " start " << offset
               << " buffer_count " << buffer_count << "\n";
 
     // scan
-    scanner.scan(previous_buffer, previous_buffer_count, buffer, buffer_count);
+    scanner.scan(offset,
+                 previous_buffer, previous_buffer_count,
+                 buffer, buffer_count);
 
     // consume artifacts
     consume(scanner);
+
+    // maybe done
+    if (offset + buffer_count == file_size) {
+      // wrap up
+      scanner.scan(offset,
+                   previous_buffer, previous_buffer_count,
+                   buffer, buffer_count);
+      consume(scanner);
+      break;
+    }
 
     // move to next offset
     offset += buffer_count;
@@ -120,10 +131,6 @@ int main(int argc, char* argv[]) {
     previous_buffer_count = buffer_count;
     buffer = temp;
   }
-
-  // conclude
-  scanner.scan_finalize();
-  consume(scanner);
 
   // release buffer
   delete[] previous_buffer;

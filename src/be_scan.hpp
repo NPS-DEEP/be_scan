@@ -143,7 +143,6 @@ namespace be_scan {
     private:
     scanner_data_t* scanner_data;
     lw::lw_scanner_t* lw_scanner;
-    bool in_scan_mode;
 
 #ifndef SWIG
     // do not allow copy or assignment
@@ -167,24 +166,19 @@ namespace be_scan {
      * Parameters:
      *   stream_name - The name where the buffer came from, typically a media
      *          image filename.
-     *   stream_offset - The byte offset of where this buffer starts.
      *   recursion_prefix - The recursion prefix, or "" for no recursion.
      *
      * Returns:
      *   "" else failure message.
      */
     std::string scan_setup(const std::string& stream_name,
-#ifdef SWIG // make SWIG provide long instead of BigInteger for Java
-                           const size_t stream_offset,
-#else
-                           const uint64_t stream_offset,
-#endif
                            const std::string& recursion_prefix);
 
     /**
      * Scan buffer, caching found artifacts, see empty() and get().
      *
      * Parameters:
+     *   stream_offset - The byte offset of where this buffer starts.
      *   previous_buffer - The previously scanned buffer, used for
      *          composing artifacts that start before this buffer.
      *   previous_buffer_size - The number of bytes in the previous
@@ -195,20 +189,57 @@ namespace be_scan {
      * Returns:
      *   "" else failure message.
      */
-    std::string scan(const char* const previous_buffer,
+    std::string scan(const size_t stream_offset,
+                     const char* const previous_buffer,
                      size_t previous_buffer_size,
                      const char* const buffer,
                      size_t buffer_size);
 
     /**
      * Finalize the scan, caching found artifacts, see empty() and get().
-     * Always call this at the end of your stream to capture artifacts
-     * that might have been longer if there were more data.
+     * Always finalize your stream to capture artifacts that might have
+     * been longer if there were more data.
+     *
+     * Parameters:
+     *   stream_offset - The byte offset of where this buffer starts.
+     *   previous_buffer - The previously scanned buffer, used for
+     *          composing artifacts that start before this buffer.
+     *   previous_buffer_size - The number of bytes in the previous
+     *          buffer, or 0 for no previous buffer.
+     *   buffer - The buffer to scan.
+     *   buffer_size - The number of bytes in the buffer to scan.
      *
      * Returns:
      *   "" else failure message.
      */
-    std::string scan_finalize();
+    std::string scan_finalize(const size_t stream_offset,
+                              const char* const previous_buffer,
+                              size_t previous_buffer_size,
+                              const char* const buffer,
+                              size_t buffer_size);
+
+    /**
+     * Scan up to fence byte, finalize the scan, caching found artifacts,
+     * see empty() and get().  Always finalize your stream to capture
+     * artifacts that might have been longer if there were more data.
+     *
+     * Parameters:
+     *   stream_offset - The byte offset of where this buffer starts.
+     *   previous_buffer - The previously scanned buffer, used for
+     *          composing artifacts that start before this buffer.
+     *   previous_buffer_size - The number of bytes in the previous
+     *          buffer, or 0 for no previous buffer.
+     *   buffer - The buffer to scan.
+     *   buffer_size - The number of bytes in the buffer to scan.
+     *
+     * Returns:
+     *   "" else failure message.
+     */
+    std::string scan_fence_finalize(const size_t stream_offset,
+                                    const char* const previous_buffer,
+                                    size_t previous_buffer_size,
+                                    const char* const buffer,
+                                    size_t buffer_size);
 
     /**
      * Identify whether there are cached artifacts.

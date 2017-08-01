@@ -65,40 +65,29 @@ namespace be_scan {
   scanner_t::scanner_t(scan_engine_t& scan_engine) :
              scanner_data(new scanner_data_t()),
              lw_scanner(scan_engine.lightgrep_wrapper->new_lw_scanner(
-                          scanner_data)),
-             in_scan_mode(false) {
+                          scanner_data)) {
   }
 
   // scan_setup
   std::string scanner_t::scan_setup(const std::string& stream_name,
-                                    const uint64_t stream_offset,
                                     const std::string& recursion_prefix) {
 
-    // enforce proper usage
-    if (in_scan_mode) {
-      return "scan_setup called but another scan is active.  Call scan_finalize.";
-    }
     // set up scanner_data fields for this scan
     scanner_data->stream_name = stream_name;
-    scanner_data->stream_offset = stream_offset;
     scanner_data->recursion_prefix = recursion_prefix;
 
-    in_scan_mode = true;
     return "";
   }
 
   // scan
-  std::string scanner_t::scan(const char* const previous_buffer,
+  std::string scanner_t::scan(size_t stream_offset,
+                              const char* const previous_buffer,
                               size_t previous_buffer_size,
                               const char* const buffer,
                               size_t buffer_size) {
 
-    // enforce stateful usage
-    if (!in_scan_mode) {
-      return "scan called but scan is not set up.  Call scan_setup.";
-    }
-
-    // set up scanner_data fields for this scan
+    // set up scanner_data fields
+    scanner_data->stream_offset = stream_offset;
     scanner_data->previous_buffer = previous_buffer;
     scanner_data->previous_buffer_size = previous_buffer_size;
     scanner_data->buffer = buffer;
@@ -106,7 +95,7 @@ namespace be_scan {
 
     // perform the scan
     try {
-      lw_scanner->scan(buffer, buffer_size);
+      lw_scanner->scan(stream_offset, buffer, buffer_size);
     } catch (std::runtime_error& e) {
       return e.what();
     }
@@ -114,12 +103,18 @@ namespace be_scan {
   }
 
   // scan_finalize
-  std::string scanner_t::scan_finalize() {
+  std::string scanner_t::scan_finalize(size_t stream_offset,
+                                       const char* const previous_buffer,
+                                       size_t previous_buffer_size,
+                                       const char* const buffer,
+                                       size_t buffer_size) {
 
-    // enforce stateful usage
-    if (!in_scan_mode) {
-      return "scan_finalize called but scan is not active.";
-    }
+    // set up scanner_data fields
+    scanner_data->stream_offset = stream_offset;
+    scanner_data->previous_buffer = previous_buffer;
+    scanner_data->previous_buffer_size = previous_buffer_size;
+    scanner_data->buffer = buffer;
+    scanner_data->buffer_size = buffer_size;
 
     // finalize
     try {
@@ -128,7 +123,30 @@ namespace be_scan {
       return e.what();
     }
 
-    in_scan_mode = false;
+    return "";
+  }
+
+  // scan_fence_finalize
+  std::string scanner_t::scan_fence_finalize(size_t stream_offset,
+                                             const char* const previous_buffer,
+                                             size_t previous_buffer_size,
+                                             const char* const buffer,
+                                             size_t buffer_size) {
+
+    // set up scanner_data fields
+    scanner_data->stream_offset = stream_offset;
+    scanner_data->previous_buffer = previous_buffer;
+    scanner_data->previous_buffer_size = previous_buffer_size;
+    scanner_data->buffer = buffer;
+    scanner_data->buffer_size = buffer_size;
+
+    // finalize
+    try {
+      lw_scanner->scan_fence_finalize(stream_offset, buffer, buffer_size);
+    } catch (std::runtime_error& e) {
+      return e.what();
+    }
+
     return "";
   }
 
