@@ -19,45 +19,32 @@
 
 /**
  * \file
- * Data structure used by scanner callback functions.
+ * Add your uncompressor template to this set of uncompressors and also
+ * call it from uncompressor.cpp.
  */
 
-#ifndef SCANNER_DATA_T
-#define SCANNER_DATA_T
+#ifndef UNCOMPRESSORS_HPP
+#define UNCOMPRESSORS_HPP
+
+#include <config.h>
 
 #include <string>
 #include <stdint.h>
-#include <queue>
-#include "be_scan.hpp" // for artifact_t
 
 namespace be_scan {
 
-  class scanner_data_t {
-    private:
-    // do not allow copy or assignment
-    scanner_data_t(const scanner_data_t&) = delete;
-    scanner_data_t& operator=(const scanner_data_t&) = delete;
+uncompressed_t uncompress_zip(unsigned char* const scratch_buf,
+                              const size_t scratch_buf_size,
+                              const unsigned char* const in_buf,
+                              const size_t in_size,
+                              const size_t in_offset);
 
-    public:
-    std::queue<artifact_t> artifacts;
-    std::string stream_name;
-    uint64_t stream_offset;
-    std::string recursion_prefix;
-    const char* buffer;
-    size_t buffer_size;
+uncompressed_t uncompress_gzip(unsigned char* const scratch_buf,
+                               const size_t scratch_buf_size,
+                               const unsigned char* const in_buf,
+                               const size_t in_size,
+                               const size_t in_offset);
+}
 
-    // fields just for reading
-    const char* previous_buffer;
-    size_t previous_buffer_size;
-
-    scanner_data_t() :
-               artifacts(),
-               stream_name(""), stream_offset(0), recursion_prefix(""),
-               buffer(nullptr), buffer_size(0),
-               previous_buffer(nullptr), previous_buffer_size(0) {
-    }
-  };
-
-} // namespace
 #endif
 

@@ -20,8 +20,8 @@
 /**
  * \file
  * Update this file when adding new scanners:
- *    - Add scanner to available_scanners list.
- *    - Add regex for your scanner in add_regex.
+ *    - Add scanner to the available_scanners list.
+ *    - Add regex for your scanner in the add_regex function.
  */
 
 #include <config.h>

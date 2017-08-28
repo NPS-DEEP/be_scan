@@ -17,6 +17,9 @@
 %rename (streamName) stream_name;
 %rename (recursionPrefix) recursion_prefix;
 %rename (toString) to_string;
+%rename (Uncompressed) uncompressed_t;
+%rename (Uncompressor) uncompressor_t;
+%rename (badAlloc) bad_alloc;
 
 // C Strings need to return byte[] with \0 bytes intact.
 // void javaArtifact(std::string&)
@@ -38,6 +41,18 @@
 %typemap(javaout) void javaContext { return $jnicall; }
 %typemap(in, numinputs=0) std::string& java_context (std::string temp) "$1=&temp;"
 %typemap(argout) std::string& java_context {
+  $result = JCALL1(NewByteArray, jenv, $1->size());
+  JCALL4(SetByteArrayRegion, jenv, $result, 0, $1->size(),
+         (const jbyte*)$1->c_str());
+}
+
+// void javaBuffer(std::string&)
+%typemap(jtype) void javaBuffer "byte[]"
+%typemap(jstype) void javaBuffer "byte[]"
+%typemap(jni) void javaBuffer "jbyteArray"
+%typemap(javaout) void javaBuffer { return $jnicall; }
+%typemap(in, numinputs=0) std::string& java_buffer (std::string temp) "$1=&temp;"
+%typemap(argout) std::string& java_buffer {
   $result = JCALL1(NewByteArray, jenv, $1->size());
   JCALL4(SetByteArrayRegion, jenv, $result, 0, $1->size(),
          (const jbyte*)$1->c_str());

@@ -17,6 +17,8 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
+// adapted from https://github.com/simsong/bulk_extractor.
+
 #include <config.h>
 #include <string>
 #include <iostream>

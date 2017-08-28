@@ -20,6 +20,7 @@
 /**
  * \file
  * Header file for all scanners.  Update this when adding scanners.
+ * For strong separation, each scanner gets its own namespace.
  */
 
 #ifndef SCANNERS_HPP

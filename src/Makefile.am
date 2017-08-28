@@ -27,7 +27,12 @@ BE_SCAN_INCS = \
 	scan_email.cpp \
 	scanner_data.hpp \
 	scanners.cpp \
-	scanners.hpp
+	scanners.hpp \
+	uncompressed.cpp \
+	uncompressor.cpp \
+	uncompressors.hpp \
+	uncompress_gzip.cpp \
+	uncompress_zip.cpp
 
 lib_LTLIBRARIES = libbe_scan.la
 

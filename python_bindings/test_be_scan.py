@@ -86,12 +86,23 @@ def test_buffer():
 def test_escape():
     str_equals(be_scan.escape("a\0b"), "a\\x00b")
 
+def test_uncompressor():
+    uncompressor = be_scan.uncompressor_t()
+    uncompressed = uncompressor.uncompress("", 1)
+    str_equals(uncompressed.buffer, "")
+    str_equals(uncompressed.status,
+               "ERROR: uncompressor signature not recognized")
+    uncompressor.close()
+    uncompressed = uncompressor.uncompress("", 0)
+    str_equals(uncompressed.status, "ERROR: uncompressor scratch buffer has been closed")
+
 # main
 if __name__=="__main__":
     test_environment()
     test_version()
     test_buffer()
     test_escape()
+    test_uncompressor()
 
     print("Done.")
 

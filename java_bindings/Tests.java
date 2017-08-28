@@ -105,11 +105,26 @@ public final class Tests {
                                             "a\0b".getBytes()), "a\\x00b");
   }
 
+  private static void testUncompressor() {
+    edu.nps.deep.be_scan.Uncompressor uncompressor =
+                               new edu.nps.deep.be_scan.Uncompressor();
+    edu.nps.deep.be_scan.Uncompressed uncompressed =
+                               uncompressor.uncompress("".getBytes(), 1);
+    testEquals(uncompressed.javaBuffer(), "".getBytes());
+    testEquals(uncompressed.getStatus(),
+                        "ERROR: uncompressor signature not recognized");
+    uncompressor.close();
+    uncompressed = uncompressor.uncompress("".getBytes(), 0);
+    testEquals(uncompressed.getStatus(),
+                        "ERROR: uncompressor scratch buffer has been closed");
+  }
+
   public static void main(String[] args) {
     testVersion();
     testAvailableScanners();
     testBuffer();
     testEscape();
+    testUncompressor();
   }
 }
 

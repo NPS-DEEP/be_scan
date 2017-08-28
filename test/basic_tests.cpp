@@ -296,6 +296,17 @@ void test_email() {
   TEST_EQ(artifact.artifact, "");
 }
 
+void test_uncompressor() {
+  // very lightweight test
+  be_scan::uncompressor_t uncompressor;
+  be_scan::uncompressed_t uncompressed = uncompressor.uncompress("", 0, 1);
+  TEST_EQ(uncompressed.buffer, "");
+  TEST_EQ(uncompressed.status, "ERROR: uncompressor signature not recognized");
+  uncompressor.close();
+  uncompressed = uncompressor.uncompress("", 0, 0);
+  TEST_EQ(uncompressed.status, "ERROR: uncompressor scratch buffer has been closed");
+}
+
 // ************************************************************
 // main
 // ************************************************************
@@ -311,6 +322,7 @@ int main(int argc, char* argv[]) {
   test_streaming();
   test_fence();
   test_email();
+  test_uncompressor();
 
   // done
   std::cout << "api_test Done.\n";

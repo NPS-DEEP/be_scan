@@ -264,11 +264,98 @@ namespace be_scan {
   };
 
   /**
+   * The uncompressed buffer class.  The uncompressor creates instances
+   * of this.
+   */
+  class uncompressed_t {
+    public:
+
+    /**
+     * Uncompressed binary data, can be empty.
+     *
+     * Java users may want to clear this when done rather than waiting
+     * for it to lose scope in the GC.
+     */
+    std::string buffer;
+
+    /**
+     * Empty else error text.
+     */
+    std::string status;
+
+
+    /**
+     * Let the uncompressor return uncompressed objects.
+     */
+    uncompressed_t();
+    uncompressed_t(const std::string& status);
+    uncompressed_t(const unsigned char* const scratch_buf, size_t out_size);
+
+    /**
+     * For Java, return buffer as byte[] which can include \0.
+     */
+    void javaBuffer(std::string& java_buffer) const;
+  };
+
+  /**
+   * The uncompressor class.  Use this to uncompress content such as zip
+   * data.
+   */
+  class uncompressor_t {
+    private:
+    unsigned char* scratch_buffer;
+
+    public:
+    /**
+     * True if the uncompressor failed to initialize because scratch
+     * memory could not be allocated.
+     */
+    const bool bad_alloc;
+
+    /**
+     * Get an uncompressor instance.  It will include a large scratch
+     * buffer.
+     *
+     * Parameters:
+     *   scan_engine - The scan engine to use for the scanning
+     */
+    uncompressor_t ();
+
+    /**
+     * Uncompress content at the given offset in the buffer.
+     *
+     * Parameters:
+     *   buffer - The buffer containing content to uncompress.
+     *   buffer_size - The size of the buffer, in bytes.
+     *   buffer_offset - The offset in the buffer to the content to
+     *          uncompress.
+     *
+     * Returns:
+     *   Uncompressed content.
+     */
+    uncompressed_t uncompress(const char* const buffer,
+                              size_t buffer_size,
+                              size_t buffer_offset);
+
+    /**
+     * Close uncompressor resources.  Alternatively, wait for the destructor
+     * to do it.
+     *
+     * Java users may wish to call this when done in order to clear
+     * allocated buffer space rather than waiting for the Garbage
+     * Collector to trigger its release.
+     */
+    void close();
+
+  };
+
+  /**
    * A helper function for formatting binary data into a printable string
    * by escaping non-printable bytes.
    *
    * Parameters:
    *   input - The binary input string.
+   *
    * Returns:
    *   Escaped output.
    */
@@ -281,6 +368,7 @@ namespace be_scan {
    * Parameters:
    *   in_buffer - The buffer of bytes to format.
    *   in_buffer_size - The number of bytes in the buffer to format.
+   *
    * Returns:
    *   Escaped output.
    */
