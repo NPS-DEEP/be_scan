@@ -305,6 +305,12 @@ namespace be_scan {
     private:
     unsigned char* scratch_buffer;
 
+#ifndef SWIG
+    // do not allow copy or assignment
+    uncompressor_t(const uncompressor_t&) = delete;
+    uncompressor_t& operator=(const uncompressor_t&) = delete;
+#endif
+
     public:
     /**
      * True if the uncompressor failed to initialize because scratch
@@ -315,11 +321,13 @@ namespace be_scan {
     /**
      * Get an uncompressor instance.  It will include a large scratch
      * buffer.
-     *
-     * Parameters:
-     *   scan_engine - The scan engine to use for the scanning
      */
     uncompressor_t ();
+
+    /**
+     * Destructor closes resources.
+     */
+    ~uncompressor_t ();
 
     /**
      * Uncompress content at the given offset in the buffer.

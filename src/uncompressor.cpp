@@ -84,6 +84,11 @@ namespace be_scan {
     return uncompressed_t("ERROR: uncompressor signature not recognized");
   }
 
+  // ~uncompressor_t
+  uncompressor_t::~uncompressor_t() {
+    close();
+  }
+
   // close
   void uncompressor_t::close() {
     if (scratch_buffer != nullptr) {
