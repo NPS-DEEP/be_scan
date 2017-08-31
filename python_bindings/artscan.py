@@ -4,128 +4,221 @@ from argparse import ArgumentParser
 import os
 import be_scan
 
-# escape unprintable bytes
-def escape(data):
-    escaped = ""
-    for c in data:
-        if c < ' ' or c > '~' or c == '\\':
-            escaped += "\\x%02X" % ord(c)
-        else:
-            escaped += c
-    return escaped
+class TopLevelUncompression():
+    """Provides uncompressed buffers from the top level, specifically,
+       from the file.  Uses optimization to avoid re-reading file data."""
 
-def show(artifact, path):
-    print("%s %s\t%s\t%s" %(
-                      artifact.artifact_class,
-                      path,
-                      escape(artifact.artifact),
-                      escape(artifact.context)))
+    def __init__(self, f, filesize, min_cbuf_size):
+        """Start a compression buffer reader for the open file"""
+        # file and buffer attributes
+        self.f = f
+        self.filesize = filesize
+        self.min_cbuf_size = min_cbuf_size
 
-def recurse(artifact_in, path_in, depth):
+        # the currently active buffer, cbuf
+        self.cbuf = ""
+        self.stream_offset = 0;
+
+    def _maybe_read(offset):
+        # as an optimization we over-read by 2X and we do not rea-read if
+        # the offset is within the lower 1X half.
+        end_offset = stream_offset + len(cbuf)
+        if offset >= stream_offset and (end_offset >= offset + min_cbuf_size or
+                                        end_offset == filesize):
+            # no need to read
+            return
+
+        # check for EOF
+        if offset == filesize:
+            # no more
+            self.cbuf = ""
+            self.stream_offset = offset;
+            return
+
+        # read
+        size = min_cbuf_size * 2
+        if offset + size > filesize:
+            size = filesize - offset
+
+        # read size bytes into the compression buffer
+        f.seek(offset)
+        self.cbuf = f.read(size)
+        self.stream_offset = offset
+
+    # uncompress top level buffer
+    def uncompress(stream_offset):
+        """Get the uncompressed buffer at the top level stream offset."""
+        _maybe_read(stream_offset)
+        buffer_offset = stream_offset - self.stream_offset
+        if buffer_offset >= len(cbuf):
+            # invalid input
+            raise ValueError("buffer offset is out of range")
+
+        uncompressed = uncompressor.uncompress(cbuf, buffer_offset)
+        if uncompressed.status != "":
+            print("uncompression failure %s at offset %u" %
+                                 (uncompressed.status, buffer_offset))
+        return uncompressed.buffer
+
+# recurse
+def recurse(uncompressed_buffer, recursion_prefix, depth):
+    """Recursively scan and uncompress until max depth."""
+
+    # runtime status
+    print("recursion prefix %s depth %d" % (recursion_prefix, depth))
+
+    # verbose status
     if args.verbose:
-        print("%s\n%s\n" % (path_in, escape(data)))
+        print("%s\n" % be_scan.escape(uncompressed_buffer))
 
-    # scan the recursed buffer
-    scanner = be_scan.be_scan_t(scanners, artifact_in)
-    while True:
-        artifact = scanner.next()
-        if artifact.artifact_class == "":
-            break
-        path = "%s-%s-%d" % (path_in, artifact_in.artifact_class.upper(),
-                             artifact.buffer_offset)
+    # open a scanner
+    scanner = be_scan.scanner_t(scan_engine)
+    scanner.scan_setup(filename, recursion_prefix)
 
-        # show this artifact
-        show(artifact, path)
+    # scan
+    status = scanner.scan(0, "", uncompressed_buffer)
+    if status != "":
+        raise ValueError(status)
+    status = scanner.scan_fence_finalize(0, "", uncompressed_buffer)
+    if status != "":
+        raise ValueError(status)
 
-        # manage recursion
-        if artifact.has_new_buffer():
+    # consume artifacts
+    while not scanner.empty():
+        artifact = scanner.get();
+        print(artifact.to_string())
 
-            # show any unpacked artifacts
-            if depth < MAX_RECURSION_DEPTH:
-                recurse(artifact, path, depth + 1)
+        # manage uncompression
+        if depth < MAX_RECURSION_DEPTH and \
+                        (artifact.artifact_class == "zip" or \
+                        artifact.artifact_class == "gzip"):
 
-            # release this buffer
-            artifact.delete_new_buffer()
+            # uncompress from previously uncompressed buffer
+            next_uncompressed_buffer = uncompressor.uncompress(
+                                     uncompressed_buffer, artifact.offset)
+            next_recursion_prefix = "%s%d-%s-" % (artifact.recursion_prefix,
+                         artifact.offset, artifact.artifact_class.upper())
+            recurse(next_uncompressed_buffer, next_recursion_prefix, 1)
 
 # main
 if __name__=="__main__":
 
-    # parse filename, offset, count
+    # parse filename
     parser = ArgumentParser(prog='artscan_all.py',
              description="Scan a file for forensic artifacts.")
     parser.add_argument("filename", help="file to scan", type=str)
-    parser.add_argument("-s", "--start",
-                        help="the start offset in the file",
+
+    # parse scan range and scan interval
+    parser.add_argument("-b", "--begin",
+                        help="the offset in the file to begin scanning",
                         default=0, type=int)
-    parser.add_argument("-c", "--count",
-                        help="the number of bytes to process",
+    parser.add_argument("-e", "--end",
+                        help="the offset in the file to end scanning",
                         default=0, type=int)
-    parser.add_argument("-b", "--break_size",
-                        help="the size, in bytes, to split processing into",
-                        default=2**27, type=int)  # 2^27 = 128MiB = 134217728
+    parser.add_argument("-p", "--scan_partition_interval",
+                        help="the increment size of the scan interval",
+                        default=2**27, type=int)  # 2^27 = 128MiB = 134217728=
+
+    # uncompression
+    parser.add_argument("-c", "--min_compressed_size",
+                        help="the minimum size of the compression buffer",
+                        default=2**21, type=int)  # 2^21 = 2MiB = 2097152
+
+    # parse scanner selection, depth, verbose
     default_scanners = be_scan.available_scanners()
-    parser.add_argument("-e", "--enable",
+    parser.add_argument("-s", "--enable",
                         help="enable specific scanners, default: '%s'" %
                         default_scanners, default = default_scanners, type=str)
     parser.add_argument("-r", "--recursion_depth",
                         help="recursively scan into decompressed regions",
                         default=7, type=int, choices=[1, 2, 3, 4, 5, 6, 7])
     parser.add_argument("-v", "--verbose",
-                        help="show the bytes being scanned",
+                        help="show all the bytes being scanned",
                         action="store_true")
-    args = parser.parse_args()
 
-    # get inputs, fixing out-of-bounds input
-    offset = args.start
-    filesize = os.stat(args.filename).st_size
-    if offset > filesize:
-        offset = filesize
-    count = args.count
-    if count == 0 or count+offset > filesize:
-        count = filesize - offset
-    splitsize = args.break_size
-    scanners = args.enable
+    # args
+    args = parser.parse_args()
+    filename = args.filename
+    filesize = os.stat(filename).st_size
+    scan_interval = args.scan_partition_interval
+    selected_scanners = args.enable
+    min_compressed_size = args.min_compressed_size
+    begin = args.begin
+    if begin > filesize:
+        begin = filesize
+    end = args.end
+    if end == 0 or end > filesize:
+        end = filesize
     MAX_RECURSION_DEPTH = args.recursion_depth
 
-    while (count > 0):
+    # open f for reading intervals of binary data
+    # and open f2 for reading compressed data to uncompress
+    with open(filename, mode='rb') as f, \
+                             open(filename, mode='rb') as f2:
 
-        # open the file for reading binary
-        with open(args.filename, mode='rb') as f:
-            f.seek(offset)
-            if count < splitsize:
-                data = f.read(count)
-            else:
-                data = f.read(splitsize)
-            count -= len(data)
+        # set up the scan stream
+        previous_buffer = ""
+        f.seek(begin)
+        stream_offset = begin
+
+        # open the scanner
+        scan_engine = be_scan.scan_engine_t(selected_scanners)
+        scanner = be_scan.scanner_t(scan_engine)
+        scanner.scan_setup(filename, "")
+
+        # set up for top level uncompression
+        top_level_uncompression = TopLevelUncompression(f2, filesize,
+                                                min_compressed_size)
+
+        # loop through the file one interval at a time
+        while stream_offset != end:
+            # read into current_buffer
+            read_size = scan_interval
+            if stream_offset + read_size > filesize:
+                read_size = filesize - stream_offset
+            current_buffer = f.read(read_size)
+            if len(current_buffer) == 0:
+                raise ValueError("unexpected end of file")
 
             # runtime status
-            print("File %s start %d count %d" % (args.filename, offset,
-                                                 len(data)))
+            print("File %s stream offset %d, buffer size %d" %
+                  (filename, stream_offset, len(current_buffer)))
+
+            # verbose status
             if args.verbose:
-                print("%s\n" % escape(data))
+                print("%s\n" % be_scan.escape(current_buffer))
 
-            # scan the data
-            scanner = be_scan.be_scan_t(scanners, data, len(data))
-            while True:
-                artifact = scanner.next()
-                if artifact.artifact_class == "":
-                    break
-                path = "%d" % (offset + artifact.buffer_offset)
+            # scan
+            status = scanner.scan(stream_offset,
+                                  previous_buffer, current_buffer)
+            if status != "":
+                raise ValueError(status)
+            status = scanner.scan(stream_offset, "", current_buffer)
+            if status != "":
+                raise ValueError(status)
+            status = scanner.scan_fence_finalize(stream_offset,
+                                                 "", current_buffer)
+            if status != "":
+                raise ValueError(status)
 
-                # show this artifact
-                show(artifact, path)
+            # consume artifacts
+            while not scanner.empty():
+                artifact = scanner.get();
+                print(artifact.to_string())
 
-                # manage recursion
-                if artifact.has_new_buffer():
+                # manage uncompression
+                if MAX_RECURSION_DEPTH > 1 and \
+                                (artifact.artifact_class == "zip" or \
+                                artifact.artifact_class == "gzip"):
 
-                    # show any unpacked artifacts
-                    if MAX_RECURSION_DEPTH > 1:
-                        recurse(artifact, path, 1)
+                    # uncompress from file
+                    uncompressed_buffer = top_level_uncompression.uncompress(
+                                                    artifact.offset)
+                    recursion_prefix = "%d-%s-" % (artifact.offset,
+                                         artifact.artifact_class.upper())
+                    recurse(uncompressed_buffer, recursion_prefix, 1)
 
-                    # release this buffer
-                    artifact.delete_new_buffer()
-
-        offset += splitsize
+            stream_offset += read_size
 
     print("Done.")
 
