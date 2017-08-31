@@ -52,25 +52,13 @@ namespace email {
   const std::string MONTH("(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)");
   const std::string ABBREV("(UTC?|GMT|EST|EDT|CST|CDT|MST|MDT|PST|PDT|[ZAMNY])");
 
-  const std::string U_ALNUM("[a-zA-Z0-9]\\z00");
-  const std::string U_TLD("(A\\z00C\\z00|A\\z00D\\z00|A\\z00E\\z00|A\\z00E\\z00R\\z00O\\z00|A\\z00F\\z00|A\\z00G\\z00|A\\z00I\\z00|A\\z00L\\z00|A\\z00M\\z00|A\\z00N\\z00|A\\z00O\\z00|A\\z00Q\\z00|A\\z00R\\z00|A\\z00R\\z00P\\z00A\\z00|A\\z00S\\z00|A\\z00S\\z00I\\z00A\\z00|A\\z00T\\z00|A\\z00U\\z00|A\\z00W\\z00|A\\z00X\\z00|A\\z00Z\\z00|B\\z00A\\z00|B\\z00B\\z00|B\\z00D\\z00|B\\z00E\\z00|B\\z00F\\z00|B\\z00G\\z00|B\\z00H\\z00|B\\z00I\\z00|B\\z00I\\z00Z\\z00|B\\z00J\\z00|B\\z00L\\z00|B\\z00M\\z00|B\\z00N\\z00|B\\z00O\\z00|B\\z00R\\z00|B\\z00S\\z00|B\\z00T\\z00|B\\z00V\\z00|B\\z00W\\z00|B\\z00Y\\z00|B\\z00Z\\z00|C\\z00A\\z00|C\\z00A\\z00T\\z00|C\\z00C\\z00|C\\z00D\\z00|C\\z00F\\z00|C\\z00G\\z00|C\\z00H\\z00|C\\z00I\\z00|C\\z00K\\z00|C\\z00L\\z00|C\\z00M\\z00|C\\z00N\\z00|C\\z00O\\z00|C\\z00O\\z00M\\z00|C\\z00O\\z00O\\z00P\\z00|C\\z00R\\z00|C\\z00U\\z00|C\\z00V\\z00|C\\z00X\\z00|C\\z00Y\\z00|C\\z00Z\\z00|D\\z00E\\z00|D\\z00J\\z00|D\\z00K\\z00|D\\z00M\\z00|D\\z00O\\z00|D\\z00Z\\z00|E\\z00C\\z00|E\\z00D\\z00U\\z00|E\\z00E\\z00|E\\z00G\\z00|E\\z00H\\z00|E\\z00R\\z00|E\\z00S\\z00|E\\z00T\\z00|E\\z00U\\z00|F\\z00I\\z00|F\\z00J\\z00|F\\z00K\\z00|F\\z00M\\z00|F\\z00O\\z00|F\\z00R\\z00|G\\z00A\\z00|G\\z00B\\z00|G\\z00D\\z00|G\\z00E\\z00|G\\z00F\\z00|G\\z00G\\z00|G\\z00H\\z00|G\\z00I\\z00|G\\z00L\\z00|G\\z00M\\z00|G\\z00N\\z00|G\\z00O\\z00V\\z00|G\\z00P\\z00|G\\z00Q\\z00|G\\z00R\\z00|G\\z00S\\z00|G\\z00T\\z00|G\\z00U\\z00|G\\z00W\\z00|G\\z00Y\\z00|H\\z00K\\z00|H\\z00M\\z00|H\\z00N\\z00|H\\z00R\\z00|H\\z00T\\z00|H\\z00U\\z00|I\\z00D\\z00|I\\z00E\\z00|I\\z00L\\z00|I\\z00M\\z00|I\\z00N\\z00|I\\z00N\\z00F\\z00O\\z00|I\\z00N\\z00T\\z00|I\\z00O\\z00|I\\z00Q\\z00|I\\z00R\\z00|I\\z00S\\z00|I\\z00T\\z00|J\\z00E\\z00|J\\z00M\\z00|J\\z00O\\z00|J\\z00O\\z00B\\z00S\\z00|J\\z00P\\z00|K\\z00E\\z00|K\\z00G\\z00|K\\z00H\\z00|K\\z00I\\z00|K\\z00M\\z00|K\\z00N\\z00|K\\z00P\\z00|K\\z00R\\z00|K\\z00W\\z00|K\\z00Y\\z00|K\\z00Z\\z00|L\\z00A\\z00|L\\z00B\\z00|L\\z00C\\z00|L\\z00I\\z00|L\\z00K\\z00|L\\z00R\\z00|L\\z00S\\z00|L\\z00T\\z00|L\\z00U\\z00|L\\z00V\\z00|L\\z00Y\\z00|M\\z00A\\z00|M\\z00C\\z00|M\\z00D\\z00|M\\z00E\\z00|M\\z00F\\z00|M\\z00G\\z00|M\\z00H\\z00|M\\z00I\\z00L\\z00|M\\z00K\\z00|M\\z00L\\z00|M\\z00M\\z00|M\\z00N\\z00|M\\z00O\\z00|M\\z00O\\z00B\\z00I\\z00|M\\z00P\\z00|M\\z00Q\\z00|M\\z00R\\z00|M\\z00S\\z00|M\\z00T\\z00|M\\z00U\\z00|M\\z00U\\z00S\\z00E\\z00U\\z00M\\z00|M\\z00V\\z00|M\\z00W\\z00|M\\z00X\\z00|M\\z00Y\\z00|M\\z00Z\\z00|N\\z00A\\z00|N\\z00A\\z00M\\z00E\\z00|N\\z00C\\z00|N\\z00E\\z00|N\\z00E\\z00T\\z00|N\\z00F\\z00|N\\z00G\\z00|N\\z00I\\z00|N\\z00L\\z00|N\\z00O\\z00|N\\z00P\\z00|N\\z00R\\z00|N\\z00U\\z00|N\\z00Z\\z00|O\\z00M\\z00|O\\z00R\\z00G\\z00|P\\z00A\\z00|P\\z00E\\z00|P\\z00F\\z00|P\\z00G\\z00|P\\z00H\\z00|P\\z00K\\z00|P\\z00L\\z00|P\\z00M\\z00|P\\z00N\\z00|P\\z00R\\z00|P\\z00R\\z00O\\z00|P\\z00S\\z00|P\\z00T\\z00|P\\z00W\\z00|P\\z00Y\\z00|Q\\z00A\\z00|R\\z00E\\z00|R\\z00O\\z00|R\\z00S\\z00|R\\z00U\\z00|R\\z00W\\z00|S\\z00A\\z00|S\\z00B\\z00|S\\z00C\\z00|S\\z00D\\z00|S\\z00E\\z00|S\\z00G\\z00|S\\z00H\\z00|S\\z00I\\z00|S\\z00J\\z00|S\\z00K\\z00|S\\z00L\\z00|S\\z00M\\z00|S\\z00N\\z00|S\\z00O\\z00|S\\z00R\\z00|S\\z00T\\z00|S\\z00U\\z00|S\\z00V\\z00|S\\z00Y\\z00|S\\z00Z\\z00|T\\z00C\\z00|T\\z00D\\z00|T\\z00E\\z00L\\z00|T\\z00F\\z00|T\\z00G\\z00|T\\z00H\\z00|T\\z00J\\z00|T\\z00K\\z00|T\\z00L\\z00|T\\z00M\\z00|T\\z00N\\z00|T\\z00O\\z00|T\\z00P\\z00|T\\z00R\\z00|T\\z00R\\z00A\\z00V\\z00E\\z00L\\z00|T\\z00T\\z00|T\\z00V\\z00|T\\z00W\\z00|T\\z00Z\\z00|U\\z00A\\z00|U\\z00G\\z00|U\\z00K\\z00|U\\z00M\\z00|U\\z00S\\z00|U\\z00Y\\z00|U\\z00Z\\z00|V\\z00A\\z00|V\\z00C\\z00|V\\z00E\\z00|V\\z00G\\z00|V\\z00I\\z00|V\\z00N\\z00|V\\z00U\\z00|W\\z00F\\z00|W\\z00S\\z00|Y\\z00E\\z00|Y\\z00T\\z00|Y\\z00U\\z00|Z\\z00A\\z00|Z\\z00M\\z00|Z\\z00W\\z00)");
-//  const std::string U_TLD("(A\0C\0|A\0D\0|A\0E\0|A\0E\0R\0O\0|A\0F\0|A\0G\0|A\0I\0|A\0L\0|A\0M\0|A\0N\0|A\0O\0|A\0Q\0|A\0R\0|A\0R\0P\0A\0|A\0S\0|A\0S\0I\0A\0|A\0T\0|A\0U\0|A\0W\0|A\0X\0|A\0Z\0|B\0A\0|B\0B\0|B\0D\0|B\0E\0|B\0F\0|B\0G\0|B\0H\0|B\0I\0|B\0I\0Z\0|B\0J\0|B\0L\0|B\0M\0|B\0N\0|B\0O\0|B\0R\0|B\0S\0|B\0T\0|B\0V\0|B\0W\0|B\0Y\0|B\0Z\0|C\0A\0|C\0A\0T\0|C\0C\0|C\0D\0|C\0F\0|C\0G\0|C\0H\0|C\0I\0|C\0K\0|C\0L\0|C\0M\0|C\0N\0|C\0O\0|C\0O\0M\0|C\0O\0O\0P\0|C\0R\0|C\0U\0|C\0V\0|C\0X\0|C\0Y\0|C\0Z\0|D\0E\0|D\0J\0|D\0K\0|D\0M\0|D\0O\0|D\0Z\0|E\0C\0|E\0D\0U\0|E\0E\0|E\0G\0|E\0H\0|E\0R\0|E\0S\0|E\0T\0|E\0U\0|F\0I\0|F\0J\0|F\0K\0|F\0M\0|F\0O\0|F\0R\0|G\0A\0|G\0B\0|G\0D\0|G\0E\0|G\0F\0|G\0G\0|G\0H\0|G\0I\0|G\0L\0|G\0M\0|G\0N\0|G\0O\0V\0|G\0P\0|G\0Q\0|G\0R\0|G\0S\0|G\0T\0|G\0U\0|G\0W\0|G\0Y\0|H\0K\0|H\0M\0|H\0N\0|H\0R\0|H\0T\0|H\0U\0|I\0D\0|I\0E\0|I\0L\0|I\0M\0|I\0N\0|I\0N\0F\0O\0|I\0N\0T\0|I\0O\0|I\0Q\0|I\0R\0|I\0S\0|I\0T\0|J\0E\0|J\0M\0|J\0O\0|J\0O\0B\0S\0|J\0P\0|K\0E\0|K\0G\0|K\0H\0|K\0I\0|K\0M\0|K\0N\0|K\0P\0|K\0R\0|K\0W\0|K\0Y\0|K\0Z\0|L\0A\0|L\0B\0|L\0C\0|L\0I\0|L\0K\0|L\0R\0|L\0S\0|L\0T\0|L\0U\0|L\0V\0|L\0Y\0|M\0A\0|M\0C\0|M\0D\0|M\0E\0|M\0F\0|M\0G\0|M\0H\0|M\0I\0L\0|M\0K\0|M\0L\0|M\0M\0|M\0N\0|M\0O\0|M\0O\0B\0I\0|M\0P\0|M\0Q\0|M\0R\0|M\0S\0|M\0T\0|M\0U\0|M\0U\0S\0E\0U\0M\0|M\0V\0|M\0W\0|M\0X\0|M\0Y\0|M\0Z\0|N\0A\0|N\0A\0M\0E\0|N\0C\0|N\0E\0|N\0E\0T\0|N\0F\0|N\0G\0|N\0I\0|N\0L\0|N\0O\0|N\0P\0|N\0R\0|N\0U\0|N\0Z\0|O\0M\0|O\0R\0G\0|P\0A\0|P\0E\0|P\0F\0|P\0G\0|P\0H\0|P\0K\0|P\0L\0|P\0M\0|P\0N\0|P\0R\0|P\0R\0O\0|P\0S\0|P\0T\0|P\0W\0|P\0Y\0|Q\0A\0|R\0E\0|R\0O\0|R\0S\0|R\0U\0|R\0W\0|S\0A\0|S\0B\0|S\0C\0|S\0D\0|S\0E\0|S\0G\0|S\0H\0|S\0I\0|S\0J\0|S\0K\0|S\0L\0|S\0M\0|S\0N\0|S\0O\0|S\0R\0|S\0T\0|S\0U\0|S\0V\0|S\0Y\0|S\0Z\0|T\0C\0|T\0D\0|T\0E\0L\0|T\0F\0|T\0G\0|T\0H\0|T\0J\0|T\0K\0|T\0L\0|T\0M\0|T\0N\0|T\0O\0|T\0P\0|T\0R\0|T\0R\0A\0V\0E\0L\0|T\0T\0|T\0V\0|T\0W\0|T\0Z\0|U\0A\0|U\0G\0|U\0K\0|U\0M\0|U\0S\0|U\0Y\0|U\0Z\0|V\0A\0|V\0C\0|V\0E\0|V\0G\0|V\0I\0|V\0N\0|V\0U\0|W\0F\0|W\0S\0|Y\0E\0|Y\0T\0|Y\0U\0|Z\0A\0|Z\0M\0|Z\0W\0)");
   //
   // patterns
   //
 
-  const std::string EMAIL(ALNUM + "(\\.?[a-zA-Z0-9_%\\-+])+\\.?" + ALNUM + "@" + ALNUM + "(\\.?[a-zA-Z0-9_%\\-])+\\." + TLD + "[^\\z41-\\z5A\\z61-\\z7A]");
+//  const std::string EMAIL(ALNUM + "(\\.?[a-zA-Z0-9_%\\-+])+\\.?" + ALNUM + "@" + ALNUM + "(\\.?[a-zA-Z0-9_%\\-])+\\." + TLD + "[^\\z41-\\z5A\\z61-\\z7A]");
 
-  const std::string U_EMAIL(U_ALNUM + "((\\.\\z00)?([a-zA-Z0-9_%\\-+]\\z00))+(\\.\\z00)?" + U_ALNUM + "@\\z00" + U_ALNUM + "((\\.\\z00)?([a-zA-Z0-9_%\\-]\\z00))+(\\.\\z00)" + U_TLD + "[^\\z41-\\z5A\\z61-\\z7A]");
-
-//  const std::string U_EMAIL(U_ALNUM + "((\\.\\z00)?([a-zA-Z0-9_%\\-+]\\z00))+(\\.\\z00)?" + U_ALNUM + "@\\z00" + U_ALNUM + "((\\.\\z00)?([a-zA-Z0-9_%\\-]\\z00))+(\\.\\z00)" + U_TLD + "[^\\z41-\\z5A\\z61-\\z7A]\\z00");
-
-//  const std::string U_EMAIL(U_ALNUM + "@\\z00");
-
-//  const std::string U_EMAIL("b\\z00b\\z00");
-
-
-//  const std::string U_EMAIL(U_ALNUM + "([a-zA-Z0-9_%\\-+]\\z00)+");
+  const std::string EMAIL(ALNUM + "(\\.?[a-zA-Z0-9_%\\-+]){1,64}\\.?" + ALNUM + "@" + ALNUM + "(\\.?[a-zA-Z0-9_%\\-]){1,64}\\." + TLD + "[^\\z41-\\z5A\\z61-\\z7A]");
 
   //
   // helper functions
@@ -262,11 +250,7 @@ namespace email {
     std::string status;
     status = lw.add_regex(EMAIL, "UTF-8", true, false, &emailHitHandler);
     if (status != "") return status;
-    status = lw.add_regex(U_EMAIL, "UTF-8", true, false, &emailHitHandler);
-//    status = lw.add_regex(U_EMAIL, "UTF-8", true, false, &emailUTF16LEHitHandler);
-//    status = lw.add_regex(EMAIL, "UTF-16LE", true, false, &emailHitHandler);
-//    status = lw.add_regex(EMAIL, "UTF-16LE", true, false, &emailUTF16LEHitHandler);
-//    status = lw.add_regex(U_EMAIL, "UTF-8", true, false, &emailHitHandler);
+    status = lw.add_regex(EMAIL, "UTF-16LE", true, false, &emailHitHandler);
     if (status != "") return status;
     return "";
   }
