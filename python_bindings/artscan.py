@@ -19,26 +19,27 @@ class TopLevelUncompression():
         self.cbuf = ""
         self.stream_offset = 0;
 
-    def _maybe_read(offset):
+    def _maybe_read(self, offset):
         # as an optimization we over-read by 2X and we do not rea-read if
         # the offset is within the lower 1X half.
-        end_offset = stream_offset + len(cbuf)
-        if offset >= stream_offset and (end_offset >= offset + min_cbuf_size or
-                                        end_offset == filesize):
+        end_offset = stream_offset + len(self.cbuf)
+        if offset >= stream_offset and (
+                         end_offset >= offset + self.min_cbuf_size or
+                         end_offset == self.filesize):
             # no need to read
             return
 
         # check for EOF
-        if offset == filesize:
+        if offset == self.filesize:
             # no more
             self.cbuf = ""
             self.stream_offset = offset;
             return
 
         # read
-        size = min_cbuf_size * 2
-        if offset + size > filesize:
-            size = filesize - offset
+        size = self.min_cbuf_size * 2
+        if offset + size > self.filesize:
+            size = self.filesize - offset
 
         # read size bytes into the compression buffer
         f.seek(offset)
@@ -46,15 +47,15 @@ class TopLevelUncompression():
         self.stream_offset = offset
 
     # uncompress top level buffer
-    def uncompress(stream_offset):
+    def uncompress(self, stream_offset):
         """Get the uncompressed buffer at the top level stream offset."""
-        _maybe_read(stream_offset)
+        self._maybe_read(stream_offset)
         buffer_offset = stream_offset - self.stream_offset
-        if buffer_offset >= len(cbuf):
+        if buffer_offset >= len(self.cbuf):
             # invalid input
             raise ValueError("buffer offset is out of range")
 
-        uncompressed = uncompressor.uncompress(cbuf, buffer_offset)
+        uncompressed = uncompressor.uncompress(self.cbuf, buffer_offset)
         if uncompressed.status != "":
             print("uncompression failure %s at offset %u" %
                                  (uncompressed.status, buffer_offset))
@@ -165,6 +166,9 @@ if __name__=="__main__":
         scan_engine = be_scan.scan_engine_t(selected_scanners)
         scanner = be_scan.scanner_t(scan_engine)
         scanner.scan_setup(filename, "")
+
+        # open the uncompressor
+        uncompressor = be_scan.uncompressor_t()
 
         # set up for top level uncompression
         top_level_uncompression = TopLevelUncompression(f2, filesize,
