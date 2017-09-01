@@ -47,7 +47,7 @@ namespace be_scan {
 
   // available scanners
   std::string available_scanners() {
-    return "email";
+    return "email uncompression";
   }
 
   // add regex for all requested scanners
@@ -60,6 +60,11 @@ namespace be_scan {
     for (auto it=scanners.begin(); it != scanners.end(); ++it) {
       if (*it == "email") {
         status = email::add_email_regex(lw);
+        if (status != "") {
+          return status;
+        }
+      } else if (*it == "uncompression") {
+        status = uncompression::add_uncompression_regex(lw);
         if (status != "") {
           return status;
         }

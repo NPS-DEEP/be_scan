@@ -49,5 +49,16 @@ namespace email {
   std::string add_email_regex(lw::lw_t& lw);
 }
 
+// uncompression
+namespace uncompression {
+  // callback functions
+  void zipHandler(const uint64_t start, const uint64_t size,
+                  void* p_scanner_data);
+  void gzipHandler(const uint64_t start, const uint64_t size,
+                   void* p_scanner_data);
+  // regex
+  std::string add_uncompression_regex(lw::lw_t& lw);
+}
+
 #endif
 
