@@ -69,22 +69,20 @@ namespace be_scan {
   }
 
   // scan_setup
-  std::string scanner_t::scan_setup(const std::string& stream_name,
-                                    const std::string& recursion_prefix) {
+  void scanner_t::scan_setup(const std::string& stream_name,
+                             const std::string& recursion_prefix) {
 
     // set up scanner_data fields for this scan
     scanner_data->stream_name = stream_name;
     scanner_data->recursion_prefix = recursion_prefix;
-
-    return "";
   }
 
   // scan
-  std::string scanner_t::scan(size_t stream_offset,
-                              const char* const previous_buffer,
-                              size_t previous_buffer_size,
-                              const char* const buffer,
-                              size_t buffer_size) {
+  std::string scanner_t::scan_stream(size_t stream_offset,
+                                     const char* const previous_buffer,
+                                     size_t previous_buffer_size,
+                                     const char* const buffer,
+                                     size_t buffer_size) {
 
     // set up scanner_data fields
     scanner_data->stream_offset = stream_offset;
@@ -103,11 +101,11 @@ namespace be_scan {
   }
 
   // scan_finalize
-  std::string scanner_t::scan_finalize(size_t stream_offset,
-                                       const char* const previous_buffer,
-                                       size_t previous_buffer_size,
-                                       const char* const buffer,
-                                       size_t buffer_size) {
+  std::string scanner_t::scan_final(size_t stream_offset,
+                                    const char* const previous_buffer,
+                                    size_t previous_buffer_size,
+                                    const char* const buffer,
+                                    size_t buffer_size) {
 
     // set up scanner_data fields
     scanner_data->stream_offset = stream_offset;
@@ -118,6 +116,7 @@ namespace be_scan {
 
     // finalize
     try {
+      lw_scanner->scan(stream_offset, buffer, buffer_size);
       lw_scanner->scan_finalize();
     } catch (std::runtime_error& e) {
       return e.what();
@@ -127,11 +126,11 @@ namespace be_scan {
   }
 
   // scan_fence_finalize
-  std::string scanner_t::scan_fence_finalize(size_t stream_offset,
-                                             const char* const previous_buffer,
-                                             size_t previous_buffer_size,
-                                             const char* const buffer,
-                                             size_t buffer_size) {
+  std::string scanner_t::scan_fence_final(size_t stream_offset,
+                                          const char* const previous_buffer,
+                                          size_t previous_buffer_size,
+                                          const char* const buffer,
+                                          size_t buffer_size) {
 
     // set up scanner_data fields
     scanner_data->stream_offset = stream_offset;

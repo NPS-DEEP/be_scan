@@ -3,72 +3,29 @@
 from argparse import ArgumentParser
 import os
 import be_scan
+from file_reader import FileReader
 
-class TopLevelUncompression():
-    """Provides uncompressed buffers from the top level, specifically,
-       from the file.  Uses optimization to avoid re-reading file data."""
-
-    def __init__(self, f, filesize, min_cbuf_size):
-        """Start a compression buffer reader for the open file"""
-        # file and buffer attributes
-        self.f = f
-        self.filesize = filesize
-        self.min_cbuf_size = min_cbuf_size
-
-        # the currently active buffer, cbuf
-        self.cbuf = ""
-        self.stream_offset = 0;
-
-    def _maybe_read(self, offset):
-        # as an optimization we over-read by 2X and we do not rea-read if
-        # the offset is within the lower 1X half.
-        end_offset = stream_offset + len(self.cbuf)
-        if offset >= stream_offset and (
-                         end_offset >= offset + self.min_cbuf_size or
-                         end_offset == self.filesize):
-            # no need to read
-            return
-
-        # check for EOF
-        if offset == self.filesize:
-            # no more
-            self.cbuf = ""
-            self.stream_offset = offset;
-            return
-
-        # read
-        size = self.min_cbuf_size * 2
-        if offset + size > self.filesize:
-            size = self.filesize - offset
-
-        # read size bytes into the compression buffer
-        f.seek(offset)
-        self.cbuf = f.read(size)
-        self.stream_offset = offset
-
-    # uncompress top level buffer
-    def uncompress(self, stream_offset):
-        """Get the uncompressed buffer at the top level stream offset."""
-        self._maybe_read(stream_offset)
-        buffer_offset = stream_offset - self.stream_offset
-        if buffer_offset >= len(self.cbuf):
-            # invalid input
-            raise ValueError("buffer offset is out of range")
-
-        uncompressed = uncompressor.uncompress(self.cbuf, buffer_offset)
-        if uncompressed.status != "":
-            print("uncompression failure %s at offset %u" %
-                                 (uncompressed.status, buffer_offset))
-        return uncompressed.buffer
+# set artifact text for compression artifact
+def set_compression_text(artifact, uncompressed):
+    if uncompressed.status:
+        # uncompression failure so put failure into artifact text
+        print("uncompression failure '%s' at file offset %s%u" %
+                 (uncompressed.status,
+                  artifact.recursion_prefix,
+                  artifact.offset))
+        artifact.artifact = uncompressed.status
+    else:
+        # valid so put MD5 into artifact text
+        artifact.artifact = md5.new(uncompressed.buffer).hexdigest()
+        artifact.context = len(uncompressed.buffer)
 
 # recurse
 def recurse(uncompressed_buffer, recursion_prefix, depth):
     """Recursively scan and uncompress until max depth."""
 
     # runtime status
-    print("recursion prefix %s depth %d" % (recursion_prefix, depth))
-
-    # verbose status
+    print("Processing %d count %d depth %d..." % (recursion_prefix,
+                                        len(uncompressed_buffer), depth))
     if args.verbose:
         print("%s\n" % be_scan.escape(uncompressed_buffer))
 
@@ -77,29 +34,95 @@ def recurse(uncompressed_buffer, recursion_prefix, depth):
     scanner.scan_setup(filename, recursion_prefix)
 
     # scan
-    status = scanner.scan(0, "", uncompressed_buffer)
-    if status != "":
-        raise ValueError(status)
-    status = scanner.scan_fence_finalize(0, "", uncompressed_buffer)
-    if status != "":
+    status = scanner.scan_final(0, "", uncompressed_buffer)
+    if status:
         raise ValueError(status)
 
-    # consume artifacts
+    # consume recursed artifacts
     while not scanner.empty():
-        artifact = scanner.get();
+        artifact = scanner.get()
+
+        # prepare for zip or gzip
+        if artifact.artifact_class == "zip" or \
+                        artifact.artifact_class == "gzip":
+
+            # uncompress
+            uncompressed = uncompressor.uncompress(
+                                 uncompressed_buffer, artifact.offset)
+            if not uncompressed.status and not uncompressed.buffer:
+                # no error and nothing uncompressed so disregard artifact
+                continue
+
+            set_compression_text(artifact, uncompressed)
+
+        # prepare for other artifact types as needed
+        # none.
+
+        # print the artifact
         print(artifact.to_string())
 
-        # manage uncompression
-        if depth < MAX_RECURSION_DEPTH and \
-                        (artifact.artifact_class == "zip" or \
-                        artifact.artifact_class == "gzip"):
+        # manage recursion
+        if (artifact.artifact_class == "zip" or \
+                        artifact.artifact_class == "gzip") and \
+                        depth <= MAX_RECURSION_DEPTH:
 
-            # uncompress from previously uncompressed buffer
-            next_uncompressed_buffer = uncompressor.uncompress(
-                                     uncompressed_buffer, artifact.offset)
-            next_recursion_prefix = "%s%d-%s-" % (artifact.recursion_prefix,
-                         artifact.offset, artifact.artifact_class.upper())
-            recurse(next_uncompressed_buffer, next_recursion_prefix, 1)
+            # calculate next recursion prefix
+            next_recursion_prefix = "%s%d-%s-" % (
+                           artifact.recursion_prefix,
+                           artifact.offset,
+                           artifact.artifact_class.upper())
+
+            # recurse
+            recurse(uncompressed.buffer, next_recursion_prefix, depth + 1)
+
+# consume top-level artifacts
+def consume_top_level_artifacts(scanner):
+
+    while not scanner.empty():
+        artifact = scanner.get()
+
+        # prepare for zip or gzip
+        if artifact.artifact_class == "zip" or \
+                        artifact.artifact_class == "gzip":
+
+            print ("consume_top_level_artifacts.a")
+
+            # uncompress
+            uncompressed = uncompressor.uncompress(file_reader.chunk,
+                              artifact.offset - file_reader.stream_offset)
+
+            print ("consume_top_level_artifacts.b")
+            # no error and nothing uncompressed so disregard this artifact
+            #if not uncompressed.status and len(uncompressed.buffer) <= 21:
+            if not uncompressed.status and not uncompressed.buffer:
+                continue
+
+            print ("consume_top_level_artifacts.c")
+            # set artifact text for this uncompression
+            set_compression_text(artifact, uncompressed)
+
+            print ("consume_top_level_artifacts.d")
+        # prepare for other artifact types as needed
+        # none.
+
+        # print the artifact
+        print(artifact.to_string())
+
+        print ("consume_top_level_artifacts.e")
+        # manage recursion
+        if (artifact.artifact_class == "zip" or \
+                        artifact.artifact_class == "gzip") and \
+                        MAX_RECURSION_DEPTH >= 1:
+
+            # calculate recursion prefix for first recursion depth
+            next_recursion_prefix = "%d-%s-" % (
+                           artifact.offset,
+                           artifact.artifact_class.upper())
+
+            print ("consume_top_level_artifacts.f")
+            # recurse
+            recurse(uncompressed.buffer, next_recursion_prefix, 1)
+            print ("consume_top_level_artifacts.g")
 
 # main
 if __name__=="__main__":
@@ -139,90 +162,50 @@ if __name__=="__main__":
 
     # args
     args = parser.parse_args()
-    filename = args.filename
-    filesize = os.stat(filename).st_size
-    scan_interval = args.scan_partition_interval
     selected_scanners = args.enable
-    min_compressed_size = args.min_compressed_size
-    begin = args.begin
-    if begin > filesize:
-        begin = filesize
-    end = args.end
-    if end == 0 or end > filesize:
-        end = filesize
-    MAX_RECURSION_DEPTH = args.recursion_depth
 
-    # open f for reading intervals of binary data
-    # and open f2 for reading compressed data to uncompress
-    with open(filename, mode='rb') as f, \
-                             open(filename, mode='rb') as f2:
+    # file reader
+    file_reader = FileReader(args.filename, args.begin, args.end)
 
-        # set up the scan stream
-        previous_buffer = ""
-        f.seek(begin)
-        stream_offset = begin
+    # runtime status
+    file_reader.print_status(args.verbose)
 
-        # open the scanner
-        scan_engine = be_scan.scan_engine_t(selected_scanners)
-        scanner = be_scan.scanner_t(scan_engine)
-        scanner.scan_setup(filename, "")
+    # the top-level scanner
+    scan_engine = be_scan.scan_engine_t(selected_scanners)
+    scanner = be_scan.scanner_t(scan_engine)
+    scanner.scan_setup(args.filename, "")
 
-        # open the uncompressor
-        uncompressor = be_scan.uncompressor_t()
+    # the uncompressor
+    uncompressor = be_scan.uncompressor_t()
 
-        # set up for top level uncompression
-        top_level_uncompression = TopLevelUncompression(f2, filesize,
-                                                min_compressed_size)
+    # scan buffer intervals from the file reader
+    while file_reader.more():
+        print("zzzzzzzzzzzzzz")
 
-        # loop through the file one interval at a time
-        while stream_offset != end:
-            # read into current_buffer
-            read_size = scan_interval
-            if stream_offset + read_size > filesize:
-                read_size = filesize - stream_offset
-            current_buffer = f.read(read_size)
-            if len(current_buffer) == 0:
-                raise ValueError("unexpected end of file")
+        # scan stream
+        status = scanner.scan_stream(file_reader.stream_offset,
+                                     file_reader.previous,
+                                     file_reader.current)
+        if status:
+            raise ValueError(status)
 
-            # runtime status
-            print("File %s stream offset %d, buffer size %d" %
-                  (filename, stream_offset, len(current_buffer)))
+        consume_top_level_artifacts(scanner)
 
-            # verbose status
-            if args.verbose:
-                print("%s\n" % be_scan.escape(current_buffer))
+        # next
+        file_reader.read()
 
-            # scan
-            status = scanner.scan(stream_offset,
-                                  previous_buffer, current_buffer)
-            if status != "":
-                raise ValueError(status)
-            status = scanner.scan(stream_offset, "", current_buffer)
-            if status != "":
-                raise ValueError(status)
-            status = scanner.scan_fence_finalize(stream_offset,
-                                                 "", current_buffer)
-            if status != "":
-                raise ValueError(status)
+        # runtime status
+        file_reader.print_status(args.verbose)
 
-            # consume artifacts
-            while not scanner.empty():
-                artifact = scanner.get();
-                print(artifact.to_string())
+    # capture any remaining open artifacts
+    status = scanner.scan_final(file_reader.stream_offset,
+                                file_reader.previous,
+                                file_reader.current)
+    if status:
+        raise ValueError(status)
 
-                # manage uncompression
-                if MAX_RECURSION_DEPTH > 1 and \
-                                (artifact.artifact_class == "zip" or \
-                                artifact.artifact_class == "gzip"):
+    consume_top_level_artifacts(scanner)
 
-                    # uncompress from file
-                    uncompressed_buffer = top_level_uncompression.uncompress(
-                                                    artifact.offset)
-                    recursion_prefix = "%d-%s-" % (artifact.offset,
-                                         artifact.artifact_class.upper())
-                    recurse(uncompressed_buffer, recursion_prefix, 1)
-
-            stream_offset += read_size
 
     print("Done.")
 

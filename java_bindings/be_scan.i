@@ -9,8 +9,9 @@
 %rename (ScanEngine) scan_engine_t;
 %rename (Scanner) scanner_t;
 %rename (scanSetup) scan_setup;
-%rename (scanFinalize) scan_finalize;
-%rename (scanFenceFinalize) scan_fence_finalize;
+%rename (scanFinal) scan_final;
+%rename (scanStream) scan_stream;
+%rename (scanFenceFinal) scan_fence_final;
 
 %rename (Artifact) artifact_t;
 %rename (artifactClass) artifact_class;

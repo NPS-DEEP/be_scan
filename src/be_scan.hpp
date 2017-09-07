@@ -161,21 +161,21 @@ namespace be_scan {
     scanner_t(scan_engine_t& scan_engine);
 
     /**
-     * Set up the scanner for scanning.
+     * Set up the scanner for scanning.  Values in these parameters are
+     * copied into found artifacts.
      *
      * Parameters:
      *   stream_name - The name where the buffer came from, typically a media
      *          image filename.
      *   recursion_prefix - The recursion prefix, or "" for no recursion.
-     *
-     * Returns:
-     *   "" else failure message.
      */
-    std::string scan_setup(const std::string& stream_name,
-                           const std::string& recursion_prefix);
+    void scan_setup(const std::string& stream_name,
+                    const std::string& recursion_prefix);
 
     /**
-     * Scan buffer, caching found artifacts, see empty() and get().
+     * Scan the buffer as part of a stream, caching found artifacts.
+     * Note that artifacts that may extend beyond the buffer are not
+     * finalized.
      *
      * Parameters:
      *   stream_offset - The byte offset of where this buffer starts.
@@ -189,15 +189,15 @@ namespace be_scan {
      * Returns:
      *   "" else failure message.
      */
-    std::string scan(const size_t stream_offset,
-                     const char* const previous_buffer,
-                     size_t previous_buffer_size,
-                     const char* const buffer,
-                     size_t buffer_size);
+    std::string scan_stream(const size_t stream_offset,
+                            const char* const previous_buffer,
+                            size_t previous_buffer_size,
+                            const char* const buffer,
+                            size_t buffer_size);
 
     /**
-     * Finalize the scan, caching found artifacts, see empty() and get().
-     * Always finalize your stream to capture artifacts that might have
+     * Scan the buffer and finalize the scan, caching found artifacts.
+     * Always finalize your scans to capture artifacts that might have
      * been longer if there were more data.
      *
      * Parameters:
@@ -212,16 +212,17 @@ namespace be_scan {
      * Returns:
      *   "" else failure message.
      */
-    std::string scan_finalize(const size_t stream_offset,
-                              const char* const previous_buffer,
-                              size_t previous_buffer_size,
-                              const char* const buffer,
-                              size_t buffer_size);
+    std::string scan_final(const size_t stream_offset,
+                           const char* const previous_buffer,
+                           size_t previous_buffer_size,
+                           const char* const buffer,
+                           size_t buffer_size);
 
     /**
-     * Scan up to fence byte, finalize the scan, caching found artifacts,
-     * see empty() and get().  Always finalize your stream to capture
-     * artifacts that might have been longer if there were more data.
+     * Scan for artifacts that may extend into buffer but started before
+     * buffer, finalizing the scan and caching found artifacts.  Always
+     * finalize your stream to capture artifacts that might have been
+     * longer if there were more data.
      *
      * Parameters:
      *   stream_offset - The byte offset of where this buffer starts.
@@ -235,11 +236,11 @@ namespace be_scan {
      * Returns:
      *   "" else failure message.
      */
-    std::string scan_fence_finalize(const size_t stream_offset,
-                                    const char* const previous_buffer,
-                                    size_t previous_buffer_size,
-                                    const char* const buffer,
-                                    size_t buffer_size);
+    std::string scan_fence_final(const size_t stream_offset,
+                                 const char* const previous_buffer,
+                                 size_t previous_buffer_size,
+                                 const char* const buffer,
+                                 size_t buffer_size);
 
     /**
      * Identify whether there are cached artifacts.

@@ -106,20 +106,17 @@ int main(int argc, char* argv[]) {
     std::cout << "File " << filename << " start " << offset
               << " buffer_count " << buffer_count << "\n";
 
-    // scan
-    scanner.scan(offset,
-                 previous_buffer, previous_buffer_count,
-                 buffer, buffer_count);
-
-    // consume artifacts
-    consume(scanner);
-
-    // maybe done
-    if (offset + buffer_count == file_size) {
-      // wrap up
-      scanner.scan(offset,
-                   previous_buffer, previous_buffer_count,
-                   buffer, buffer_count);
+    // may be at end of stream
+    if (offset + buffer_count < file_size) {
+      // more
+      scanner.scan_stream(offset,
+                          previous_buffer, previous_buffer_count,
+                          buffer, buffer_count);
+      consume(scanner);
+    } else {
+      scanner.scan_final(offset,
+                         previous_buffer, previous_buffer_count,
+                         buffer, buffer_count);
       consume(scanner);
       break;
     }

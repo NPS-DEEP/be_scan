@@ -47,6 +47,7 @@ public final class Tests {
     // negative characters.  Use with positive characters only.
     final byte[] previousBuffer = "".getBytes();
     final byte[] buffer = "someone@somewhere.com\0someone2@somewhere2.com\n".getBytes();
+    final byte[] emptyBuffer = "".getBytes();
 
     System.out.println("test buffer size: " + buffer.length);
     edu.nps.deep.be_scan.ScanEngine scanEngine =
@@ -56,13 +57,12 @@ public final class Tests {
     edu.nps.deep.be_scan.Scanner scanner =
         new edu.nps.deep.be_scan.Scanner(scanEngine);
 
-    String status = scanner.scanSetup("stream name", "recursion prefix");
+    scanner.scanSetup("stream name", "recursion prefix");
+    String status = scanner.scanStream(0, previousBuffer, buffer);
     testEquals(status, "");
-    status = scanner.scan(0, previousBuffer, buffer);
+    status = scanner.scanFinal(0, emptyBuffer, emptyBuffer);
     testEquals(status, "");
-    status = scanner.scanFinalize(0, previousBuffer, buffer);
-    testEquals(status, "");
-    status = scanner.scanFenceFinalize(0, previousBuffer, buffer);
+    status = scanner.scanFenceFinal(0, emptyBuffer, emptyBuffer); 
     testEquals(status, "");
 
     // check artifact interfaces
