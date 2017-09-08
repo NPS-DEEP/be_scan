@@ -39,6 +39,7 @@ class FileReader():
         self.filesize = os.stat(filename).st_size
         if self.filesize == 0:
             sys.exit("Error: File '%s' is empty.  Aborting." % self.filename)
+        print("Opened file %s size %d" % (filename, self.filesize))
 
         # maybe fix start and stop
         if self.start > self.filesize:
@@ -59,7 +60,7 @@ class FileReader():
         self.current = self.f.read(count)
         if len(self.current) != count:
             raise ValueError("read error: read %d bytes but %d bytes expected"
-                             % (len(self.current, count)))
+                             % (len(self.current), count))
         count2 = self.interval
         if count2 > self.stop - self.start + count:
             count2 = self.stop - self.start - count
@@ -75,18 +76,20 @@ class FileReader():
 
         # get count to read
         count = self.interval
+        print("read stop %d" % self.stop)
         if self.stream_offset + len(self.current) + len(self._next) + count \
                                                            > self.stop:
-            count = self.stop - self.stream_offset
+            count = self.stop - self.stream_offset - len(self.current) \
+                                                   - len(self._next)
 
         # ripple back buffers
-        self.stream_offset += len(self.previous)
+        self.stream_offset += len(self.current)
         self.previous = self.current[-500:] # last few hundred bytes of current
         self.current = self._next
         self._next = self.f.read(count)
         if len(self._next) != count:
             raise ValueError("read error: read %d bytes but %d bytes expected"
-                             % (len(self._next, count)))
+                             % (len(self._next), count))
         self.chunk = self.current + self._next
 
     def more(self):
