@@ -2,6 +2,7 @@
 
 from argparse import ArgumentParser
 import os
+import md5
 import be_scan
 from file_reader import FileReader
 
@@ -17,21 +18,21 @@ def set_compression_text(artifact, uncompressed):
     else:
         # valid so put MD5 into artifact text
         artifact.artifact = md5.new(uncompressed.buffer).hexdigest()
-        artifact.context = len(uncompressed.buffer)
+        artifact.context = "%d" % len(uncompressed.buffer)
 
 # recurse
 def recurse(uncompressed_buffer, recursion_prefix, depth):
     """Recursively scan and uncompress until max depth."""
 
     # runtime status
-    print("Processing %d count %d depth %d..." % (recursion_prefix,
+    print("Processing %s count %d depth %d..." % (recursion_prefix,
                                         len(uncompressed_buffer), depth))
     if args.verbose:
         print("%s\n" % be_scan.escape(uncompressed_buffer))
 
     # open a scanner
     scanner = be_scan.scanner_t(scan_engine)
-    scanner.scan_setup(filename, recursion_prefix)
+    scanner.scan_setup(args.filename, recursion_prefix)
 
     # scan
     status = scanner.scan_final(0, "", uncompressed_buffer)
@@ -67,7 +68,7 @@ def recurse(uncompressed_buffer, recursion_prefix, depth):
                         depth <= MAX_RECURSION_DEPTH:
 
             # calculate next recursion prefix
-            next_recursion_prefix = "%s%d-%s-" % (
+            next_recursion_prefix = "%s-%d-%s" % (
                            artifact.recursion_prefix,
                            artifact.offset,
                            artifact.artifact_class.upper())
@@ -85,44 +86,36 @@ def consume_top_level_artifacts(scanner):
         if artifact.artifact_class == "zip" or \
                         artifact.artifact_class == "gzip":
 
-            print ("consume_top_level_artifacts.a")
-
             # uncompress
             uncompressed = uncompressor.uncompress(file_reader.chunk,
                               artifact.offset - file_reader.stream_offset)
 
-            print ("consume_top_level_artifacts.b")
             # no error and nothing uncompressed so disregard this artifact
             #if not uncompressed.status and len(uncompressed.buffer) <= 21:
             if not uncompressed.status and not uncompressed.buffer:
                 continue
 
-            print ("consume_top_level_artifacts.c")
             # set artifact text for this uncompression
             set_compression_text(artifact, uncompressed)
 
-            print ("consume_top_level_artifacts.d")
         # prepare for other artifact types as needed
         # none.
 
         # print the artifact
         print(artifact.to_string())
 
-        print ("consume_top_level_artifacts.e")
         # manage recursion
         if (artifact.artifact_class == "zip" or \
                         artifact.artifact_class == "gzip") and \
                         MAX_RECURSION_DEPTH >= 1:
 
             # calculate recursion prefix for first recursion depth
-            next_recursion_prefix = "%d-%s-" % (
+            next_recursion_prefix = "%d-%s" % (
                            artifact.offset,
                            artifact.artifact_class.upper())
 
-            print ("consume_top_level_artifacts.f")
             # recurse
             recurse(uncompressed.buffer, next_recursion_prefix, 1)
-            print ("consume_top_level_artifacts.g")
 
 # main
 if __name__=="__main__":
@@ -163,6 +156,7 @@ if __name__=="__main__":
     # args
     args = parser.parse_args()
     selected_scanners = args.enable
+    MAX_RECURSION_DEPTH = args.recursion_depth
 
     # file reader
     file_reader = FileReader(args.filename, args.begin, args.end)
@@ -180,7 +174,6 @@ if __name__=="__main__":
 
     # scan buffer intervals from the file reader
     while file_reader.more():
-        print("zzzzzzzzzzzzzz")
 
         # scan stream
         status = scanner.scan_stream(file_reader.stream_offset,
