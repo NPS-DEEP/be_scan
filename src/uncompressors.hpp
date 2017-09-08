@@ -33,17 +33,17 @@
 
 namespace be_scan {
 
-uncompressed_t uncompress_zip(unsigned char* const scratch_buf,
-                              const size_t scratch_buf_size,
-                              const unsigned char* const in_buf,
+uncompressed_t uncompress_zip(const unsigned char* const in_buf,
                               const size_t in_size,
-                              const size_t in_offset);
+                              const size_t in_offset,
+                              unsigned char* const scratch_buf,
+                              const size_t scratch_buf_size);
 
-uncompressed_t uncompress_gzip(unsigned char* const scratch_buf,
-                               const size_t scratch_buf_size,
-                               const unsigned char* const in_buf,
+uncompressed_t uncompress_gzip(const unsigned char* const in_buf,
                                const size_t in_size,
-                               const size_t in_offset);
+                               const size_t in_offset,
+                               unsigned char* const scratch_buf,
+                               const size_t scratch_buf_size);
 }
 
 #endif

@@ -41,12 +41,12 @@
 
 namespace be_scan {
 
-  // return uncompressed data, which may be blank
-  uncompressed_t uncompress_gzip(unsigned char* const scratch_buf,
-                                 const size_t scratch_buf_size,
-                                 const unsigned char* const in_buf,
+  // return uncompressed data in scratch_buf, which may be blank
+  uncompressed_t uncompress_gzip(const unsigned char* const in_buf,
                                  const size_t in_size,
-                                 const size_t in_offset) {
+                                 const size_t in_offset,
+                                 unsigned char* const scratch_buf,
+                                 const size_t scratch_buf_size) {
 
     // validate the buffer range
     if (in_size < in_offset + 18) {

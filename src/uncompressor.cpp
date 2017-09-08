@@ -65,8 +65,8 @@ namespace be_scan {
         buffer[buffer_offset+0]==0x50 && buffer[buffer_offset+1]==0x4B &&
         buffer[buffer_offset+2]==0x03 && buffer[buffer_offset+3]==0x04) {
 
-      return uncompress_zip(scratch_buffer, max_uncompressed_size,
-                            buffer, buffer_size, buffer_offset);
+      return uncompress_zip(buffer, buffer_size, buffer_offset,
+                            scratch_buffer, max_uncompressed_size);
     }
 
     // gzip
@@ -76,8 +76,8 @@ namespace be_scan {
         buffer[buffer_offset+8]==0x00 || buffer[buffer_offset+8]==0x02 ||
         buffer[buffer_offset+8]==0x04)) {
 
-      return uncompress_gzip(scratch_buffer, max_uncompressed_size,
-                            buffer, buffer_size, buffer_offset);
+      return uncompress_gzip(buffer, buffer_size, buffer_offset,
+                             scratch_buffer, max_uncompressed_size);
     }
 
     // user error because the uncompressor signature was not found

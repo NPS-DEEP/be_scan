@@ -51,11 +51,11 @@ namespace be_scan {
   }
 
   // return uncompressed data, which may be blank
-  uncompressed_t uncompress_zip(unsigned char* const scratch_buf,
-                                const size_t scratch_buf_size,
-                                const unsigned char* const in_buf,
+  uncompressed_t uncompress_zip(const unsigned char* const in_buf,
                                 const size_t in_size,
-                                const size_t in_offset) {
+                                const size_t in_offset,
+                                unsigned char* const scratch_buf,
+                                const size_t scratch_buf_size) {
 
     // validate the buffer range
     if (in_size < in_offset + 30) {
@@ -129,7 +129,7 @@ namespace be_scan {
       }
 
       // data
-      return uncompressed_t(in_buf, out_size);
+      return uncompressed_t(scratch_buf, out_size);
     } else {
 
       // inflate failed
