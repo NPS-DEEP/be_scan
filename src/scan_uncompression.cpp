@@ -43,8 +43,7 @@ namespace uncompression {
   // patterns
   //
   const std::string ZIP("\\z50\\z4B\\z03\\z04");
-//  const std::string ZIP("dir");
-  const std::string GZIP("\\z1F\\z8B\\z08[\\z00\\z02]\\z04");
+  const std::string GZIP("\\z1F\\z8B\\z08.{5}[\\z00\\z02\\z04]");
 
   //
   // helper functions
