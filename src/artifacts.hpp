@@ -19,46 +19,41 @@
 
 /**
  * \file
- * Data structure used by scanner callback functions.
+ * Threadsafe FIFO for artifacts.
  */
 
-#ifndef SCANNER_DATA_T
-#define SCANNER_DATA_T
+#ifndef ARTIFACTS_HPP
+#define ARTIFACTS_HPP
 
-#include <string>
-#include <stdint.h>
+#include <config.h>
 #include <queue>
-#include "be_scan.hpp" // for artifact_t
-#include "artifacts.hpp"
+#include <pthread.h>
+#include "be_scan.hpp"
 
+// scanner support
 namespace be_scan {
 
-  class scanner_data_t {
+  class artifacts_t {
     private:
+    std::queue<artifact_t> artifacts;
+    mutable pthread_mutex_t M;
+
     // do not allow copy or assignment
-    scanner_data_t(const scanner_data_t&) = delete;
-    scanner_data_t& operator=(const scanner_data_t&) = delete;
+    artifacts_t(const artifacts_t&) = delete;
+    artifacts_t& operator=(const artifacts_t&) = delete;
 
     public:
-    artifacts_t artifacts;
-    std::string stream_name;
-    uint64_t stream_offset;
-    std::string recursion_prefix;
-    const char* buffer;
-    size_t buffer_size;
+    // constructor
+    artifacts_t();
 
-    // fields just for reading
-    const char* previous_buffer;
-    size_t previous_buffer_size;
+    // threadsafe enqueue, does not enqueue empty artifacts.
+    void put(const artifact_t& artifact);
 
-    scanner_data_t() :
-               artifacts(),
-               stream_name(""), stream_offset(0), recursion_prefix(""),
-               buffer(nullptr), buffer_size(0),
-               previous_buffer(nullptr), previous_buffer_size(0) {
-    }
+    // threadsafe dequeue, returns empty artifact when empty.
+    artifact_t get();
   };
 
-} // namespace
+}
+
 #endif
 

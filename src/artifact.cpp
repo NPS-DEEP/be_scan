@@ -49,6 +49,13 @@ namespace be_scan {
                       context("") {
     }
 
+    // is blank
+    bool artifact_t::blank() const {
+      return artifact_class == "" && stream_name == "" &&
+             recursion_prefix == "" && offset == 0 && artifact == "" &&
+             context == "";
+    }
+
     // return as formatted escaped text
     std::string artifact_t::to_string() const {
       std::stringstream ss;

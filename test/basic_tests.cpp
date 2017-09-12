@@ -50,7 +50,6 @@ void test_buffer8() {
 
   scanner.scan_setup("stream name", "recursion prefix");
   TEST_EQ(scanner.scan_final(0, nullptr, 0, bytes8, string8.size()), "");
-  TEST_EQ(scanner.empty(), false);
   be_scan::artifact_t artifact;
   artifact = scanner.get();
   std::cout << "artifact: '" << be_scan::escape(artifact.artifact) << "'" << std::endl;
@@ -61,16 +60,15 @@ void test_buffer8() {
   TEST_EQ(artifact.offset, 0);
   TEST_EQ(artifact.artifact, "someone@somewhere.com");
   TEST_EQ(artifact.context, "someone@somewhere.com\tsomeone2@somewh");
-  TEST_EQ(scanner.empty(), false);
 
   artifact = scanner.get();
   TEST_EQ(artifact.artifact_class, "email");
   TEST_EQ(artifact.offset, 22);
   TEST_EQ(artifact.artifact, "someone2@somewhere2.com");
   TEST_EQ(artifact.context, "e@somewhere.com\tsomeone2@somewhere2.com\n");
-  TEST_EQ(scanner.empty(), true);
 
   artifact = scanner.get();
+  TEST_EQ(artifact.blank(), true);
   TEST_EQ(artifact.artifact_class, "");
   TEST_EQ(artifact.offset, 0);
   TEST_EQ(artifact.artifact, "");
@@ -93,7 +91,8 @@ void test_buffer16() {
   TEST_EQ(artifact.offset, 2);
   TEST_EQ(artifact.artifact, std::string("a\0a\0a\0@\0b\0b\0.\0z\0w\0", 18));
   TEST_EQ(artifact.context, std::string(" \0a\0a\0a\0@\0b\0b\0.\0z\0w\0 \0", 22));
-  TEST_EQ(scanner.empty(), true);
+  artifact = scanner.get();
+  TEST_EQ(artifact.blank(), true);
 }
 
 void test_adjacency() {
@@ -125,7 +124,8 @@ void test_adjacency() {
 //  TEST_EQ(artifact.context, std::string("a\0@\0b\0b\0.\0z\0w\0\0\0b\0b\0b\0@\0c\0c\0.\0z\0w\0", 34));
   TEST_EQ(be_scan::escape(artifact.context), be_scan::escape(std::string("a\0@\0b\0b\0.\0z\0w\0\0\0b\0b\0b\0@\0c\0c\0.\0z\0w\0\0", 35)));
 
-  TEST_EQ(scanner.empty(), true);
+  artifact = scanner.get();
+  TEST_EQ(artifact.blank(), true);
 }
 
 void test_streaming() {
@@ -150,7 +150,6 @@ void test_streaming() {
                              bytes34, string34.size(),
                              bytes56, string56.size()), "");
 
-  TEST_EQ(scanner.empty(), false);
   be_scan::artifact_t artifact;
   artifact = scanner.get();
   TEST_EQ(artifact.offset, 0);
@@ -170,7 +169,8 @@ void test_streaming() {
   artifact = scanner.get();
   TEST_EQ(artifact.offset, 120);
   TEST_EQ(artifact.artifact, "someone6@somewhere6.com");
-  TEST_EQ(scanner.empty(), true);
+  artifact = scanner.get();
+  TEST_EQ(artifact.blank(), true);
 }
 
 void test_fence() {
@@ -198,7 +198,8 @@ void test_fence() {
   artifact = scanner.get();
   TEST_EQ(artifact.offset, 24);
   TEST_EQ(artifact.artifact, "someone2@somewhere2.com");
-  TEST_EQ(scanner.empty(), true);
+  artifact = scanner.get();
+  TEST_EQ(artifact.blank(), true);
 }
 
 void test_email() {

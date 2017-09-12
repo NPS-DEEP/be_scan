@@ -37,8 +37,11 @@ static const size_t BUFFER_SIZE = 65536;
 // consume available artifacts
 static void consume(be_scan::scanner_t& scanner) {
   // consume artifacts
-  while (!scanner.empty()) {
+  while (true) {
     be_scan::artifact_t artifact = scanner.get();
+    if (artifact.blank()) {
+      break;
+    }
     std::cout << artifact.to_string() << std::endl;
   }
 }

@@ -58,7 +58,6 @@ def test_buffer():
     str_equals(status, "")
 
     # validate artifacts
-    bool_equals(scanner.empty(), False)
     artifact = scanner.get()
     str_equals(artifact.artifact_class, "email")
     str_equals(artifact.stream_name, "stream name")
@@ -73,8 +72,8 @@ def test_buffer():
     str_equals(artifact.offset, 22)
     str_equals(artifact.artifact, "someone2@somewhere2.com")
     str_equals(artifact.context, "e@somewhere.com\0someone2@somewhere2.com\0")
-    bool_equals(scanner.empty(), True)
     artifact = scanner.get()
+    bool_equals(artifact.blank(), True)
     str_equals(artifact.artifact_class, "")
     str_equals(artifact.stream_name, "")
     str_equals(artifact.recursion_prefix, "")

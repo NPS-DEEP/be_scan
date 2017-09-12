@@ -119,6 +119,11 @@ namespace be_scan {
                const std::string& p_context);
 
     /**
+     * Return true if the artifact is completely blank.
+     */
+    bool blank() const;
+
+    /**
      * Return the artifact as formatted escaped text, see artifact.cpp:
      * <stream filename><space><artifact class><space><path><tab>
      * <escaped artifact><tab><escaped context>
@@ -243,15 +248,10 @@ namespace be_scan {
                                  size_t buffer_size);
 
     /**
-     * Identify whether there are cached artifacts.
+     * Obtain a cached artifact else a blank artifact if empty.
      *
-     * Returns:
-     *   True if there are no cached artifacts to retrieve.
-     */
-    bool empty() const;
-
-    /**
-     * Obtain a cached artifact.
+     * The internal FIFO artifact queue is threadsafe so you may consume
+     * artifacts from a different thread than the scanner thread.
      *
      * Returns:
      *   artifact, or a blank artifact if the cache is empty.

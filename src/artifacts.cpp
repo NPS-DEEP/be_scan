@@ -17,48 +17,45 @@
 //
 // Released into the public domain on March 2, 2017 by Bruce Allen.
 
-/**
- * \file
- * Data structure used by scanner callback functions.
- */
-
-#ifndef SCANNER_DATA_T
-#define SCANNER_DATA_T
-
-#include <string>
-#include <stdint.h>
+#include <config.h>
 #include <queue>
-#include "be_scan.hpp" // for artifact_t
+#include <iostream>
+#include <pthread.h>
+#include "be_scan.hpp"
 #include "artifacts.hpp"
 
 namespace be_scan {
 
-  class scanner_data_t {
-    private:
-    // do not allow copy or assignment
-    scanner_data_t(const scanner_data_t&) = delete;
-    scanner_data_t& operator=(const scanner_data_t&) = delete;
+  // artifacts_t
+  artifacts_t::artifacts_t() : artifacts(std::queue<artifact_t>()), M() {
+    pthread_mutex_init(&M, NULL);
+  }
 
-    public:
-    artifacts_t artifacts;
-    std::string stream_name;
-    uint64_t stream_offset;
-    std::string recursion_prefix;
-    const char* buffer;
-    size_t buffer_size;
-
-    // fields just for reading
-    const char* previous_buffer;
-    size_t previous_buffer_size;
-
-    scanner_data_t() :
-               artifacts(),
-               stream_name(""), stream_offset(0), recursion_prefix(""),
-               buffer(nullptr), buffer_size(0),
-               previous_buffer(nullptr), previous_buffer_size(0) {
+  // put, threadsafe, warn and do not put empty artifact
+  void artifacts_t::put(const artifact_t& artifact) {
+    if (artifact.blank()) {
+      // warn
+      std::cerr << "warning: artifacts_t put blank.\n";
+      return;
     }
-  };
+    pthread_mutex_lock(&M);
+    artifacts.push(artifact);
+    pthread_mutex_unlock(&M);
+  }
 
-} // namespace
-#endif
+  // get, threadsafe, return empty artifact when empty
+  artifact_t artifacts_t::get() {
+    pthread_mutex_lock(&M);
+
+    if (artifacts.empty()) {
+      pthread_mutex_unlock(&M);
+      return artifact_t();
+    } else {
+      artifact_t artifact = artifacts.front();
+      artifacts.pop();
+      pthread_mutex_unlock(&M);
+      return artifact;
+    }
+  }
+}
 

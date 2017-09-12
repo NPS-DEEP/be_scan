@@ -199,7 +199,7 @@ namespace email {
                    scanner_data->buffer_size,
                    start, size-1, 16);
 
-    scanner_data->artifacts.push(be_scan::artifact_t(
+    scanner_data->artifacts.put(be_scan::artifact_t(
                    "email",
                    scanner_data->stream_name,
                    scanner_data->recursion_prefix,
@@ -233,7 +233,7 @@ namespace email {
                    scanner_data->buffer_size,
                    start, size-2, 16);
 
-    scanner_data->artifacts.push(be_scan::artifact_t(
+    scanner_data->artifacts.put(be_scan::artifact_t(
                    "email",
                    scanner_data->stream_name,
                    scanner_data->recursion_prefix,

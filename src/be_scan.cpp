@@ -149,20 +149,9 @@ namespace be_scan {
     return "";
   }
 
-  // empty
-  bool scanner_t::empty() const {
-    return scanner_data->artifacts.empty();
-  }
-
   // get
   artifact_t scanner_t::get() {
-    if (scanner_data->artifacts.empty()) {
-      return artifact_t();
-    } else {
-      artifact_t artifact = scanner_data->artifacts.front();
-      scanner_data->artifacts.pop();
-      return artifact;
-    }
+    return scanner_data->artifacts.get();
   }
 
   scanner_t::~scanner_t() {

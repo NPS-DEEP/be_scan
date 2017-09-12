@@ -66,18 +66,15 @@ public final class Tests {
     testEquals(status, "");
 
     // check artifact interfaces
-    testEquals(scanner.empty(), false);
-
     edu.nps.deep.be_scan.Artifact artifact;
     artifact = scanner.get();
+    testEquals(artifact.blank(), false);
     testEquals(artifact.getArtifactClass(), "email");
     testEquals(artifact.getStreamName(), "stream name");
     testEquals(artifact.getRecursionPrefix(), "recursion prefix");
     testEquals(artifact.getOffset(), 0);
     testEquals(artifact.javaArtifact(), "someone@somewhere.com".getBytes());
     testEquals(artifact.javaContext(), "someone@somewhere.com\0someone2@somewh".getBytes());
-
-    testEquals(scanner.empty(), false);
 
     artifact = scanner.get();
     testEquals(artifact.getArtifactClass(), "email");
@@ -87,9 +84,8 @@ public final class Tests {
     testEquals(artifact.javaArtifact(), "someone2@somewhere2.com".getBytes());
     testEquals(artifact.javaContext(), "e@somewhere.com\0someone2@somewhere2.com\n".getBytes());
 
-    testEquals(scanner.empty(), true);
-
     artifact = scanner.get();
+    testEquals(artifact.blank(), true);
     testEquals(artifact.getArtifactClass(), "");
     testEquals(artifact.getStreamName(), "");
     testEquals(artifact.getRecursionPrefix(), "");
