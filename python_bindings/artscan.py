@@ -59,6 +59,10 @@ def recurse(uncompressed_buffer, recursion_prefix, depth):
 
             set_compression_text(artifact, uncompressed)
 
+            # skip popular useless uncompressed data
+            if artifact.artifact == "8da7a0b0144fc58332b03e90aaf7ba25":
+                continue
+
         # prepare for other artifact types as needed
         # none.
 
@@ -97,12 +101,15 @@ def consume_top_level_artifacts(scanner):
                               artifact.offset - file_reader.stream_offset)
 
             # no error and nothing uncompressed so disregard this artifact
-            #if not uncompressed.status and len(uncompressed.buffer) <= 21:
             if not uncompressed.status and not uncompressed.buffer:
                 continue
 
             # set artifact text for this uncompression
             set_compression_text(artifact, uncompressed)
+
+            # skip popular useless uncompressed data
+            if artifact.artifact == "8da7a0b0144fc58332b03e90aaf7ba25":
+                continue
 
         # prepare for other artifact types as needed
         # none.
