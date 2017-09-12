@@ -39,7 +39,7 @@ class FileReader():
         self.filesize = os.stat(filename).st_size
         if self.filesize == 0:
             sys.exit("Error: File '%s' is empty.  Aborting." % self.filename)
-        print("Opened file %s size %d" % (filename, self.filesize))
+        print("# Opened file %s size %d" % (filename, self.filesize))
 
         # maybe fix start and stop
         if self.start > self.filesize:
@@ -76,7 +76,6 @@ class FileReader():
 
         # get count to read
         count = self.interval
-        print("read stop %d" % self.stop)
         if self.stream_offset + len(self.current) + len(self._next) + count \
                                                            > self.stop:
             count = self.stop - self.stream_offset - len(self.current) \
@@ -98,11 +97,14 @@ class FileReader():
 
     def print_status(self, verbose):
         """Print file reader status text."""
-        print("File: '%s', stream_offset: %s, count: %s, more: %r" %
+        if verbose >= 1:
+            # print buffer offset
+            print("# File: '%s', stream_offset: %s, count: %s, more: %r" %
                            (self.filename, self.stream_offset,
                             len(self.current), self.more()))
-        if (verbose):
-            print("previous: '%s'\nCurrent: '%s'" %
+        if verbose >= 2:
+            # print buffer contents
+            print("# previous: '%s'\nCurrent: '%s'" %
                            (be_scan.escape(self.previous),
                             be_scan.escape(self.current)))
 

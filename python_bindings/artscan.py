@@ -25,10 +25,11 @@ def recurse(uncompressed_buffer, recursion_prefix, depth):
     """Recursively scan and uncompress until max depth."""
 
     # runtime status
-    print("Processing %s count %d depth %d..." % (recursion_prefix,
+    if args.verbose >= 1:
+        print("# Processing %s count %d depth %d..." % (recursion_prefix,
                                         len(uncompressed_buffer), depth))
-    if args.verbose:
-        print("%s\n" % be_scan.escape(uncompressed_buffer))
+    if args.verbose >= 2:
+        print("# %s\n" % be_scan.escape(uncompressed_buffer))
 
     # open a scanner
     scanner = be_scan.scanner_t(scan_engine)
@@ -155,8 +156,8 @@ if __name__=="__main__":
                         help="recursively scan into decompressed regions",
                         default=7, type=int, choices=[1, 2, 3, 4, 5, 6, 7])
     parser.add_argument("-v", "--verbose",
-                        help="show all the bytes being scanned",
-                        action="store_true")
+                        help="show runtime status, 0=none, 1=scan status, 2=scan status plus all the bytes being scanned",
+                        default=0, type=int, choices=[0, 1, 2])
 
     # args
     args = parser.parse_args()
@@ -205,5 +206,5 @@ if __name__=="__main__":
     consume_top_level_artifacts(scanner)
 
 
-    print("Done.")
+    print("# Done.")
 
