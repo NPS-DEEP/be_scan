@@ -21,7 +21,7 @@
  * \file
  * Update this file when adding new scanners:
  *    - Add scanner to the available_scanners list.
- *    - Add regex for your scanner in the add_regex function.
+ *    - Add regex for your scanner in the add_regexes function.
  */
 
 #include <config.h>
@@ -51,7 +51,8 @@ namespace be_scan {
   }
 
   // add regex for all requested scanners
-  std::string add_regex(lw::lw_t& lw, const std::string& requested_scanners) {
+  std::string add_regexes(lw::lw_scanner_program_t& lw_scanner_program,
+                          const std::string& requested_scanners) {
     std::string status;
     std::set<std::string> scanners = split(requested_scanners, ' ');
     if (scanners.size() == 0) {
@@ -59,12 +60,12 @@ namespace be_scan {
     }
     for (auto it=scanners.begin(); it != scanners.end(); ++it) {
       if (*it == "email") {
-        status = email::add_email_regex(lw);
+        status = email::add_email_regex(lw_scanner_program);
         if (status != "") {
           return status;
         }
       } else if (*it == "uncompression") {
-        status = uncompression::add_uncompression_regex(lw);
+        status = uncompression::add_uncompression_regex(lw_scanner_program);
         if (status != "") {
           return status;
         }

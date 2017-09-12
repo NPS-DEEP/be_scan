@@ -47,25 +47,25 @@ namespace be_scan {
 // ************************************************************
 
   scan_engine_t::scan_engine_t(const std::string& requested_scanners) :
-                lightgrep_wrapper(new lw::lw_t),
-                status(add_regex(*lightgrep_wrapper, requested_scanners)) {
+                lw_scanner_program(new lw::lw_scanner_program_t),
+                status(add_regexes(*lw_scanner_program, requested_scanners)) {
     if (status == "") {
-      lightgrep_wrapper->finalize_regex(false);
+      lw_scanner_program->finalize_program(false);
     }
   }
 
   scan_engine_t::~scan_engine_t() {
-    delete lightgrep_wrapper;
+    delete lw_scanner_program;
   }
 
 // ************************************************************
 // scanner
 // ************************************************************
 
-  scanner_t::scanner_t(scan_engine_t& scan_engine) :
+  scanner_t::scanner_t(const scan_engine_t& scan_engine) :
              scanner_data(new scanner_data_t()),
-             lw_scanner(scan_engine.lightgrep_wrapper->new_lw_scanner(
-                          scanner_data)) {
+             lw_scanner(new lw::lw_scanner_t(
+                        *scan_engine.lw_scanner_program, scanner_data)) {
   }
 
   // scan_setup
@@ -167,7 +167,7 @@ namespace be_scan {
 
   scanner_t::~scanner_t() {
     delete scanner_data;
-    // do not delete lw_scanner because lw_t does this.
+    delete lw_scanner;
   }
 }
 

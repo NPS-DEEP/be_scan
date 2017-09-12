@@ -104,11 +104,14 @@ namespace uncompression {
   // regex
   // ************************************************************
 
-  std::string add_uncompression_regex(lw::lw_t& lw) {
+  std::string add_uncompression_regex(
+                   lw::lw_scanner_program_t& lw_scanner_program) {
     std::string status;
-    status = lw.add_regex(ZIP, "UTF-8", false, false, &zipHandler);
+    status = lw_scanner_program.add_regex(
+                   ZIP, "UTF-8", false, false, &zipHandler);
     if (status != "") return status;
-    status = lw.add_regex(GZIP, "UTF-8", false, false, &gzipHandler);
+    status = lw_scanner_program.add_regex(
+                   GZIP, "UTF-8", false, false, &gzipHandler);
     if (status != "") return status;
     return "";
   }

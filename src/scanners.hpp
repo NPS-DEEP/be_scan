@@ -34,8 +34,9 @@
 // scanner support
 namespace be_scan {
 
-  // add regex for all scanners, return "" else error
-  std::string add_regex(lw::lw_t& lw, const std::string& requested_scanners);
+  // add regex for requested scanners, return "" else error
+  std::string add_regexes(lw::lw_scanner_program_t& lw_scanner_program,
+                          const std::string& requested_scanners);
 }
 
 // email
@@ -46,7 +47,7 @@ namespace email {
   void emailUTF16LEHitHandler(const uint64_t start, const uint64_t size,
                               void* p_scanner_data);
   // regex
-  std::string add_email_regex(lw::lw_t& lw);
+  std::string add_email_regex(lw::lw_scanner_program_t& lw_scanner_program);
 }
 
 // uncompression
@@ -57,7 +58,8 @@ namespace uncompression {
   void gzipHandler(const uint64_t start, const uint64_t size,
                    void* p_scanner_data);
   // regex
-  std::string add_uncompression_regex(lw::lw_t& lw);
+  std::string add_uncompression_regex(
+                              lw::lw_scanner_program_t& lw_scanner_program);
 }
 
 #endif

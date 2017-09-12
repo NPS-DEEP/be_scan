@@ -246,11 +246,13 @@ namespace email {
   // regex
   // ************************************************************
 
-  std::string add_email_regex(lw::lw_t& lw) {
+  std::string add_email_regex(lw::lw_scanner_program_t& lw_scanner_program) {
     std::string status;
-    status = lw.add_regex(EMAIL, "UTF-8", true, false, &emailHitHandler);
+    status = lw_scanner_program.add_regex(
+                       EMAIL, "UTF-8", true, false, &emailHitHandler);
     if (status != "") return status;
-    status = lw.add_regex(EMAIL, "UTF-16LE", true, false, &emailHitHandler);
+    status = lw_scanner_program.add_regex(
+                       EMAIL, "UTF-16LE", true, false, &emailHitHandler);
     if (status != "") return status;
     return "";
   }

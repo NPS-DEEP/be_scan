@@ -34,7 +34,7 @@
 const char* be_scan_version();
 
 namespace lw {
-  class lw_t;
+  class lw_scanner_program_t;
   class lw_scanner_t;
 }
 
@@ -60,11 +60,11 @@ namespace be_scan {
    */
   class scan_engine_t {
 
-    // scanner_t accesses lw_t in scan_engine_t
+    // scanner_t accesses lw_scanner_program_t in scan_engine_t
     friend class scanner_t;
 
     private:
-    lw::lw_t* lightgrep_wrapper;
+    lw::lw_scanner_program_t* lw_scanner_program;
 
 #ifndef SWIG
     // do not allow copy or assignment
@@ -158,7 +158,7 @@ namespace be_scan {
      * Parameters:
      *   scan_engine - The scan engine to use for the scanning
      */
-    scanner_t(scan_engine_t& scan_engine);
+    scanner_t(const scan_engine_t& scan_engine);
 
     /**
      * Set up the scanner for scanning.  Values in these parameters are
