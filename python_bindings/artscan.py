@@ -40,8 +40,10 @@ def recurse(uncompressed_buffer, recursion_prefix, depth):
         raise ValueError(status)
 
     # consume recursed artifacts
-    while not scanner.empty():
+    while True:
         artifact = scanner.get()
+        if artifact.blank():
+            break
 
         # prepare for zip or gzip
         if artifact.artifact_class == "zip" or \
@@ -79,8 +81,11 @@ def recurse(uncompressed_buffer, recursion_prefix, depth):
 # consume top-level artifacts
 def consume_top_level_artifacts(scanner):
 
-    while not scanner.empty():
+    while True:
+        # get cached artifact from queue
         artifact = scanner.get()
+        if artifact.blank():
+            break
 
         # prepare for zip or gzip
         if artifact.artifact_class == "zip" or \
