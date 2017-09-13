@@ -68,7 +68,7 @@ namespace uncompression {
     // context
     std::string context = "zip context";
 
-    scanner_data->artifacts.put(be_scan::artifact_t(
+    scanner_data->artifacts->put(be_scan::artifact_t(
                    "zip",
                    scanner_data->stream_name,
                    scanner_data->recursion_prefix,
@@ -90,7 +90,7 @@ namespace uncompression {
     // context
     std::string context = "gzip context";
 
-    scanner_data->artifacts.put(be_scan::artifact_t(
+    scanner_data->artifacts->put(be_scan::artifact_t(
                    "gzip",
                    scanner_data->stream_name,
                    scanner_data->recursion_prefix,

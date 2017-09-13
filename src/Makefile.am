@@ -22,7 +22,6 @@
 BE_SCAN_INCS = \
 	artifact.cpp \
 	artifacts.cpp \
-	artifacts.hpp \
 	be_scan.cpp \
 	be_scan.hpp \
 	escape.cpp \

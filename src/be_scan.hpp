@@ -26,7 +26,9 @@
 #define BE_SCAN_HPP
 
 #include <string>
+#include <queue>
 #include <stdint.h>
+#include <pthread.h>
 
 /**
  * Version of the be_scan library.
@@ -142,6 +144,42 @@ namespace be_scan {
   };
 
   /**
+   * The artifacts_t class provides threadsafe access to found artifacts.
+   */
+  class artifacts_t {
+    private:
+    std::queue<artifact_t> artifacts;
+    mutable pthread_mutex_t M;
+
+#ifndef SWIG
+    // do not allow copy or assignment
+    artifacts_t(const artifacts_t&) = delete;
+    artifacts_t& operator=(const artifacts_t&) = delete;
+#endif
+
+    public:
+    /**
+     * Create a threadsafe artifacts FIFO queue.
+     */
+    artifacts_t();
+
+    /**
+     * Enqueue artifacts.  Do not call this, let scanners call this.
+     */
+    void put(const artifact_t& artifact);
+
+    /**
+     * Consume artifacts that were enqueued by scanners using put.
+     */
+    artifact_t get();
+
+    /**
+     * Identify whether the queue is empty.
+     */
+    bool empty() const;
+  };
+
+  /**
    * The scanner class.
    */
   class scanner_t {
@@ -162,8 +200,10 @@ namespace be_scan {
      *
      * Parameters:
      *   scan_engine - The scan engine to use for the scanning
+     *   artifacts - A threadsafe artifacts FIFO queue to store found
+     *          artifacts into.
      */
-    scanner_t(const scan_engine_t& scan_engine);
+    scanner_t(const scan_engine_t& scan_engine, artifacts_t* artifacts);
 
     /**
      * Set up the scanner for scanning.  Values in these parameters are
@@ -246,17 +286,6 @@ namespace be_scan {
                                  size_t previous_buffer_size,
                                  const char* const buffer,
                                  size_t buffer_size);
-
-    /**
-     * Obtain a cached artifact else a blank artifact if empty.
-     *
-     * The internal FIFO artifact queue is threadsafe so you may consume
-     * artifacts from a different thread than the scanner thread.
-     *
-     * Returns:
-     *   artifact, or a blank artifact if the cache is empty.
-     */
-    artifact_t get();
 
     /**
      * Destructor.

@@ -45,13 +45,14 @@ void test_buffer8() {
   be_scan::scan_engine_t scan_engine("email");
   TEST_EQ(scan_engine.status, "");
 
-  be_scan::scanner_t scanner(scan_engine);
+  be_scan::artifacts_t artifacts;
+  be_scan::scanner_t scanner(scan_engine, &artifacts);
   
 
   scanner.scan_setup("stream name", "recursion prefix");
   TEST_EQ(scanner.scan_final(0, nullptr, 0, bytes8, string8.size()), "");
   be_scan::artifact_t artifact;
-  artifact = scanner.get();
+  artifact = artifacts.get();
   std::cout << "artifact: '" << be_scan::escape(artifact.artifact) << "'" << std::endl;
   std::cout << "context: '" << be_scan::escape(artifact.context) << "'" << std::endl;
   TEST_EQ(artifact.artifact_class, "email");
@@ -61,13 +62,14 @@ void test_buffer8() {
   TEST_EQ(artifact.artifact, "someone@somewhere.com");
   TEST_EQ(artifact.context, "someone@somewhere.com\tsomeone2@somewh");
 
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.artifact_class, "email");
   TEST_EQ(artifact.offset, 22);
   TEST_EQ(artifact.artifact, "someone2@somewhere2.com");
   TEST_EQ(artifact.context, "e@somewhere.com\tsomeone2@somewhere2.com\n");
 
-  artifact = scanner.get();
+  TEST_EQ(artifacts.empty(), true);
+  artifact = artifacts.get();
   TEST_EQ(artifact.blank(), true);
   TEST_EQ(artifact.artifact_class, "");
   TEST_EQ(artifact.offset, 0);
@@ -81,17 +83,18 @@ void test_buffer16() {
 
   be_scan::scan_engine_t scan_engine("email");
   TEST_EQ(scan_engine.status, "");
-  be_scan::scanner_t scanner(scan_engine);
+  be_scan::artifacts_t artifacts;
+  be_scan::scanner_t scanner(scan_engine, &artifacts);
   scanner.scan_setup("", "");
   TEST_EQ(scanner.scan_final(0, nullptr, 0, bytes16, string16.size()), "");
 
   be_scan::artifact_t artifact;
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.artifact_class, "email");
   TEST_EQ(artifact.offset, 2);
   TEST_EQ(artifact.artifact, std::string("a\0a\0a\0@\0b\0b\0.\0z\0w\0", 18));
   TEST_EQ(artifact.context, std::string(" \0a\0a\0a\0@\0b\0b\0.\0z\0w\0 \0", 22));
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.blank(), true);
 }
 
@@ -102,12 +105,13 @@ void test_adjacency() {
 
   be_scan::scan_engine_t scan_engine("email");
   TEST_EQ(scan_engine.status, "");
-  be_scan::scanner_t scanner(scan_engine);
+  be_scan::artifacts_t artifacts;
+  be_scan::scanner_t scanner(scan_engine, &artifacts);
   scanner.scan_setup("", "");
   TEST_EQ(scanner.scan_final(0, nullptr, 0, bytes16, string16.size()), "");
 
   be_scan::artifact_t artifact;
-  artifact = scanner.get();
+  artifact = artifacts.get();
   std::cout << "artifact: '" << be_scan::escape(artifact.artifact) << "'" << std::endl;
   std::cout << "context: '" << be_scan::escape(artifact.context) << "'" << std::endl;
   TEST_EQ(artifact.artifact_class, "email");
@@ -115,7 +119,7 @@ void test_adjacency() {
   TEST_EQ(be_scan::escape(artifact.artifact), be_scan::escape(std::string("a\0a\0a\0@\0b\0b\0.\0z\0w\0", 18)));
 //  TEST_EQ(artifact.context, std::string("a\0a\0a\0@\0b\0b\0.\0z\0w\0\0\0b\0b\0b\0@\0c\0c\0.\0", 34));
 
-  artifact = scanner.get();
+  artifact = artifacts.get();
   std::cout << "artifact: '" << be_scan::escape(artifact.artifact) << "'" << std::endl;
   std::cout << "context: '" << be_scan::escape(artifact.context) << "'" << std::endl;
   TEST_EQ(artifact.artifact_class, "email");
@@ -124,7 +128,7 @@ void test_adjacency() {
 //  TEST_EQ(artifact.context, std::string("a\0@\0b\0b\0.\0z\0w\0\0\0b\0b\0b\0@\0c\0c\0.\0z\0w\0", 34));
   TEST_EQ(be_scan::escape(artifact.context), be_scan::escape(std::string("a\0@\0b\0b\0.\0z\0w\0\0\0b\0b\0b\0@\0c\0c\0.\0z\0w\0\0", 35)));
 
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.blank(), true);
 }
 
@@ -139,7 +143,8 @@ void test_streaming() {
   be_scan::scan_engine_t scan_engine("email");
   TEST_EQ(scan_engine.status, "");
 
-  be_scan::scanner_t scanner(scan_engine);
+  be_scan::artifacts_t artifacts;
+  be_scan::scanner_t scanner(scan_engine, &artifacts);
 
   scanner.scan_setup("", "");
   TEST_EQ(scanner.scan_stream(0, nullptr, 0, bytes12, string12.size()), "");
@@ -151,25 +156,25 @@ void test_streaming() {
                              bytes56, string56.size()), "");
 
   be_scan::artifact_t artifact;
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.offset, 0);
   TEST_EQ(artifact.artifact, "someone1@somewhere1.com");
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.offset, 24);
   TEST_EQ(artifact.artifact, "someone2@somewhere2.com");
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.offset, 48);
   TEST_EQ(artifact.artifact, "someone3@somewhere3.com");
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.offset, 72);
   TEST_EQ(artifact.artifact, "someone4@somewhere4.com");
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.offset, 96);
   TEST_EQ(artifact.artifact, "someone5@somewhere5.com");
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.offset, 120);
   TEST_EQ(artifact.artifact, "someone6@somewhere6.com");
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.blank(), true);
 }
 
@@ -182,7 +187,8 @@ void test_fence() {
   be_scan::scan_engine_t scan_engine("email");
   TEST_EQ(scan_engine.status, "");
 
-  be_scan::scanner_t scanner(scan_engine);
+  be_scan::artifacts_t artifacts;
+  be_scan::scanner_t scanner(scan_engine, &artifacts);
 
   scanner.scan_setup("", "");
   TEST_EQ(scanner.scan_stream(0, nullptr, 0, bytes1, string1.size()), "");
@@ -192,13 +198,13 @@ void test_fence() {
                        bytes2, string2.size()), "");
 
   be_scan::artifact_t artifact;
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.offset, 0);
   TEST_EQ(artifact.artifact, "someone1@somewhere1.com");
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.offset, 24);
   TEST_EQ(artifact.artifact, "someone2@somewhere2.com");
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.blank(), true);
 }
 
@@ -254,22 +260,23 @@ void test_email() {
 
   be_scan::scan_engine_t scan_engine("email");
   TEST_EQ(scan_engine.status, "");
-  be_scan::scanner_t scanner(scan_engine);
+  be_scan::artifacts_t artifacts;
+  be_scan::scanner_t scanner(scan_engine, &artifacts);
   scanner.scan_setup("", "");
   TEST_EQ(scanner.scan_final(0, nullptr, 0, buffer.c_str(), buffer.size()), "");
 
   be_scan::artifact_t artifact;
-  artifact = scanner.get();
+  artifact = artifacts.get();
   //std::cout << "artifact: '" << be_scan::escape(artifact.artifact) << "'" << std::endl;
   //std::cout << "context: '" << be_scan::escape(artifact.context) << "'" << std::endl;
   TEST_EQ(artifact.artifact, "Emailnorbert@emirates.net.ae");
   TEST_EQ(be_scan::escape(artifact.context), be_scan::escape(std::string("4575\x01\x00\x00\x00\xFF\xFF\xFF\xFF\x05\x00\x17\x00" "Emailnorbert@emirates.net.ae\x04\x00\x00\x00\xFF\xFF\xFF\xFF\x08\x00\x04\x00Modi", 60)));
-  artifact = scanner.get();
+  artifact = artifacts.get();
   //std::cout << "artifact: '" << be_scan::escape(artifact.artifact) << "'" << std::endl;
   //std::cout << "context: '" << be_scan::escape(artifact.context) << "'" << std::endl;
   TEST_EQ(artifact.artifact, "Contact5rubyeapen@hotmail.com");
   TEST_EQ(be_scan::escape(artifact.context), be_scan::escape(std::string("\x00\x00\x00\x15\x00\x00\x00\x00\xFF\xFF\xFF\xFF\x08\x00\x9E\x00" "Contact5rubyeapen@hotmail.com\x00r\x00u\x00" "b\x00y\x00" "e\x00" "a\x00p\x00" "e", 61)));
-  artifact = scanner.get();
+  artifact = artifacts.get();
   //std::cout << "artifact: '" << be_scan::escape(artifact.artifact) << "'" << std::endl;
   //std::cout << "context: '" << be_scan::escape(artifact.context) << "'" << std::endl;
 
@@ -277,16 +284,16 @@ void test_email() {
 //  TEST_EQ(be_scan::escape(artifact.artifact), be_scan::escape(std::string("r\x00u\x00" "b\x00y\x00" "e\x00" "a\x00p\x00" "e\x00n\x00@\x00h\x00o\x00t\x00m\x00" "a\x00i\x00l\x00.\x00" "c\x00o\x00m\x00", 42)));
 //  TEST_EQ(be_scan::escape(artifact.context), be_scan::escape(std::string("pen@hotmail.com\x00r\x00u\x00" "b\x00y\x00" "e\x00" "a\x00p\x00" "e\x00n\x00@\x00h\x00o\x00t\x00m\x00" "a\x00i\x00l\x00.\x00" "c\x00o\x00m\x00\x00\x00M\x00S\x00N\x00 \x00M\x00" "e\x00s\x00", 74)));
 
-  artifact = scanner.get();
+  artifact = artifacts.get();
   //std::cout << "artifact: '" << be_scan::escape(artifact.artifact) << "'" << std::endl;
   //std::cout << "context: '" << be_scan::escape(artifact.context) << "'" << std::endl;
   TEST_EQ(artifact.artifact, "E6EJ5FK5GL6HM3GK4FJ5FI5GG7DI5DH3DH5II7GI8HI9JJ6HL8DL2@H0AH.BH");
   TEST_EQ(artifact.context, "CG-DI.EG/FF1BE1>E6EJ5FK5GL6HM3GK4FJ5FI5GG7DI5DH3DH5II7GI8HI9JJ6HL8DL2@H0AH.BH0DH3HH2EF2CE3AG/");
-  artifact = scanner.get();
+  artifact = artifacts.get();
   //std::cout << "artifact: '" << be_scan::escape(artifact.artifact) << "'" << std::endl;
   //std::cout << "context: '" << be_scan::escape(artifact.context) << "'" << std::endl;
   TEST_EQ(artifact.artifact, "8e1@k5Fo4Fn4Gm.Bi");
-  artifact = scanner.get();
+  artifact = artifacts.get();
   TEST_EQ(artifact.artifact, "");
 }
 

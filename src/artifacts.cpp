@@ -22,7 +22,6 @@
 #include <iostream>
 #include <pthread.h>
 #include "be_scan.hpp"
-#include "artifacts.hpp"
 
 namespace be_scan {
 
@@ -56,6 +55,14 @@ namespace be_scan {
       pthread_mutex_unlock(&M);
       return artifact;
     }
+  }
+
+  // empty, threadsafe
+  bool artifacts_t::empty() const {
+    pthread_mutex_lock(&M);
+    bool is_empty = artifacts.empty();
+    pthread_mutex_unlock(&M);
+    return is_empty;
   }
 }
 

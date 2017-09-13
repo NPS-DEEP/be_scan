@@ -14,6 +14,7 @@
 %rename (scanFenceFinal) scan_fence_final;
 
 %rename (Artifact) artifact_t;
+%rename (Artifacts) artifacts_t;
 %rename (artifactClass) artifact_class;
 %rename (streamName) stream_name;
 %rename (recursionPrefix) recursion_prefix;

@@ -62,8 +62,9 @@ namespace be_scan {
 // scanner
 // ************************************************************
 
-  scanner_t::scanner_t(const scan_engine_t& scan_engine) :
-             scanner_data(new scanner_data_t()),
+  scanner_t::scanner_t(const scan_engine_t& scan_engine,
+                       artifacts_t* artifacts) :
+             scanner_data(new scanner_data_t(artifacts)),
              lw_scanner(new lw::lw_scanner_t(
                         *scan_engine.lw_scanner_program, scanner_data)) {
   }
@@ -147,11 +148,6 @@ namespace be_scan {
     }
 
     return "";
-  }
-
-  // get
-  artifact_t scanner_t::get() {
-    return scanner_data->artifacts.get();
   }
 
   scanner_t::~scanner_t() {

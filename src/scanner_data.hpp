@@ -28,8 +28,7 @@
 #include <string>
 #include <stdint.h>
 #include <queue>
-#include "be_scan.hpp" // for artifact_t
-#include "artifacts.hpp"
+#include "be_scan.hpp" // for artifacts_t
 
 namespace be_scan {
 
@@ -40,7 +39,7 @@ namespace be_scan {
     scanner_data_t& operator=(const scanner_data_t&) = delete;
 
     public:
-    artifacts_t artifacts;
+    artifacts_t* artifacts;
     std::string stream_name;
     uint64_t stream_offset;
     std::string recursion_prefix;
@@ -51,8 +50,8 @@ namespace be_scan {
     const char* previous_buffer;
     size_t previous_buffer_size;
 
-    scanner_data_t() :
-               artifacts(),
+    scanner_data_t(artifacts_t* p_artifacts) :
+               artifacts(p_artifacts),
                stream_name(""), stream_offset(0), recursion_prefix(""),
                buffer(nullptr), buffer_size(0),
                previous_buffer(nullptr), previous_buffer_size(0) {

@@ -35,13 +35,10 @@ static std::locale loc;
 static const size_t BUFFER_SIZE = 65536;
 
 // consume available artifacts
-static void consume(be_scan::scanner_t& scanner) {
+static void consume(be_scan::artifacts_t& artifacts) {
   // consume artifacts
-  while (true) {
-    be_scan::artifact_t artifact = scanner.get();
-    if (artifact.blank()) {
-      break;
-    }
+  while (!artifacts.empty()) {
+    be_scan::artifact_t artifact = artifacts.get();
     std::cout << artifact.to_string() << std::endl;
   }
 }
@@ -90,7 +87,8 @@ int main(int argc, char* argv[]) {
 
   // open scanner
   be_scan::scan_engine_t scan_engine(be_scan::available_scanners());
-  be_scan::scanner_t scanner(scan_engine);
+  be_scan::artifacts_t artifacts;
+  be_scan::scanner_t scanner(scan_engine, &artifacts);
   scanner.scan_setup(filename, "");
 
   // iterate through slices of the file
@@ -115,12 +113,12 @@ int main(int argc, char* argv[]) {
       scanner.scan_stream(offset,
                           previous_buffer, previous_buffer_count,
                           buffer, buffer_count);
-      consume(scanner);
+      consume(artifacts);
     } else {
       scanner.scan_final(offset,
                          previous_buffer, previous_buffer_count,
                          buffer, buffer_count);
-      consume(scanner);
+      consume(artifacts);
       break;
     }
 
