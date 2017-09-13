@@ -32,7 +32,8 @@ def recurse(uncompressed_buffer, recursion_prefix, depth):
         print("# %s\n" % be_scan.escape(uncompressed_buffer))
 
     # open a scanner
-    scanner = be_scan.scanner_t(scan_engine)
+    artifacts = be_scan.artifacts_t()
+    scanner = be_scan.scanner_t(scan_engine, artifacts)
     scanner.scan_setup(args.filename, recursion_prefix)
 
     # scan
@@ -42,7 +43,7 @@ def recurse(uncompressed_buffer, recursion_prefix, depth):
 
     # consume recursed artifacts
     while True:
-        artifact = scanner.get()
+        artifact = artifacts.get()
         if artifact.blank():
             break
 
@@ -88,7 +89,7 @@ def consume_top_level_artifacts(scanner):
 
     while True:
         # get cached artifact from queue
-        artifact = scanner.get()
+        artifact = artifacts.get()
         if artifact.blank():
             break
 
@@ -177,9 +178,12 @@ if __name__=="__main__":
     # runtime status
     file_reader.print_status(args.verbose)
 
-    # the top-level scanner
+    # the scan engine
     scan_engine = be_scan.scan_engine_t(selected_scanners)
-    scanner = be_scan.scanner_t(scan_engine)
+
+    # the top-level scanner
+    artifacts = be_scan.artifacts_t()
+    scanner = be_scan.scanner_t(scan_engine, artifacts)
     scanner.scan_setup(args.filename, "")
 
     # the uncompressor
