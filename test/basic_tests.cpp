@@ -117,7 +117,6 @@ void test_adjacency() {
   TEST_EQ(artifact.artifact_class, "email");
   TEST_EQ(artifact.offset, 0);
   TEST_EQ(be_scan::escape(artifact.artifact), be_scan::escape(std::string("a\0a\0a\0@\0b\0b\0.\0z\0w\0", 18)));
-//  TEST_EQ(artifact.context, std::string("a\0a\0a\0@\0b\0b\0.\0z\0w\0\0\0b\0b\0b\0@\0c\0c\0.\0", 34));
 
   artifact = artifacts.get();
   std::cout << "artifact: '" << be_scan::escape(artifact.artifact) << "'" << std::endl;
@@ -125,7 +124,6 @@ void test_adjacency() {
   TEST_EQ(artifact.artifact_class, "email");
   TEST_EQ(artifact.offset, 20);
   TEST_EQ(artifact.artifact, std::string("b\0b\0b\0@\0c\0c\0.\0z\0w\0", 18));
-//  TEST_EQ(artifact.context, std::string("a\0@\0b\0b\0.\0z\0w\0\0\0b\0b\0b\0@\0c\0c\0.\0z\0w\0", 34));
   TEST_EQ(be_scan::escape(artifact.context), be_scan::escape(std::string("a\0@\0b\0b\0.\0z\0w\0\0\0b\0b\0b\0@\0c\0c\0.\0z\0w\0\0", 35)));
 
   artifact = artifacts.get();
@@ -279,10 +277,6 @@ void test_email() {
   artifact = artifacts.get();
   //std::cout << "artifact: '" << be_scan::escape(artifact.artifact) << "'" << std::endl;
   //std::cout << "context: '" << be_scan::escape(artifact.context) << "'" << std::endl;
-
-// zz not so for lightgrep?
-//  TEST_EQ(be_scan::escape(artifact.artifact), be_scan::escape(std::string("r\x00u\x00" "b\x00y\x00" "e\x00" "a\x00p\x00" "e\x00n\x00@\x00h\x00o\x00t\x00m\x00" "a\x00i\x00l\x00.\x00" "c\x00o\x00m\x00", 42)));
-//  TEST_EQ(be_scan::escape(artifact.context), be_scan::escape(std::string("pen@hotmail.com\x00r\x00u\x00" "b\x00y\x00" "e\x00" "a\x00p\x00" "e\x00n\x00@\x00h\x00o\x00t\x00m\x00" "a\x00i\x00l\x00.\x00" "c\x00o\x00m\x00\x00\x00M\x00S\x00N\x00 \x00M\x00" "e\x00s\x00", 74)));
 
   artifact = artifacts.get();
   //std::cout << "artifact: '" << be_scan::escape(artifact.artifact) << "'" << std::endl;
