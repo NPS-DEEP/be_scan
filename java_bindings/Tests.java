@@ -105,6 +105,39 @@ public final class Tests {
                                             "a\0b".getBytes()), "a\\x00b");
   }
 
+  private static void testCustomRegex() {
+
+    // NOTE: Beware using getBytes() because it adds additional bytes for
+    // negative characters.  Use with positive characters only.
+    final byte[] emptyBuffer = "".getBytes();
+    final byte[] buffer = "aaaabbbbcccc".getBytes();
+
+    edu.nps.deep.be_scan.be_scan_jni.addCustomRegexPattern("aaa");
+    edu.nps.deep.be_scan.be_scan_jni.clearCustomRegexPatterns();
+    edu.nps.deep.be_scan.be_scan_jni.addCustomRegexPattern("bbb");
+    edu.nps.deep.be_scan.ScanEngine scanEngine =
+                         new edu.nps.deep.be_scan.ScanEngine("custom_regex");
+    testEquals(scanEngine.getStatus(), "");
+    edu.nps.deep.be_scan.be_scan_jni.clearCustomRegexPatterns();
+
+    edu.nps.deep.be_scan.Artifacts artifacts =
+                             new edu.nps.deep.be_scan.Artifacts();
+    edu.nps.deep.be_scan.Scanner scanner =
+        new edu.nps.deep.be_scan.Scanner(scanEngine, artifacts);
+
+    scanner.scanSetup("", "");
+    String status = scanner.scanFinal(0, emptyBuffer, buffer);
+    testEquals(status, "");
+
+    // check artifact interfaces
+    edu.nps.deep.be_scan.Artifact artifact;
+    artifact = artifacts.get();
+    testEquals(artifact.getArtifactClass(), "custom_regex");
+    testEquals(artifact.getOffset(), 4);
+    testEquals(artifact.javaArtifact(), "bbb".getBytes());
+    testEquals(artifacts.empty(), true);
+  }
+
   private static void testUncompressor() {
     edu.nps.deep.be_scan.Uncompressor uncompressor =
                                new edu.nps.deep.be_scan.Uncompressor();
@@ -124,6 +157,7 @@ public final class Tests {
     testAvailableScanners();
     testBuffer();
     testEscape();
+    testCustomRegex();
     testUncompressor();
   }
 }

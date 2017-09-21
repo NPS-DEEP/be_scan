@@ -47,7 +47,7 @@ namespace be_scan {
 
   // available scanners
   std::string available_scanners() {
-    return "email uncompression";
+    return "email uncompression custom_regex";
   }
 
   // add regex for all requested scanners
@@ -59,17 +59,29 @@ namespace be_scan {
       return "No scanners requested.";
     }
     for (auto it=scanners.begin(); it != scanners.end(); ++it) {
+
+      // email
       if (*it == "email") {
         status = email::add_email_regex(lw_scanner_program);
         if (status != "") {
           return status;
         }
+
+      // uncompression
       } else if (*it == "uncompression") {
         status = uncompression::add_uncompression_regex(lw_scanner_program);
         if (status != "") {
           return status;
         }
 
+      // custom_regex
+      } else if (*it == "custom_regex") {
+        status = custom_regex::add_custom_regex(lw_scanner_program);
+        if (status != "") {
+          return status;
+        }
+
+      // not valid
       } else {
         // scanner name not identified
         return "Scanner '" + *it + "' not identified.";

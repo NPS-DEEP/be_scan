@@ -44,8 +44,6 @@ namespace email {
   // callback functions
   void emailHitHandler(const uint64_t start, const uint64_t size,
                        void* p_scanner_data);
-  void emailUTF16LEHitHandler(const uint64_t start, const uint64_t size,
-                              void* p_scanner_data);
   // regex
   std::string add_email_regex(lw::lw_scanner_program_t& lw_scanner_program);
 }
@@ -60,6 +58,15 @@ namespace uncompression {
   // regex
   std::string add_uncompression_regex(
                               lw::lw_scanner_program_t& lw_scanner_program);
+}
+
+// custom regex
+namespace custom_regex {
+  // callback functions
+  void custom_regexHitHandler(const uint64_t start, const uint64_t size,
+                              void* p_scanner_data);
+  // regex
+  std::string add_custom_regex(lw::lw_scanner_program_t& lw_scanner_program);
 }
 
 #endif

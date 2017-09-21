@@ -411,6 +411,27 @@ namespace be_scan {
    *   Escaped output.
    */
   std::string javaEscape(const char* const buffer, size_t buffer_size);
+
+  /**
+   * Add a custom regex pattern to the custom scanner.  To keep the
+   * interface simple, this list is global and cannot be cleared.  The
+   * custom_regex scanner will search for your custom patterns using both
+   * "UTF-8" and "UTF-16LE" character encoding formats.
+   *
+   * To maintain good performance, please avoid the unbounded "S*" repetition
+   * operator in your regular expressions because really long matches cause
+   * slow performance.  Please instead use the bounded "S{n,m}" repetition
+   * operator.
+   *
+   * Parameters:
+   *   pattern - Your custom regular expression pattern to scan for.
+   */
+  void add_custom_regex_pattern(const std::string& pattern);
+
+  /**
+   * Clear all added custom regex patterns.
+   */
+  void clear_custom_regex_patterns();
 }
 
 #endif

@@ -27,6 +27,7 @@ BE_SCAN_INCS = \
 	escape.cpp \
 	scan_email.cpp \
 	scan_uncompression.cpp \
+	scan_custom_regex.cpp \
 	scanner_data.hpp \
 	scanners.cpp \
 	scanners.hpp \

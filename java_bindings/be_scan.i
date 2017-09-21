@@ -6,6 +6,8 @@
 // use Java camelCase instead of underscore_case
 // http://stackoverflow.com/questions/8440115/how-to-rename-swig-generated-proxy-java-classes-created-from-c-structures/8444962#comment10444840_8444962
 %rename (availableScanners) available_scanners;
+%rename (addCustomRegexPattern) add_custom_regex_pattern;
+%rename (clearCustomRegexPatterns) clear_custom_regex_patterns;
 %rename (ScanEngine) scan_engine_t;
 %rename (Scanner) scanner_t;
 %rename (scanSetup) scan_setup;
@@ -21,6 +23,8 @@
 %rename (toString) to_string;
 %rename (Uncompressed) uncompressed_t;
 %rename (Uncompressor) uncompressor_t;
+%rename (badAlloc) bad_alloc;
+
 %rename (badAlloc) bad_alloc;
 
 // C Strings need to return byte[] with \0 bytes intact.

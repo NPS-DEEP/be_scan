@@ -96,12 +96,34 @@ def test_uncompressor():
     uncompressed = uncompressor.uncompress("", 0)
     str_equals(uncompressed.status, "ERROR: uncompressor scratch buffer has been closed")
 
+def test_custom_regex():
+    buf = "aaaabbbbcccc"
+    be_scan.add_custom_regex_pattern("aaa")
+    be_scan.clear_custom_regex_patterns()
+    be_scan.add_custom_regex_pattern("bbb")
+    scan_engine = be_scan.scan_engine_t("custom_regex")
+    str_equals(scan_engine.status, "")
+    be_scan.clear_custom_regex_patterns()
+    artifacts = be_scan.artifacts_t()
+    scanner = be_scan.scanner_t(scan_engine, artifacts)
+    scanner.scan_setup("", "")
+    status = scanner.scan_final(0, "", buf)
+    str_equals(status, "")
+
+    # validate artifact
+    artifact = artifacts.get()
+    str_equals(artifact.artifact_class, "custom_regex")
+    str_equals(artifact.offset, 4)
+    str_equals(artifact.artifact, "bbb")
+    bool_equals(artifacts.empty(), True)
+
 # main
 if __name__=="__main__":
     test_environment()
     test_version()
     test_buffer()
     test_escape()
+    test_custom_regex()
     test_uncompressor()
 
     print("Done.")

@@ -291,6 +291,34 @@ void test_email() {
   TEST_EQ(artifact.artifact, "");
 }
 
+void test_custom_regex() {
+  be_scan::add_custom_regex_pattern("aaa");
+  be_scan::clear_custom_regex_patterns();
+  be_scan::add_custom_regex_pattern("bbb");
+  be_scan::add_custom_regex_pattern("ccc");
+  be_scan::scan_engine_t scan_engine("custom_regex");
+  TEST_EQ(scan_engine.status, "");
+  be_scan::clear_custom_regex_patterns();
+  be_scan::artifacts_t artifacts;
+  be_scan::scanner_t scanner(scan_engine, &artifacts);
+  scanner.scan_setup("", "");
+  std::string string("aaaabbbbccccdddd\x00" "a\x00" "a\x00" "a\x00" "a"
+            "\x00" "b\x00" "b\x00" "b\x00" "b\x00"
+            "c\x00" "c\x00" "c\x00" "c\x00" "d\x00" "d\x00" "d\x00" "d", 16*3);
+  TEST_EQ(scanner.scan_final(0, nullptr, 0, string.c_str(), string.size()), "");
+  be_scan::artifact_t artifact;
+  artifact = artifacts.get();
+  TEST_EQ(artifact.artifact_class, "custom_regex");
+  TEST_EQ(artifact.artifact, "bbb");
+  artifact = artifacts.get();
+  TEST_EQ(artifact.artifact, "ccc");
+  artifact = artifacts.get();
+  TEST_EQ(artifact.artifact, std::string("b\x00" "b\x00" "b\x00", 6));
+  artifact = artifacts.get();
+  TEST_EQ(artifact.artifact, std::string("c\x00" "c\x00" "c\x00", 6));
+  TEST_EQ(artifacts.empty(), true);
+}
+
 void test_uncompressor() {
   // very lightweight test
   be_scan::uncompressor_t uncompressor;
@@ -317,6 +345,7 @@ int main(int argc, char* argv[]) {
   test_streaming();
   test_fence();
   test_email();
+  test_custom_regex();
   test_uncompressor();
 
   // done
