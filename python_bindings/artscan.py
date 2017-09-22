@@ -6,6 +6,18 @@ import md5
 import be_scan
 from file_reader import FileReader
 
+# load_custom_regex
+def load_custom_regex(regex_file):
+    if not os.path.exists(regex_file):
+        print("Error: custom_regex file does not exist.")
+        exit(1)
+    with open(regex_file, 'r') as f:
+        for regex_pattern in f:
+            print("pattern '%s'" % regex_pattern)
+            regex_pattern = regex_pattern.rstrip("\n")
+            print("pattern stripped '%s'" % regex_pattern)
+            be_scan.add_custom_regex_pattern(regex_pattern)
+
 # set artifact text for compression artifact
 def set_compression_text(artifact, uncompressed):
     if uncompressed.status:
@@ -166,11 +178,18 @@ if __name__=="__main__":
     parser.add_argument("-v", "--verbose",
                         help="show runtime status, 0=none, 1=scan status, 2=scan status plus all the bytes being scanned",
                         default=0, type=int, choices=[0, 1, 2])
+    parser.add_argument("-g", "--custom_regex_file",
+                        help="a file containing custom regular expressions to grep for",
+                        type=str)
 
     # args
     args = parser.parse_args()
     selected_scanners = args.enable
     MAX_RECURSION_DEPTH = args.recursion_depth
+
+    # load custom regex
+    if args.custom_regex_file:
+        load_custom_regex(args.custom_regex_file)
 
     # file reader
     file_reader = FileReader(args.filename, args.begin, args.end)
