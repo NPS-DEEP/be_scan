@@ -51,9 +51,7 @@ def load_custom_regex(regex_file):
         exit(1)
     with open(regex_file, 'r') as f:
         for regex_pattern in f:
-            print("pattern '%s'" % regex_pattern)
             regex_pattern = regex_pattern.rstrip("\n")
-            print("pattern stripped '%s'" % regex_pattern)
             be_scan.add_custom_regex_pattern(regex_pattern)
 
 # set artifact text for compression artifact
