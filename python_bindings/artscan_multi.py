@@ -13,9 +13,11 @@ from file_reader import FileReader
 # get_args
 def get_args():
     # argument parser
-    parser = ArgumentParser(prog='artscan_multi.py', description=
-                  "Scan a file for forensic artifacts, multiple processes.")
-    parser.add_argument("filename", help="file to scan", type=str)
+    parser = ArgumentParser(prog='artscan_multi.py',
+                            description= "Scan a file for forensic artifacts using multiple processes and recursion.")
+
+    # requisite file
+    parser.add_argument("filename", help="the file to scan", type=str)
 
     # enabled scanners
     default_scanners = be_scan.available_scanners()
@@ -33,8 +35,26 @@ def get_args():
                         help="show runtime status, 0=none, 1=scan status, 2=scan status plus all the bytes being scanned",
                         default=0, type=int, choices=[0, 1, 2])
 
+    # custom regex
+    parser.add_argument("-c", "--custom_regex_file",
+                        help="a file containing custom regular expressions to scan for",
+                        type=str)
+
+
     # return args
     return parser.parse_args()
+
+# load_custom_regex
+def load_custom_regex(regex_file):
+    if not os.path.exists(regex_file):
+        print("Error: custom_regex file does not exist.")
+        exit(1)
+    with open(regex_file, 'r') as f:
+        for regex_pattern in f:
+            print("pattern '%s'" % regex_pattern)
+            regex_pattern = regex_pattern.rstrip("\n")
+            print("pattern stripped '%s'" % regex_pattern)
+            be_scan.add_custom_regex_pattern(regex_pattern)
 
 # set artifact text for compression artifact
 def set_compression_text(artifact, uncompressed):
@@ -219,6 +239,10 @@ def scan_range(filename, offset, page_size, margin_size, max_depth, verbose):
 if __name__=="__main__":
 
     args = get_args()
+
+    # load custom regex
+    if args.custom_regex_file:
+        load_custom_regex(args.custom_regex_file)
 
     # file size
     filesize = os.stat(args.filename).st_size
