@@ -1,10 +1,47 @@
 #!/usr/bin/env python
 
+# To install futures for Python2.7, try something like:
+# sudo /usr/bin/pip2.7 install futures
+
 from argparse import ArgumentParser
 import os
+from concurrent import futures
 import md5
 import be_scan
-from file_reader import FileReader
+
+# get_args
+def get_args():
+    # argument parser
+    parser = ArgumentParser(prog='artscan.py',
+                            description= "Scan a file for forensic artifacts using multiple processes and recursion.")
+
+    # requisite file
+    parser.add_argument("filename", help="the file to scan", type=str)
+
+    # enabled scanners
+    default_scanners = be_scan.available_scanners()
+    parser.add_argument("-e", "--enabled_scanners",
+                        help="enable specific scanners, default: '%s'" %
+                        default_scanners, default = default_scanners, type=str)
+
+    # recursion depth
+    parser.add_argument("-d", "--recursion_depth",
+                        help="recursively scan into decompressed regions",
+                        default=7, type=int, choices=[1, 2, 3, 4, 5, 6, 7])
+
+    # verbosity
+    parser.add_argument("-v", "--verbose",
+                        help="show runtime status, 0=none, 1=scan status, 2=scan status plus all the bytes being scanned",
+                        default=0, type=int, choices=[0, 1, 2])
+
+    # custom regex
+    parser.add_argument("-c", "--custom_regex_file",
+                        help="a file containing custom regular expressions to scan for",
+                        type=str)
+
+
+    # return args
+    return parser.parse_args()
 
 # load_custom_regex
 def load_custom_regex(regex_file):
@@ -13,9 +50,7 @@ def load_custom_regex(regex_file):
         exit(1)
     with open(regex_file, 'r') as f:
         for regex_pattern in f:
-            print("pattern '%s'" % regex_pattern)
             regex_pattern = regex_pattern.rstrip("\n")
-            print("pattern stripped '%s'" % regex_pattern)
             be_scan.add_custom_regex_pattern(regex_pattern)
 
 # set artifact text for compression artifact
@@ -33,14 +68,15 @@ def set_compression_text(artifact, uncompressed):
         artifact.context = "%d" % len(uncompressed.buffer)
 
 # recurse
-def recurse(uncompressed_buffer, recursion_prefix, depth):
+def recurse(uncompressed_buffer, recursion_prefix, depth, formatted_artifacts,
+            uncompressor, max_depth, verbose):
     """Recursively scan and uncompress until max depth."""
 
     # runtime status
-    if args.verbose >= 1:
+    if verbose >= 1:
         print("# Processing %s count %d depth %d..." % (recursion_prefix,
                                         len(uncompressed_buffer), depth))
-    if args.verbose >= 2:
+    if verbose >= 2:
         print("# %s\n" % be_scan.escape(uncompressed_buffer))
 
     # open a scanner
@@ -54,10 +90,8 @@ def recurse(uncompressed_buffer, recursion_prefix, depth):
         raise ValueError(status)
 
     # consume recursed artifacts
-    while True:
+    while not artifacts.empty():
         artifact = artifacts.get()
-        if artifact.blank():
-            break
 
         # prepare for zip or gzip
         if artifact.artifact_class == "zip" or \
@@ -79,13 +113,13 @@ def recurse(uncompressed_buffer, recursion_prefix, depth):
         # prepare for other artifact types as needed
         # none.
 
-        # print the artifact
-        print(artifact.to_string())
-
+        # consume this artifact
+        formatted_artifacts.append(artifact.to_string())
+ 
         # manage recursion
         if (artifact.artifact_class == "zip" or \
                         artifact.artifact_class == "gzip") and \
-                        depth <= MAX_RECURSION_DEPTH:
+                        depth <= max_depth:
 
             # calculate next recursion prefix
             next_recursion_prefix = "%s-%d-%s" % (
@@ -94,147 +128,146 @@ def recurse(uncompressed_buffer, recursion_prefix, depth):
                            artifact.artifact_class.upper())
 
             # recurse
-            recurse(uncompressed.buffer, next_recursion_prefix, depth + 1)
+            recurse(uncompressed.buffer, next_recursion_prefix, depth + 1,
+                    uncompressor, max_depth, verbose)
 
-# consume top-level artifacts
-def consume_top_level_artifacts(scanner):
+# scan_range
+def scan_range(filename, offset, page_size, margin_size, max_depth, verbose):
+    with open(filename, 'rb') as f:
+        f.seek(offset)
+        buffer1 = f.read(page_size)
+        buffer2 = f.read(margin_size)
 
-    while True:
-        # get cached artifact from queue
-        artifact = artifacts.get()
-        if artifact.blank():
-            break
+        # print runtime status
+        if verbose >= 1:
+            # print buffer offset
+            print("# File: '%s', offset: %d, size: %d, overflow size: %d" % (
+                      filename, offset, len(buffer1), len(buffer2)))
+        if verbose >= 2:
+            # print buffer contents
+            print("# previous: '%s'\nCurrent: '%s'" %
+                           (be_scan.escape(buffer1),
+                            be_scan.escape(buffer2)))
 
-        # prepare for zip or gzip
-        if artifact.artifact_class == "zip" or \
-                        artifact.artifact_class == "gzip":
+        # the uncompressor this process will use, if needed
+        uncompressor = None
 
-            # uncompress
-            uncompressed = uncompressor.uncompress(file_reader.chunk,
-                              artifact.offset - file_reader.stream_offset)
+        # the formatted artifacts
+        formatted_artifacts = list()
 
-            # no error and nothing uncompressed so disregard this artifact
-            if not uncompressed.status and not uncompressed.buffer:
-                continue
+        # create scanner
+        artifacts = be_scan.artifacts_t()
+        scanner = be_scan.scanner_t(scan_engine, artifacts)
+        scanner.scan_setup(args.filename, "")
 
-            # set artifact text for this uncompression
-            set_compression_text(artifact, uncompressed)
+        # scan buffer
+        status = scanner.scan_stream(offset, "", buffer1)
+        if status:
+            raise ValueError(status)
 
-            # skip popular useless uncompressed data
-            if artifact.artifact == "8da7a0b0144fc58332b03e90aaf7ba25":
-                continue
+        # scan fence
+        status = scanner.scan_fence_final(offset, buffer1, buffer2)
+        if status:
+            raise ValueError(status)
 
-        # prepare for other artifact types as needed
-        # none.
+        # consume
+        while not artifacts.empty():
+            artifact = artifacts.get()
 
-        # print the artifact
-        print(artifact.to_string())
+            # check for compression
+            if artifact.artifact_class == "zip" or \
+                            artifact.artifact_class == "gzip":
 
-        # manage recursion
-        if (artifact.artifact_class == "zip" or \
+                # get uncompressor ready
+                if uncompressor == None:
+                    uncompressor = be_scan.uncompressor_t()
+
+                # get buffer to uncompress
+                buffer1_offset = artifact.offset - offset
+                if buffer1_offset + margin_size > len(buffer1):
+                    print("scan_range.a buffer1 offset: %d" % buffer1_offset)
+                    # use margin size
+                    buffer3 = buffer1[buffer1_offset:] + buffer2
+
+                    # uncompress
+                    uncompressed = uncompressor.uncompress(buffer3, 0)
+
+                else:
+                    # use buffer1
+                    print("scan_range.b buffer1 offset: %d" % buffer1_offset)
+                    uncompressed = uncompressor.uncompress(buffer1,
+                                                       buffer1_offset)
+
+                # no error and nothing uncompressed so disregard this artifact
+                if not uncompressed.status and not uncompressed.buffer:
+                    continue
+
+                # set artifact text for this uncompression
+                set_compression_text(artifact, uncompressed)
+
+                # skip popular useless uncompressed data
+                if artifact.artifact == "8da7a0b0144fc58332b03e90aaf7ba25":
+                    continue
+
+            # prepare for other artifact types as needed
+            # none.
+
+            # consume this artifact
+            formatted_artifacts.append(artifact.to_string())
+ 
+            # manage recursion
+            if (artifact.artifact_class == "zip" or \
                         artifact.artifact_class == "gzip") and \
-                        MAX_RECURSION_DEPTH >= 1:
+                        max_depth >= 1:
 
-            # calculate recursion prefix for first recursion depth
-            next_recursion_prefix = "%d-%s" % (
+                # calculate recursion prefix for first recursion depth
+                next_recursion_prefix = "%d-%s" % (
                            artifact.offset,
                            artifact.artifact_class.upper())
 
-            # recurse
-            recurse(uncompressed.buffer, next_recursion_prefix, 1)
+                # recurse
+                recurse(uncompressed.buffer, next_recursion_prefix, 1,
+                        uncompressor, formatted_artifacts, max_depth, verbose)
+
+        # return the accumulated list of formatted artifacts
+        return formatted_artifacts
 
 # main
 if __name__=="__main__":
 
-    # parse filename
-    parser = ArgumentParser(prog='artscan_all.py',
-             description="Scan a file for forensic artifacts.")
-    parser.add_argument("filename", help="file to scan", type=str)
-
-    # parse scan range and scan interval
-    parser.add_argument("-b", "--begin",
-                        help="the offset in the file to begin scanning",
-                        default=0, type=int)
-    parser.add_argument("-e", "--end",
-                        help="the offset in the file to end scanning",
-                        default=0, type=int)
-    parser.add_argument("-p", "--scan_partition_interval",
-                        help="the increment size of the scan interval",
-                        default=2**27, type=int)  # 2^27 = 128MiB = 134217728=
-
-    # uncompression
-    parser.add_argument("-c", "--min_compressed_size",
-                        help="the minimum size of the compression buffer",
-                        default=2**21, type=int)  # 2^21 = 2MiB = 2097152
-
-    # parse scanner selection, depth, verbose
-    default_scanners = be_scan.available_scanners()
-    parser.add_argument("-s", "--enable",
-                        help="enable specific scanners, default: '%s'" %
-                        default_scanners, default = default_scanners, type=str)
-    parser.add_argument("-r", "--recursion_depth",
-                        help="recursively scan into decompressed regions",
-                        default=7, type=int, choices=[1, 2, 3, 4, 5, 6, 7])
-    parser.add_argument("-v", "--verbose",
-                        help="show runtime status, 0=none, 1=scan status, 2=scan status plus all the bytes being scanned",
-                        default=0, type=int, choices=[0, 1, 2])
-    parser.add_argument("-g", "--custom_regex_file",
-                        help="a file containing custom regular expressions to grep for",
-                        type=str)
-
-    # args
-    args = parser.parse_args()
-    selected_scanners = args.enable
-    MAX_RECURSION_DEPTH = args.recursion_depth
+    args = get_args()
 
     # load custom regex
     if args.custom_regex_file:
         load_custom_regex(args.custom_regex_file)
 
-    # file reader
-    file_reader = FileReader(args.filename, args.begin, args.end)
+    # file size
+    filesize = os.stat(args.filename).st_size
 
-    # runtime status
-    file_reader.print_status(args.verbose)
+    # step
+    page_size = 2**27     # 2^27 = 128MiB = 134217728
+    margin_size = 2**20   # 2^20 = 1MiB = 1,048,576
 
-    # the scan engine
-    scan_engine = be_scan.scan_engine_t(selected_scanners)
+    # the global scan engine
+    scan_engine = be_scan.scan_engine_t(args.enabled_scanners)
 
-    # the top-level scanner
-    artifacts = be_scan.artifacts_t()
-    scanner = be_scan.scanner_t(scan_engine, artifacts)
-    scanner.scan_setup(args.filename, "")
+    # parameters for scan_range
+    range_parameters = list()
+    for i in range(0, filesize, page_size):
+        range_parameters.append((args.filename, i, page_size, margin_size,
+                                 args.recursion_depth, args.verbose))
 
-    # the uncompressor
-    uncompressor = be_scan.uncompressor_t()
+    # run the scan_range job on each parameter tuple
+    executor = futures.ProcessPoolExecutor() # default to use all CPUs
+    # future_objects = executor.submit(scan_range, range_parameters)
+    future_objects = [executor.submit(scan_range, *range_parameter_tuple)
+                      for range_parameter_tuple in range_parameters]
 
-    # scan buffer intervals from the file reader
-    while file_reader.more():
-
-        # scan stream
-        status = scanner.scan_stream(file_reader.stream_offset,
-                                     file_reader.previous,
-                                     file_reader.current)
-        if status:
-            raise ValueError(status)
-
-        consume_top_level_artifacts(scanner)
-
-        # next
-        file_reader.read()
-
-        # runtime status
-        file_reader.print_status(args.verbose)
-
-    # capture any remaining open artifacts
-    status = scanner.scan_final(file_reader.stream_offset,
-                                file_reader.previous,
-                                file_reader.current)
-    if status:
-        raise ValueError(status)
-
-    consume_top_level_artifacts(scanner)
-
+    # asynchronously wait for and consume formatted artifacts
+    for future in futures.as_completed(future_objects):
+        formatted_artifacts = future.result()
+        for formatted_artifact in formatted_artifacts:
+            print(formatted_artifact)
 
     print("# Done.")
 
